@@ -36,8 +36,6 @@ static void spectrum_draw_cb(lv_event_t * e) {
     line_dsc.width = 2;
     
     if (spectrum_buf) {
-        printf("-- draw --\n");
-
         lv_coord_t w = lv_obj_get_width(obj);
         lv_coord_t h = lv_obj_get_height(obj);
     

@@ -17,12 +17,12 @@
 static unsigned int     nfft = 512;
 static iirfilt_cccf     dc_block;
 
-static uint8_t          spectrum_factor = 4;
+static uint8_t          spectrum_factor = 1;
 static firdecim_crcf    spectrum_decim;
 
 static spgramcf         spectrum_sg;
 static float            *spectrum_psd;
-static uint8_t          spectrum_fps_ms = (1000 / 10);
+static uint8_t          spectrum_fps_ms = (1000 / 25);
 static uint64_t         spectrum_time;
 static float complex    *spectrum_dec_buf;
 
@@ -37,10 +37,13 @@ static float complex    *buf_filtered;
 void dsp_init() {
     dc_block = iirfilt_cccf_create_dc_blocker(0.01f);
 
-    spectrum_decim = firdecim_crcf_create_prototype(LIQUID_FIRFILT_RCOS, spectrum_factor, 2, 0.1f, 0.0f);
+    if (spectrum_factor > 1) {
+        spectrum_decim = firdecim_crcf_create_prototype(LIQUID_FIRFILT_RCOS, spectrum_factor, 2, 0.1f, 0.0f);
+        spectrum_dec_buf = (float complex *) malloc(nfft * sizeof(float) / spectrum_factor);
+    }
+    
     spectrum_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
-    spectrum_dec_buf = (float complex *) malloc(nfft * sizeof(float) / spectrum_factor);
 
     waterfall_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     waterfall_psd = (float *) malloc(nfft * sizeof(float));

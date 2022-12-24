@@ -32,13 +32,10 @@ static void * radio_thread(void *arg) {
         uint32_t    d = now_time - prev_time;
 
         if (x6100_flow_read(pack)) {
-            printf("pack %d\n", d);
-        
             prev_time = now_time;
             dsp_samples(pack->samples, 512);
         } else {
             if (d > FLOW_RESTART_TIMOUT) {
-                printf("flow restarted %d\n", d);
                 prev_time = now_time;
                 x6100_flow_restart();
             }
@@ -54,13 +51,10 @@ void radio_tick() {
     uint32_t    d = now_time - prev_time;
 
     if (x6100_flow_read(pack)) {
-        printf("pack %d\n", d);
-        
         prev_time = now_time;
         dsp_samples(pack->samples, 512);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {
-            printf("%i flow restarted\n", d);
             prev_time = now_time;
             x6100_flow_restart();
         }
