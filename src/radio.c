@@ -11,6 +11,8 @@
 #include <pthread.h>
 #include <string.h>
 
+#include "lvgl/lvgl.h"
+
 #include <aether_radio/x6100_control/control.h>
 #include <aether_radio/x6100_control/low/gpio.h>
 #include <aether_radio/x6100_control/low/flow.h>
@@ -25,28 +27,7 @@ static x6100_flow_t *pack;
 
 static uint64_t     prev_time;
 
-#ifdef RADIO_THREAD
-static void * radio_thread(void *arg) { 
-    while (true) {
-        uint64_t    now_time = get_time();
-        uint32_t    d = now_time - prev_time;
-
-        if (x6100_flow_read(pack)) {
-            prev_time = now_time;
-            dsp_samples(pack->samples, 512);
-        } else {
-            if (d > FLOW_RESTART_TIMOUT) {
-                prev_time = now_time;
-                x6100_flow_restart();
-            }
-
-            usleep(5000);
-        }
-    }
-}
-#endif
-
-void radio_tick() {
+bool radio_tick() {
     uint64_t    now_time = get_time();
     uint32_t    d = now_time - prev_time;
 
@@ -55,11 +36,25 @@ void radio_tick() {
         dsp_samples(pack->samples, 512);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {
+            LV_LOG_WARN("Flow reset");
             prev_time = now_time;
             x6100_flow_restart();
+            dsp_reset();
+        }
+        return true;
+    }
+    return false;
+}
+
+#ifdef RADIO_THREAD
+static void * radio_thread(void *arg) { 
+    while (true) {
+        if (radio_tick()) {
+            usleep(5000);
         }
     }
 }
+#endif
 
 void radio_init() {
     if (!x6100_control_init())
@@ -78,7 +73,9 @@ void radio_init() {
     x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb_dig);
     x6100_control_vfo_agc_set(X6100_VFO_A, x6100_agc_fast);
     
-    x6100_control_vfo_freq_set(X6100_VFO_A, 7074000);
+//    x6100_control_vfo_freq_set(X6100_VFO_A, 7074000);
+    x6100_control_vfo_freq_set(X6100_VFO_A, 10100000);
+//    x6100_control_vfo_freq_set(X6100_VFO_A, 14074000);
 
     prev_time = get_time();
 

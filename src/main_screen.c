@@ -13,6 +13,7 @@
 #include "lvgl/lvgl.h"
 #include "styles.h"
 #include "spectrum.h"
+#include "waterfall.h"
 
 static uint8_t  pad = 10;
 static uint16_t spectrum_height = (480 / 3);
@@ -24,25 +25,6 @@ static lv_obj_t *spectrum;
 static lv_obj_t *freq[5];
 static lv_obj_t *waterfall;
 static lv_obj_t *btn[5];
-
-static void calc_gradient() {
-    lv_grad_dsc_t grad;
-
-    grad.dir = LV_GRAD_DIR_HOR;
-    grad.stops_count = 5;
-
-    grad.stops[0].color = lv_color_hex(0x000000);
-    grad.stops[1].color = lv_color_hex(0x0000FF);
-    grad.stops[2].color = lv_color_hex(0xFF0000);
-    grad.stops[3].color = lv_color_hex(0xFFFF00);
-    grad.stops[4].color = lv_color_hex(0xFFFFFF);
-    
-    grad.stops[0].frac  = 0;
-    grad.stops[1].frac  = 64 + 30;
-    grad.stops[2].frac  = 128 + 30;
-    grad.stops[3].frac  = 196 + 30;
-    grad.stops[4].frac  = 255;
-}
 
 void main_screen() {
     uint16_t y = pad;
@@ -88,12 +70,11 @@ void main_screen() {
     
     y += freq_height;
 
-    waterfall = lv_obj_create(lv_scr_act());
-    lv_obj_add_style(waterfall, &waterfall_style, 0);
+    waterfall = waterfall_init();
     
     lv_obj_set_y(waterfall, y);
-    lv_obj_set_height(waterfall, 480 - y - pad);
-
+    waterfall_set_height(480 - y - pad);
+    
     y = 480 - btn_height;
     
     uint16_t x = 0;

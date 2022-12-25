@@ -1,4 +1,4 @@
-add_executable(${PROJECT_NAME} main.c mouse_cursor_icon.c main_screen.c styles.c spectrum.c radio.c dsp.c util.c)
+add_executable(${PROJECT_NAME} main.c mouse_cursor_icon.c main_screen.c styles.c spectrum.c radio.c dsp.c util.c waterfall.c)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

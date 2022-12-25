@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #define RADIO_THREAD
 
 void radio_init();
-void radio_tick();
+bool radio_tick();

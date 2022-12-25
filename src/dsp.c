@@ -10,6 +10,7 @@
 
 #include "dsp.h"
 #include "spectrum.h"
+#include "waterfall.h"
 #include "util.h"
 
 #define FIR_LEN 21
@@ -22,13 +23,13 @@ static firdecim_crcf    spectrum_decim;
 
 static spgramcf         spectrum_sg;
 static float            *spectrum_psd;
-static uint8_t          spectrum_fps_ms = (1000 / 25);
+static uint8_t          spectrum_fps_ms = (1000 / 15);
 static uint64_t         spectrum_time;
 static float complex    *spectrum_dec_buf;
 
 static spgramcf         waterfall_sg;
 static float            *waterfall_psd;
-static uint8_t          waterfall_fps_ms = (1000 / 10);
+static uint8_t          waterfall_fps_ms = (1000 / 30);
 static uint64_t         waterfall_time;
 
 static float complex    *buf;
@@ -55,6 +56,12 @@ void dsp_init() {
     waterfall_time = get_time();
 }
 
+void dsp_reset() {
+    iirfilt_cccf_reset(dc_block);
+    spgramcf_reset(spectrum_sg);
+    spgramcf_reset(waterfall_sg);
+}
+
 void dsp_samples(float complex *buf_samples, uint16_t size) {
     uint64_t now = get_time();
 
@@ -76,15 +83,13 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
         spectrum_time = now;
     }
 
-    /*
     spgramcf_write(waterfall_sg, buf_filtered, size);
     spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
     if (now - waterfall_time > waterfall_fps_ms) {
-        spectrum_data(spectrum_psd, nfft);
+        waterfall_data(waterfall_psd, nfft);
         spgramcf_reset(waterfall_sg);
         
         waterfall_time = now;
     }
-    */
 }

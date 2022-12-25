@@ -14,3 +14,4 @@
 
 void dsp_init();
 void dsp_samples(float complex *buf_samples, uint16_t size);
+void dsp_reset();
