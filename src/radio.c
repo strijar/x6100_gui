@@ -20,12 +20,14 @@
 #include "util.h"
 #include "radio.h"
 #include "dsp.h"
+#include "main_screen.h"
 
 #define FLOW_RESTART_TIMOUT 50
 
 static x6100_flow_t *pack;
 
 static uint64_t     prev_time;
+static uint64_t     freq;
 
 bool radio_tick() {
     uint64_t    now_time = get_time();
@@ -72,11 +74,8 @@ void radio_init() {
 
     x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb_dig);
     x6100_control_vfo_agc_set(X6100_VFO_A, x6100_agc_fast);
+    x6100_control_vfo_pre_set(X6100_VFO_A, x6100_pre_off);
     
-//    x6100_control_vfo_freq_set(X6100_VFO_A, 7074000);
-    x6100_control_vfo_freq_set(X6100_VFO_A, 10100000);
-//    x6100_control_vfo_freq_set(X6100_VFO_A, 14074000);
-
     prev_time = get_time();
 
 #ifdef RADIO_THREAD
@@ -85,4 +84,16 @@ void radio_init() {
     pthread_create(&thread, NULL, radio_thread, NULL);
     pthread_detach(thread);
 #endif
+}
+
+void radio_set_freq(uint64_t f) {
+    freq = f;
+    
+    x6100_control_vfo_freq_set(X6100_VFO_A, f);
+    main_screen_set_freq(f);
+}
+
+void radio_change_freq(int32_t df) {
+    freq += df;
+    radio_set_freq(freq);
 }

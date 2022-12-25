@@ -11,3 +11,4 @@
 #include <stdint.h>
 
 uint64_t get_time();
+void split_freq(uint64_t freq, uint16_t *mhz, uint16_t *khz, uint16_t *hz);

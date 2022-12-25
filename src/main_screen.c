@@ -14,6 +14,9 @@
 #include "styles.h"
 #include "spectrum.h"
 #include "waterfall.h"
+#include "util.h"
+#include "radio.h"
+#include "main.h"
 
 static uint8_t  pad = 10;
 static uint16_t spectrum_height = (480 / 3);
@@ -22,9 +25,30 @@ static uint8_t  btn_height = 54;
 static uint8_t  over = 30;
 
 static lv_obj_t *spectrum;
-static lv_obj_t *freq[5];
+static lv_obj_t *freq[3];
 static lv_obj_t *waterfall;
 static lv_obj_t *btn[5];
+
+void main_screen_set_freq(uint64_t f) {
+    uint16_t    mhz, khz, hz;
+
+#ifdef RADIO_THREAD
+    lv_lock();
+#endif
+
+    split_freq(f - 50000, &mhz, &khz, &hz);
+    lv_label_set_text_fmt(freq[0], "%i.%03i", mhz, khz);
+
+    split_freq(f, &mhz, &khz, &hz);
+    lv_label_set_text_fmt(freq[1], "%i.%03i.%03i", mhz, khz, hz);
+
+    split_freq(f + 50000, &mhz, &khz, &hz);
+    lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
+
+#ifdef RADIO_THREAD
+    lv_unlock();
+#endif
+}
 
 void main_screen() {
     uint16_t y = pad;
@@ -45,19 +69,16 @@ void main_screen() {
         switch (i) {
             case 0:
                 lv_obj_add_style(f, &freq_style, 0);
-                lv_label_set_text(f, "14.024.000");
                 lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_LEFT, 0);
                 break;
 
             case 1:
                 lv_obj_add_style(f, &freq_main_style, 0);
-                lv_label_set_text(f, "14.074.000");
                 lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_CENTER, 0);
                 break;
 
             case 2:
                 lv_obj_add_style(f, &freq_style, 0);
-                lv_label_set_text(f, "14.124.000");
                 lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_RIGHT, 0);
                 break;
         }

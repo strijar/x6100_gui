@@ -16,7 +16,7 @@
 
 static lv_obj_t         *obj;
 
-static int              grid_min = -80;
+static int              grid_min = -70;
 static int              grid_max = -40;
 
 static uint16_t         spectrum_size = 512;

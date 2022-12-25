@@ -74,6 +74,8 @@ int main(void) {
     dsp_init();
     radio_init();
 
+    radio_set_freq(14074000);
+
     while (1) {
         lv_lock();
         lv_timer_handler();

@@ -19,7 +19,7 @@ static lv_obj_t         *img;
 static lv_coord_t       width;
 static lv_coord_t       height;
 
-static int              grid_min = -80;
+static int              grid_min = -70;
 static int              grid_max = -40;
 
 static lv_img_dsc_t     *dsc;

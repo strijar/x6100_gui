@@ -17,3 +17,9 @@ uint64_t get_time() {
 
     return (now.tv_sec * 1000000 + now.tv_usec) / 1000;
 }
+
+void split_freq(uint64_t freq, uint16_t *mhz, uint16_t *khz, uint16_t *hz) {
+    *mhz = freq / 1000000;
+    *khz = (freq / 1000) % 1000;
+    *hz = freq % 1000;
+}

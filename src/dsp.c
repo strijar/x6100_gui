@@ -29,11 +29,13 @@ static float complex    *spectrum_dec_buf;
 
 static spgramcf         waterfall_sg;
 static float            *waterfall_psd;
-static uint8_t          waterfall_fps_ms = (1000 / 30);
+static uint8_t          waterfall_fps_ms = (1000 / 25);
 static uint64_t         waterfall_time;
 
 static float complex    *buf;
 static float complex    *buf_filtered;
+
+static uint8_t          delay;
 
 void dsp_init() {
     dc_block = iirfilt_cccf_create_dc_blocker(0.01f);
@@ -54,15 +56,22 @@ void dsp_init() {
 
     spectrum_time = get_time();
     waterfall_time = get_time();
+    
+    delay = 4;
 }
 
 void dsp_reset() {
+    delay = 4;
+
     iirfilt_cccf_reset(dc_block);
     spgramcf_reset(spectrum_sg);
     spgramcf_reset(waterfall_sg);
 }
 
 void dsp_samples(float complex *buf_samples, uint16_t size) {
+    if (delay)
+        delay--;
+
     uint64_t now = get_time();
 
     iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
@@ -77,9 +86,11 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     spgramcf_get_psd(spectrum_sg, spectrum_psd);
     
     if (now - spectrum_time > spectrum_fps_ms) {
-        spectrum_data(spectrum_psd, nfft);
+        if (!delay) {
+            spectrum_data(spectrum_psd, nfft);
+        }
+
         spgramcf_reset(spectrum_sg);
-        
         spectrum_time = now;
     }
 
@@ -87,9 +98,11 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
     if (now - waterfall_time > waterfall_fps_ms) {
-        waterfall_data(waterfall_psd, nfft);
+        if (!delay) {
+            waterfall_data(waterfall_psd, nfft);
+        }
+
         spgramcf_reset(waterfall_sg);
-        
         waterfall_time = now;
     }
 }
