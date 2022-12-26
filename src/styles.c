@@ -31,12 +31,12 @@ void styles_init() {
     lv_style_set_x(&spectrum_style, 5);
 
     lv_style_init(&freq_style);
-    lv_style_set_text_color(&freq_style, lv_color_hex(0xAAAAAA));
+    lv_style_set_text_color(&freq_style, lv_color_white());
     lv_style_set_text_font(&freq_style, &lv_font_montserrat_16);
     lv_style_set_pad_ver(&freq_style, 10);
 
     lv_style_init(&freq_main_style);
-    lv_style_set_text_color(&freq_main_style, lv_color_hex(0xAAAAAA));
+    lv_style_set_text_color(&freq_main_style, lv_color_white());
     lv_style_set_text_font(&freq_main_style, &lv_font_montserrat_32);
 
     lv_style_init(&waterfall_style);

@@ -77,11 +77,7 @@ void spectrum_data(float *data_buf, uint16_t size) {
     for (uint16_t i = 0; i < size; i++)
         spectrum_buf[i] = data_buf[size - i];
     
-#ifdef RADIO_THREAD
     lv_lock();
-#endif
     lv_obj_invalidate(obj);
-#ifdef RADIO_THREAD
     lv_unlock();
-#endif
 }

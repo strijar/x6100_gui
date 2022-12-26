@@ -18,6 +18,7 @@
 #include "styles.h"
 #include "radio.h"
 #include "dsp.h"
+#include "util.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -75,38 +76,20 @@ int main(void) {
     radio_init();
 
     radio_set_freq(14074000);
+    
+    uint64_t prev_time = get_time();
 
     while (1) {
         lv_lock();
         lv_timer_handler();
-#ifndef RADIO_THREAD
-        radio_tick();
-#endif
         lv_unlock();
         
         usleep(5000);
+        
+        uint64_t now = get_time();
+        lv_tick_inc(now - prev_time);
+        prev_time = now;
     }
 
     return 0;
-}
-
-/* Set in lv_conf.h as `LV_TICK_CUSTOM_SYS_TIME_EXPR` */
-
-uint32_t custom_tick_get(void) {
-    static uint64_t start_ms = 0;
-    
-    if (start_ms == 0) {
-        struct timeval tv_start;
-        gettimeofday(&tv_start, NULL);
-        start_ms = (tv_start.tv_sec * 1000000 + tv_start.tv_usec) / 1000;
-    }
-
-    struct timeval tv_now;
-    gettimeofday(&tv_now, NULL);
-    uint64_t now_ms;
-    now_ms = (tv_now.tv_sec * 1000000 + tv_now.tv_usec) / 1000;
-
-    uint32_t time_ms = now_ms - start_ms;
-    
-    return time_ms;
 }

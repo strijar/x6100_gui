@@ -10,8 +10,6 @@
 
 #include <stdbool.h>
 
-#define RADIO_THREAD
-
 void radio_init();
 bool radio_tick();
 

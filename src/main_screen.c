@@ -32,9 +32,7 @@ static lv_obj_t *btn[5];
 void main_screen_set_freq(uint64_t f) {
     uint16_t    mhz, khz, hz;
 
-#ifdef RADIO_THREAD
     lv_lock();
-#endif
 
     split_freq(f - 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[0], "%i.%03i", mhz, khz);
@@ -45,9 +43,7 @@ void main_screen_set_freq(uint64_t f) {
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
 
-#ifdef RADIO_THREAD
     lv_unlock();
-#endif
 }
 
 void main_screen() {

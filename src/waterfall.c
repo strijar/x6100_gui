@@ -37,11 +37,11 @@ static void calc_palette() {
     grad.stops[3].color = lv_color_hex(0xFFFF00);
     grad.stops[4].color = lv_color_hex(0xFFFFFF);
     
-    grad.stops[0].frac  = 0;
-    grad.stops[1].frac  = 64 + 30;
-    grad.stops[2].frac  = 128 + 30;
-    grad.stops[3].frac  = 196 + 30;
-    grad.stops[4].frac  = 255;
+    grad.stops[0].frac  = 255 * 0.00;
+    grad.stops[1].frac  = 255 * 0.25;
+    grad.stops[2].frac  = 255 * 0.50;
+    grad.stops[3].frac  = 255 * 0.75;
+    grad.stops[4].frac  = 255 * 1.00;
 
     for (int i = 0; i < 256; i++)
         palette[i] = lv_gradient_calculate(&grad, 256, i);
@@ -83,13 +83,9 @@ void waterfall_data(float *data_buf, uint16_t size) {
         lv_img_buf_set_px_color(dsc, width - x, 0, palette[id]);
     }
 
-#ifdef RADIO_THREAD
     lv_lock();
-#endif
     lv_obj_invalidate(img);
-#ifdef RADIO_THREAD
     lv_unlock();
-#endif
 }
 
 void waterfall_set_height(lv_coord_t h) {

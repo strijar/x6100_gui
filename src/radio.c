@@ -48,7 +48,6 @@ bool radio_tick() {
     return false;
 }
 
-#ifdef RADIO_THREAD
 static void * radio_thread(void *arg) { 
     while (true) {
         if (radio_tick()) {
@@ -56,7 +55,6 @@ static void * radio_thread(void *arg) {
         }
     }
 }
-#endif
 
 void radio_init() {
     if (!x6100_control_init())
@@ -78,12 +76,10 @@ void radio_init() {
     
     prev_time = get_time();
 
-#ifdef RADIO_THREAD
     pthread_t thread;
 
     pthread_create(&thread, NULL, radio_thread, NULL);
     pthread_detach(thread);
-#endif
 }
 
 void radio_set_freq(uint64_t f) {
