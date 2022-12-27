@@ -20,6 +20,8 @@
 #include "util.h"
 #include "mouse.h"
 #include "rotary.h"
+#include "spectrum.h"
+#include "waterfall.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -75,7 +77,7 @@ int main(void) {
     dsp_init();
     radio_init();
 
-    radio_set_freq(14074000);
+    radio_set_freq(7074000);
     
     uint64_t prev_time = get_time();
     
@@ -85,6 +87,7 @@ int main(void) {
     while (1) {
         lv_lock();
         lv_timer_handler();
+        event_obj_check();
         lv_unlock();
         
         usleep(5000);

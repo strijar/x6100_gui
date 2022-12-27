@@ -10,6 +10,8 @@
 
 #include <stdbool.h>
 
+#define RADIO_SAMPLES   (512)
+
 void radio_init();
 bool radio_tick();
 

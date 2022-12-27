@@ -13,13 +13,14 @@
 #include "spectrum.h"
 #include "main.h"
 #include "radio.h"
+#include "events.h"
 
 static lv_obj_t         *obj;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
 
-static uint16_t         spectrum_size = 512;
+static uint16_t         spectrum_size = 400;
 static float            *spectrum_buf = NULL;
 
 static pthread_mutex_t  data_mux;
@@ -62,7 +63,6 @@ static void spectrum_draw_cb(lv_event_t * e) {
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
-    spectrum_size = 512;
     spectrum_buf = malloc(spectrum_size * sizeof(lv_point_t));
 
     obj = lv_obj_create(parent);
@@ -76,10 +76,8 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
 void spectrum_data(float *data_buf, uint16_t size) {
     for (uint16_t i = 0; i < size; i++)
         spectrum_buf[i] = data_buf[size - i];
-    
-    lv_lock();
-    lv_obj_invalidate(obj);
-    lv_unlock();
+
+    event_obj_invalidate(obj);
 }
 
 void spectrum_set_max(int db) {

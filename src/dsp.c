@@ -12,10 +12,11 @@
 #include "spectrum.h"
 #include "waterfall.h"
 #include "util.h"
+#include "radio.h"
 
 #define FIR_LEN 21
 
-static unsigned int     nfft = 512;
+static unsigned int     nfft = 400;
 static iirfilt_cccf     dc_block;
 
 static uint8_t          spectrum_factor = 1;
@@ -51,8 +52,8 @@ void dsp_init() {
     waterfall_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     waterfall_psd = (float *) malloc(nfft * sizeof(float));
 
-    buf = (float complex*) malloc(nfft * sizeof(float complex));
-    buf_filtered = (float complex*) malloc(nfft * sizeof(float complex));
+    buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
+    buf_filtered = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
     spectrum_time = get_time();
     waterfall_time = get_time();
@@ -82,7 +83,7 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     } else {
         spgramcf_write(spectrum_sg, buf_filtered, size);
     }
-   
+
     spgramcf_get_psd(spectrum_sg, spectrum_psd);
     
     if (now - spectrum_time > spectrum_fps_ms) {

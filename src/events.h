@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "lvgl/lvgl.h"
+
 #include <unistd.h>
 #include <stdint.h>
 
@@ -19,3 +21,6 @@ typedef struct {
 extern uint32_t EVENT_ROTARY;
 
 void event_init();
+
+void event_obj_invalidate(lv_obj_t *obj);
+void event_obj_check();

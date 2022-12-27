@@ -19,3 +19,4 @@ void waterfall_set_height(lv_coord_t h);
 
 void waterfall_set_max(int db);
 void waterfall_set_min(int db);
+void waterfall_change_freq(int16_t df);

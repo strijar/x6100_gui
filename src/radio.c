@@ -21,6 +21,7 @@
 #include "radio.h"
 #include "dsp.h"
 #include "main_screen.h"
+#include "waterfall.h"
 
 #define FLOW_RESTART_TIMOUT 50
 #define IDLE_TIMEOUT        (2 * 1000)
@@ -42,7 +43,7 @@ bool radio_tick() {
 
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
-        dsp_samples(pack->samples, 512);
+        dsp_samples(pack->samples, RADIO_SAMPLES);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {
             LV_LOG_WARN("Flow reset");
@@ -87,7 +88,7 @@ void radio_init() {
 
     pack = malloc(sizeof(x6100_flow_t));
 
-    x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb_dig);
+    x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb);
     x6100_control_vfo_agc_set(X6100_VFO_A, x6100_agc_fast);
     x6100_control_vfo_pre_set(X6100_VFO_A, x6100_pre_off);
     
@@ -113,8 +114,11 @@ void radio_set_freq(uint64_t f) {
 }
 
 void radio_change_freq(int32_t df) {
-    freq += df * freq_step;
+    int16_t d = df * freq_step;
+
+    freq += d;
     radio_set_freq(freq);
+    waterfall_change_freq(d);
 }
 
 void radio_change_vol(int32_t df) {

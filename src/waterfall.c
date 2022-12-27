@@ -12,17 +12,19 @@
 #include "waterfall.h"
 #include "styles.h"
 #include "radio.h"
+#include "events.h"
 
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
 
 static lv_coord_t       width;
 static lv_coord_t       height;
+static int32_t          width_hz = 100000;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
 
-static lv_img_dsc_t     *dsc;
+static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
 
 static void calc_palette() {
@@ -49,6 +51,7 @@ static void calc_palette() {
 
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
+    
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -56,13 +59,41 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
 }
 
 static void scroll_down() {
-    uint32_t    line = dsc->data_size / dsc->header.h;
-    uint8_t     *ptr = dsc->data + dsc->data_size - line * 2;
+    uint32_t    line = frame->data_size / frame->header.h;
+    uint8_t     *ptr = frame->data + frame->data_size - line * 2;
 
     for (int y = 0; y < height-1; y++) {
         memcpy(ptr + line, ptr, line);
         ptr -= line;
     }
+}
+
+static void scroll_right(int16_t px) {
+    lv_color_t color;
+
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
+            if (x >= (width - px)) {
+                lv_img_buf_set_px_color(frame, x, y, lv_color_black());
+            } else {
+                color = lv_img_buf_get_px_color(frame, x + px, y, color);
+                lv_img_buf_set_px_color(frame, x, y, color);
+            }
+        }
+}
+
+static void scroll_left(int16_t px) {
+    lv_color_t color;
+
+    for (int y = 0; y < height; y++)
+        for (int x = width - 1; x > 0; x--) {
+            if (x <= px) {
+                lv_img_buf_set_px_color(frame, x, y, lv_color_black());
+            } else {
+                color = lv_img_buf_get_px_color(frame, x - px, y, color);
+                lv_img_buf_set_px_color(frame, x, y, color);
+            }
+        }
 }
 
 void waterfall_data(float *data_buf, uint16_t size) {
@@ -80,27 +111,29 @@ void waterfall_data(float *data_buf, uint16_t size) {
         
         uint8_t id = v * 255;
         
-        lv_img_buf_set_px_color(dsc, width - x, 0, palette[id]);
+        lv_img_buf_set_px_color(frame, width - x, 0, palette[id]);
     }
-
-    lv_lock();
-    lv_obj_invalidate(img);
-    lv_unlock();
+    
+    event_obj_invalidate(img);
 }
 
 void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
 
-    width = lv_obj_get_width(obj);
+    /* For more accurate horizontal scroll, it should be a "multiple of 500Hz" */
+    /* 800 * 500Hz / 100000Hz = 4.0px */
+    
+    width = 800;
     height = lv_obj_get_height(obj);
 
-    dsc = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
+    frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
+    
     calc_palette();
     
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
-    lv_img_set_src(img, dsc);
+    lv_img_set_src(img, frame);
 }
 
 void waterfall_set_max(int db) {
@@ -109,4 +142,17 @@ void waterfall_set_max(int db) {
 
 void waterfall_set_min(int db) {
     grid_min = db;
+}
+
+void waterfall_change_freq(int16_t df) {
+    int32_t px = width * df / width_hz;
+
+    if (px > 0) {
+        scroll_right(px);
+    } else {
+        px = -px;
+        scroll_left(px);
+    }
+    
+    event_obj_invalidate(img);
 }
