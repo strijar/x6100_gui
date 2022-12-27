@@ -19,6 +19,12 @@ static lv_obj_t         *obj;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
+static bool             filled = false;
+
+static int16_t          filter_from = 50;
+static int16_t          filter_to = 2950;
+
+static int32_t          width_hz = 100000;
 
 static uint16_t         spectrum_size = 400;
 static float            *spectrum_buf = NULL;
@@ -30,34 +36,76 @@ static void spectrum_draw_cb(lv_event_t * e) {
     lv_obj_t            *obj = lv_event_get_target(e);
     lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
     lv_draw_line_dsc_t  line_dsc;
+    
+    if (!spectrum_buf) {
+        return;
+    }
 
+    /* Main */
+    
     lv_draw_line_dsc_init(&line_dsc);
     
     line_dsc.color = lv_color_hex(0xAAAAAA);
     line_dsc.width = 2;
-    
-    if (spectrum_buf) {
-        lv_coord_t w = lv_obj_get_width(obj);
-        lv_coord_t h = lv_obj_get_height(obj);
-    
-        lv_coord_t x1 = obj->coords.x1;
-        lv_coord_t y1 = obj->coords.y1;
-        
-        lv_point_t prev, current;
-        
-        prev.x = x1;
-        prev.y = y1 + h;
 
-        for (uint16_t i = 0; i < spectrum_size; i++) {
-            float v = (spectrum_buf[i] - grid_min) / (grid_max - grid_min);
+    lv_coord_t x1 = obj->coords.x1;
+    lv_coord_t y1 = obj->coords.y1;
 
-            current.x = x1 + i * w / spectrum_size;
-            current.y = y1 + (1.0f - v) * h;
-            
-            lv_draw_line(draw_ctx, &line_dsc, &prev, &current);
-            prev = current;
+    lv_coord_t w = lv_obj_get_width(obj);
+    lv_coord_t h = lv_obj_get_height(obj);
+    
+    lv_point_t a, b;
+    
+    if (!filled) {
+        b.x = x1;
+        b.y = y1 + h;
+    }
+    
+    for (uint16_t i = 0; i < spectrum_size; i++) {
+        float v = (spectrum_buf[i] - grid_min) / (grid_max - grid_min);
+
+        a.x = x1 + i * w / spectrum_size;
+        a.y = y1 + (1.0f - v) * h;
+
+        if (filled) {
+            b.x = a.x;
+            b.y = y1 + h;
+        }
+        
+        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        
+        if (!filled) {
+            b = a;
         }
     }
+
+    /* Filter */
+    
+    lv_draw_rect_dsc_t  rect_dsc;
+    lv_area_t           area;
+
+    lv_draw_rect_dsc_init(&rect_dsc);
+
+    rect_dsc.bg_color = lv_color_hex(0x004080);
+    rect_dsc.bg_opa = LV_OPA_50;
+    
+    area.x1 = x1 + w / 2 + w * filter_from / width_hz;
+    area.y1 = y1 + 0;
+    area.x2 = x1 + w / 2 + w * filter_to / width_hz;
+    area.y2 = y1 + h;
+
+    lv_draw_rect(draw_ctx, &rect_dsc, &area);
+
+    /* Center */
+
+    line_dsc.color = lv_color_hex(0xFFFFFF);
+    
+    a.x = x1 + w / 2;
+    a.y = y1;
+    b.x = a.x;
+    b.y = y1 + h;
+
+    lv_draw_line(draw_ctx, &line_dsc, &a, &b);
 }
 
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
@@ -86,4 +134,9 @@ void spectrum_set_max(int db) {
 
 void spectrum_set_min(int db) {
     grid_min = db;
+}
+
+void spectrum_set_filter(int16_t from, int16_t to) {
+    filter_from = from;
+    filter_to = to;
 }

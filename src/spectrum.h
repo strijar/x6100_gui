@@ -18,3 +18,4 @@ void spectrum_data(float *data_buf, uint16_t size);
 
 void spectrum_set_max(int db);
 void spectrum_set_min(int db);
+void spectrum_set_filter(int16_t from, int16_t to);
