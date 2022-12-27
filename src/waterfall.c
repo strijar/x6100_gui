@@ -47,8 +47,8 @@ static void calc_palette() {
         palette[i] = lv_gradient_calculate(&grad, 256, i);
 }
 
-lv_obj_t * waterfall_init() {
-    obj = lv_obj_create(lv_scr_act());
+lv_obj_t * waterfall_init(lv_obj_t * parent) {
+    obj = lv_obj_create(parent);
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -101,4 +101,12 @@ void waterfall_set_height(lv_coord_t h) {
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, dsc);
+}
+
+void waterfall_set_max(int db) {
+    grid_max = db;
+}
+
+void waterfall_set_min(int db) {
+    grid_min = db;
 }

@@ -59,13 +59,13 @@ static void spectrum_draw_cb(lv_event_t * e) {
     }
 }
 
-lv_obj_t * spectrum_init() {
+lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
     spectrum_size = 512;
     spectrum_buf = malloc(spectrum_size * sizeof(lv_point_t));
 
-    obj = lv_obj_create(lv_scr_act());
+    obj = lv_obj_create(parent);
 
     lv_obj_add_style(obj, &spectrum_style, 0);
     lv_obj_add_event_cb(obj, spectrum_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
@@ -80,4 +80,12 @@ void spectrum_data(float *data_buf, uint16_t size) {
     lv_lock();
     lv_obj_invalidate(obj);
     lv_unlock();
+}
+
+void spectrum_set_max(int db) {
+    grid_max = db;
+}
+
+void spectrum_set_min(int db) {
+    grid_min = db;
 }

@@ -28,6 +28,7 @@ static x6100_flow_t *pack;
 
 static uint64_t     prev_time;
 static uint64_t     freq;
+static uint16_t     freq_step = 500;
 
 bool radio_tick() {
     uint64_t    now_time = get_time();
@@ -68,7 +69,7 @@ void radio_init() {
 
     pack = malloc(sizeof(x6100_flow_t));
 
-    x6100_control_rxvol_set(20);
+    x6100_control_rxvol_set(10);
 
     x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb_dig);
     x6100_control_vfo_agc_set(X6100_VFO_A, x6100_agc_fast);
@@ -90,6 +91,6 @@ void radio_set_freq(uint64_t f) {
 }
 
 void radio_change_freq(int32_t df) {
-    freq += df;
+    freq += df * freq_step;
     radio_set_freq(freq);
 }

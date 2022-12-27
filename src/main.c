@@ -8,7 +8,6 @@
 
 #include "lvgl/lvgl.h"
 #include "lv_drivers/display/fbdev.h"
-#include "lv_drivers/indev/evdev.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -19,6 +18,8 @@
 #include "radio.h"
 #include "dsp.h"
 #include "util.h"
+#include "mouse.h"
+#include "rotary.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -27,7 +28,6 @@ static pthread_mutex_t      lv_mux;
 static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
-static lv_indev_drv_t       indev_drv_1;
 
 void lv_lock() {
     pthread_mutex_lock(&lv_mux);
@@ -40,8 +40,9 @@ void lv_unlock() {
 int main(void) {
     lv_init();
     fbdev_init();
+    event_init();
+    
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
-
     lv_disp_drv_init(&disp_drv);
     
     disp_drv.draw_buf   = &disp_buf;
@@ -53,31 +54,33 @@ int main(void) {
     
     lv_disp_drv_register(&disp_drv);
 
-    evdev_init();
- 
-    lv_indev_drv_init(&indev_drv_1);
+    lv_disp_set_bg_color(lv_disp_get_default(), lv_color_black());
+    lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
 
-    indev_drv_1.type = LV_INDEV_TYPE_POINTER;
-    indev_drv_1.read_cb = evdev_read;
+    mouse_init();
 
-    lv_indev_t *mouse_indev = lv_indev_drv_register(&indev_drv_1);
+    rotary_t *main = rotary_init("/dev/input/event1", 0);
+    rotary_t *vol = rotary_init("/dev/input/event2", 1);
+    rotary_t *mfk = rotary_init("/dev/input/event3", 2);
 
-    LV_IMG_DECLARE(mouse_cursor_icon)
-
-    lv_obj_t * cursor_obj = lv_img_create(lv_scr_act()); 
-    lv_img_set_src(cursor_obj, &mouse_cursor_icon);
-    lv_indev_set_cursor(mouse_indev, cursor_obj);
+    vol->reverse = true;
+    mfk->reverse = true;
 
     pthread_mutex_init(&lv_mux, NULL);
 
     styles_init();
-    main_screen();
+    
+    lv_obj_t *main_obj = main_screen();
+
     dsp_init();
     radio_init();
 
     radio_set_freq(14074000);
     
     uint64_t prev_time = get_time();
+    
+//    lv_scr_load_anim(main_obj, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 2000, 0, false);
+    lv_scr_load(main_obj);
 
     while (1) {
         lv_lock();

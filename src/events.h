@@ -11,10 +11,11 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "lvgl/lvgl.h"
+typedef struct {
+    uint8_t id;
+    int16_t diff;
+} event_rotary_t;
 
-lv_obj_t * spectrum_init(lv_obj_t * parent);
-void spectrum_data(float *data_buf, uint16_t size);
+extern uint32_t EVENT_ROTARY;
 
-void spectrum_set_max(int db);
-void spectrum_set_min(int db);
+void event_init();

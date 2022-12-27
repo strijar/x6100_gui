@@ -6,7 +6,11 @@
  *  Copyright (c) 2022 Belousov Oleg aka R1CBU
  */
 
-#pragma once
+#include "lvgl/lvgl.h"
+#include "events.h"
 
-lv_obj_t * main_screen();
-void main_screen_set_freq(uint64_t freq);
+uint32_t EVENT_ROTARY;
+
+void event_init() {
+    EVENT_ROTARY = lv_event_register_id();
+}
