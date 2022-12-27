@@ -57,9 +57,7 @@ static void main_screen_event_cb(lv_event_t * e) {
             break;
             
         case 1:
-            grid_max += rotary->diff;
-            spectrum_set_max(grid_max);
-            waterfall_set_max(grid_max);
+            radio_change_vol(rotary->diff);
             break;
             
         case 2:
