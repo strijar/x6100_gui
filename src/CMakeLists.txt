@@ -7,6 +7,8 @@ target_sources(${PROJECT_NAME} PUBLIC
     events.c
 )
 
+add_subdirectory(fonts)
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
