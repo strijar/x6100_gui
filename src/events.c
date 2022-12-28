@@ -11,6 +11,7 @@
 #define QUEUE_SIZE  16
 
 uint32_t        EVENT_ROTARY;
+uint32_t        EVENT_KEYPAD;
 
 static lv_obj_t *queue[QUEUE_SIZE];
 static uint8_t  queue_write = 0;
@@ -18,6 +19,7 @@ static uint8_t  queue_read = 0;
 
 void event_init() {
     EVENT_ROTARY = lv_event_register_id();
+    EVENT_KEYPAD = lv_event_register_id();
 }
 
 void event_obj_invalidate(lv_obj_t *obj) {

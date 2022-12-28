@@ -22,6 +22,7 @@
 #include "rotary.h"
 #include "spectrum.h"
 #include "waterfall.h"
+#include "keypad.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -60,6 +61,8 @@ int main(void) {
     lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
 
     mouse_init();
+
+    keypad_t *keypad = keypad_init("/dev/input/event0");
 
     rotary_t *main = rotary_init("/dev/input/event1", 0);
     rotary_t *vol = rotary_init("/dev/input/event2", 1);

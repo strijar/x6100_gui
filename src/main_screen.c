@@ -50,7 +50,7 @@ void main_screen_set_freq(uint64_t f) {
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
 }
 
-static void main_screen_event_cb(lv_event_t * e) {
+static void main_screen_rotary_cb(lv_event_t * e) {
     event_rotary_t *rotary = lv_event_get_param(e);
 
     switch (rotary->id) {
@@ -72,12 +72,31 @@ static void main_screen_event_cb(lv_event_t * e) {
     }
 }
 
+static void main_screen_keypad_cb(lv_event_t * e) {
+    event_keypad_t *keypad = lv_event_get_param(e);
+    
+    switch (keypad->key) {
+        case key_rotary_vol:
+            LV_LOG_INFO("VOL");
+            break;
+            
+        case key_rotary_mfk:
+            LV_LOG_INFO("MFK");
+            break;
+            
+        default:
+            LV_LOG_WARN("Unsuported key");
+            break;
+    }
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = pad;
 
     obj = lv_obj_create(NULL);
 
-    lv_obj_add_event_cb(obj, main_screen_event_cb, EVENT_ROTARY, NULL);
+    lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
+    lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     
