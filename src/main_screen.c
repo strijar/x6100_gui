@@ -18,6 +18,7 @@
 #include "radio.h"
 #include "main.h"
 #include "events.h"
+#include "msg.h"
 
 static uint8_t  pad = 10;
 static uint16_t spectrum_height = (480 / 3);
@@ -34,6 +35,7 @@ static lv_obj_t *spectrum;
 static lv_obj_t *freq[3];
 static lv_obj_t *waterfall;
 static lv_obj_t *btn[5];
+static lv_obj_t *msg;
 
 void main_screen_set_freq(uint64_t f) {
     uint16_t    mhz, khz, hz;
@@ -64,6 +66,7 @@ static void main_screen_event_cb(lv_event_t * e) {
             grid_min += rotary->diff;
             spectrum_set_min(grid_min);
             waterfall_set_min(grid_min);
+            msg_set_text_fmt("Min level: %idb", grid_min);
             break;
         
     }
@@ -152,6 +155,8 @@ lv_obj_t * main_screen() {
     
         btn[i] = f;
     }
+
+    msg = msg_init(obj);
     
     return obj;
 }

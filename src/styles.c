@@ -14,11 +14,13 @@ lv_style_t  freq_style;
 lv_style_t  freq_main_style;
 lv_style_t  waterfall_style;
 lv_style_t  btn_style;
+lv_style_t  msg_style;
 
 extern lv_font_t    eco_sans_14;
 extern lv_font_t    eco_sans_16;
 extern lv_font_t    eco_sans_32;
 extern lv_font_t    eco_sans_36;
+extern lv_font_t    eco_sans_38;
 
 static const uint16_t radius = 25;
 
@@ -63,4 +65,18 @@ void styles_init() {
     lv_style_set_border_width(&btn_style, 2);
     lv_style_set_text_font(&btn_style, &eco_sans_16);
     lv_style_set_radius(&btn_style, radius);
+
+    lv_style_init(&msg_style);
+    lv_style_set_bg_opa(&msg_style, LV_OPA_50);
+    lv_style_set_bg_color(&msg_style, lv_color_hex(0x004080));
+    lv_style_set_text_color(&msg_style, lv_color_white());
+    lv_style_set_text_font(&msg_style, &eco_sans_38);
+    lv_style_set_border_opa(&msg_style, LV_OPA_50);
+    lv_style_set_border_color(&msg_style, lv_color_hex(0x000000));
+    lv_style_set_border_width(&msg_style, 2);
+    lv_style_set_radius(&msg_style, radius);
+    lv_style_set_size(&msg_style, 600, 60);
+    lv_style_set_x(&msg_style, 800 / 2 - (600 / 2));
+    lv_style_set_y(&msg_style, 260);
+    lv_style_set_pad_ver(&msg_style, 10);
 }

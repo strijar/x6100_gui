@@ -4,7 +4,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     main.c mouse_cursor_icon.c main_screen.c 
     styles.c spectrum.c radio.c dsp.c util.c 
     waterfall.c rotary.c mouse.c
-    events.c
+    events.c msg.c
 )
 
 add_subdirectory(fonts)

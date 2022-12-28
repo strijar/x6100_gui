@@ -77,7 +77,7 @@ int main(void) {
     dsp_init();
     radio_init();
 
-    radio_set_freq(7074000);
+    radio_set_freq(14074000);
     
     uint64_t prev_time = get_time();
     
