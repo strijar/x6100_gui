@@ -7,6 +7,7 @@
  */
 
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "dsp.h"
 #include "spectrum.h"
@@ -14,10 +15,10 @@
 #include "util.h"
 #include "radio.h"
 
-#define FIR_LEN 21
-
 static unsigned int     nfft = 400;
 static iirfilt_cccf     dc_block;
+
+static pthread_mutex_t  spectrum_mux;
 
 static uint8_t          spectrum_factor = 1;
 static firdecim_crcf    spectrum_decim;
@@ -41,16 +42,15 @@ static float complex    *buf_filtered;
 static uint8_t          delay;
 
 void dsp_init() {
+    pthread_mutex_init(&spectrum_mux, NULL);
+
     dc_block = iirfilt_cccf_create_dc_blocker(0.005f);
 
-    if (spectrum_factor > 1) {
-        spectrum_decim = firdecim_crcf_create_kaiser(spectrum_factor, 1, 60.0f);
-        spectrum_dec_buf = (float complex *) malloc(RADIO_SAMPLES * sizeof(float complex) / spectrum_factor);
-    }
-    
     spectrum_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
     spectrum_psd_filtered = (float *) malloc(nfft * sizeof(float));
+
+    dsp_set_spectrum_factor(1);
 
     for (uint16_t i = 0; i < nfft; i++)
         spectrum_psd_filtered[i] = -130.0f;
@@ -83,6 +83,8 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
 
+    pthread_mutex_lock(&spectrum_mux);
+
     if (spectrum_factor > 1) {
         firdecim_crcf_execute_block(spectrum_decim, buf_filtered, size / spectrum_factor, spectrum_dec_buf);
         
@@ -93,6 +95,7 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     }
 
     spgramcf_get_psd(spectrum_sg, spectrum_psd);
+    pthread_mutex_unlock(&spectrum_mux);
     
     if (now - spectrum_time > spectrum_fps_ms) {
         if (!delay) {
@@ -140,4 +143,40 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
 uint8_t dsp_get_spectrum_factor() {
     return spectrum_factor;
+}
+
+void dsp_set_spectrum_factor(uint8_t x) {
+    pthread_mutex_lock(&spectrum_mux);
+
+    spectrum_factor = x;
+
+    if (spectrum_decim) {
+        firdecim_crcf_destroy(spectrum_decim);
+        spectrum_decim = NULL;
+    }
+
+    if (spectrum_dec_buf) {
+        free(spectrum_dec_buf);
+        spectrum_dec_buf = NULL;
+    }
+
+    if (spectrum_factor > 1) {
+        spectrum_decim = firdecim_crcf_create_kaiser(spectrum_factor, 1, 60.0f);
+        spectrum_dec_buf = (float complex *) malloc(RADIO_SAMPLES * sizeof(float complex) / spectrum_factor);
+    }
+
+    spgramcf_reset(spectrum_sg);
+
+    for (uint16_t i = 0; i < nfft; i++)
+        spectrum_psd_filtered[i] = -130.0f;
+
+    pthread_mutex_unlock(&spectrum_mux);
+}
+
+float dsp_get_spectrum_beta() {
+    return spectrum_beta;
+}
+
+void dsp_set_spectrum_beta(float x) {
+    spectrum_beta = x;
 }

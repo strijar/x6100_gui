@@ -42,5 +42,5 @@ void msg_set_text_fmt(const char * fmt, ...) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
     
     lv_timer_reset(timer);
-    lv_timer_set_period(timer, 1000);
+    lv_timer_set_period(timer, 2000);
 }

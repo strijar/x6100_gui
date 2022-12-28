@@ -19,23 +19,37 @@
 #include "main.h"
 #include "events.h"
 #include "msg.h"
+#include "dsp.h"
 
-static uint8_t  pad = 10;
-static uint16_t spectrum_height = (480 / 3);
-static uint16_t freq_height = 36;
-static uint8_t  btn_height = 54;
-static uint8_t  over = 30;
+typedef enum {
+    MFK_MIN_LEVEL = 0,
+    MFK_MAX_LEVEL,
+    MFK_SPECTRUM_FACTOR,
+    MFK_SPECTRUM_BETA,
+    
+    MFK_LAST
+} mfk_mode_t;
 
-static int16_t  grid_min = -70;
-static int16_t  grid_max = -40;
+static mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
-static lv_obj_t *obj;
+static uint8_t      pad = 10;
+static uint16_t     spectrum_height = (480 / 3);
+static uint16_t     freq_height = 36;
+static uint8_t      btn_height = 54;
+static uint8_t      over = 30;
 
-static lv_obj_t *spectrum;
-static lv_obj_t *freq[3];
-static lv_obj_t *waterfall;
-static lv_obj_t *btn[5];
-static lv_obj_t *msg;
+static int16_t      grid_min = -70;
+static int16_t      grid_max = -40;
+static int16_t      spectrum_factor = 1;
+static int16_t      spectrum_beta = 70;
+
+static lv_obj_t     *obj;
+
+static lv_obj_t     *spectrum;
+static lv_obj_t     *freq[3];
+static lv_obj_t     *waterfall;
+static lv_obj_t     *btn[5];
+static lv_obj_t     *msg;
 
 void main_screen_set_freq(uint64_t f) {
     uint16_t    mhz, khz, hz;
@@ -48,6 +62,64 @@ void main_screen_set_freq(uint64_t f) {
 
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
+}
+
+static void mfk_rotate(int16_t diff) {
+    switch (mfk_mode) {
+        case MFK_MIN_LEVEL:
+            if (diff != 0) {
+                grid_min += diff;
+                spectrum_set_min(grid_min);
+                waterfall_set_min(grid_min);
+            }
+            msg_set_text_fmt("Min level: %idb", grid_min);
+            break;
+            
+        case MFK_MAX_LEVEL:
+            if (diff != 0) {
+                grid_max += diff;
+                spectrum_set_max(grid_max);
+                waterfall_set_max(grid_max);
+            }
+            msg_set_text_fmt("Max level: %idb", grid_max);
+            break;
+
+        case MFK_SPECTRUM_FACTOR:
+            if (diff != 0) {
+                spectrum_factor += diff;
+                
+                if (spectrum_factor < 1) {
+                    spectrum_factor = 1;
+                } else if (spectrum_factor > 4) {
+                    spectrum_factor = 4;
+                }
+            
+                dsp_set_spectrum_factor(spectrum_factor);
+            }
+            msg_set_text_fmt("Spectrum zoom: x%i", spectrum_factor);
+            break;
+
+        case MFK_SPECTRUM_BETA:
+            if (diff != 0) {
+                spectrum_beta += (diff < 0) ? -5 : 5;
+                
+                if (spectrum_beta < 0) {
+                    spectrum_beta = 0;
+                } else if (spectrum_beta > 90) {
+                    spectrum_beta = 90;
+                }
+            
+                dsp_set_spectrum_beta(spectrum_beta / 100.0f);
+            }
+            msg_set_text_fmt("Spectrum beta: %i", spectrum_beta);
+            break;
+    }
+}
+
+static void mfk_press() {
+    mfk_mode = (mfk_mode + 1) % MFK_LAST;
+    
+    mfk_rotate(0);
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -63,10 +135,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
             break;
             
         case 2:
-            grid_min += rotary->diff;
-            spectrum_set_min(grid_min);
-            waterfall_set_min(grid_min);
-            msg_set_text_fmt("Min level: %idb", grid_min);
+            mfk_rotate(rotary->diff);
             break;
         
     }
@@ -81,7 +150,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case key_rotary_mfk:
-            LV_LOG_INFO("MFK");
+            if (!keypad->pressed) {
+                mfk_press();
+            }
             break;
             
         default:
