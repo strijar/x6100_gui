@@ -43,6 +43,23 @@ bool radio_tick() {
 
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
+        
+        for (uint16_t i = 0; i < RADIO_SAMPLES; i++) {
+            complex float *s = &pack->samples[i];
+        
+            if (__real__ *s < -1.0f) {
+                __real__ *s = -1.0f;
+            } else if (__real__ *s > 1.0f) {
+                __real__ *s = 1.0f;
+            }
+            
+            if (__imag__ *s < -1.0f) {
+                __imag__ *s = -1.0f;
+            } else if (__imag__ *s > 1.0f) {
+                __imag__ *s = 1.0f;
+            }
+        }
+        
         dsp_samples(pack->samples, RADIO_SAMPLES);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {

@@ -26,6 +26,7 @@ static int              grid_max = -40;
 
 static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
+static uint8_t          delay = 0;
 
 static void calc_palette() {
     lv_grad_dsc_t grad;
@@ -97,6 +98,11 @@ static void scroll_left(int16_t px) {
 }
 
 void waterfall_data(float *data_buf, uint16_t size) {
+    if (delay) {
+        delay--;
+        return;
+    }
+
     scroll_down();
 
     for (int x = 0; x < width; x++) {
@@ -153,6 +159,7 @@ void waterfall_change_freq(int16_t df) {
         px = -px;
         scroll_left(px);
     }
-    
+
+    delay = 3;
     event_obj_invalidate(img);
 }

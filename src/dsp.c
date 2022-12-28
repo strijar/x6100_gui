@@ -19,11 +19,13 @@
 static unsigned int     nfft = 400;
 static iirfilt_cccf     dc_block;
 
-static uint8_t          spectrum_factor = 4;
+static uint8_t          spectrum_factor = 1;
 static firdecim_crcf    spectrum_decim;
 
 static spgramcf         spectrum_sg;
 static float            *spectrum_psd;
+static float            *spectrum_psd_filtered;
+static float            spectrum_beta = 0.7f;
 static uint8_t          spectrum_fps_ms = (1000 / 15);
 static uint64_t         spectrum_time;
 static float complex    *spectrum_dec_buf;
@@ -39,7 +41,7 @@ static float complex    *buf_filtered;
 static uint8_t          delay;
 
 void dsp_init() {
-    dc_block = iirfilt_cccf_create_dc_blocker(0.01f);
+    dc_block = iirfilt_cccf_create_dc_blocker(0.005f);
 
     if (spectrum_factor > 1) {
         spectrum_decim = firdecim_crcf_create_kaiser(spectrum_factor, 1, 60.0f);
@@ -48,6 +50,10 @@ void dsp_init() {
     
     spectrum_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
+    spectrum_psd_filtered = (float *) malloc(nfft * sizeof(float));
+
+    for (uint16_t i = 0; i < nfft; i++)
+        spectrum_psd_filtered[i] = -130.0f;
 
     waterfall_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     waterfall_psd = (float *) malloc(nfft * sizeof(float));
@@ -90,7 +96,19 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     
     if (now - spectrum_time > spectrum_fps_ms) {
         if (!delay) {
-            spectrum_data(spectrum_psd, nfft);
+            for (uint16_t i = 0; i < nfft; i++) {
+                float psd = spectrum_psd[i];
+                
+                if (psd < -130.0f) {
+                    psd = -130.0f;
+                } else if (psd > 60.0f) {
+                    psd = 60.0f;
+                }
+            
+                spectrum_psd_filtered[i] = spectrum_psd_filtered[i] * spectrum_beta + psd * (1.0f - spectrum_beta);
+            }
+        
+            spectrum_data(spectrum_psd_filtered, nfft);
         }
 
         spgramcf_reset(spectrum_sg);
@@ -102,6 +120,16 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     if (now - waterfall_time > waterfall_fps_ms) {
         if (!delay) {
+            for (uint16_t i = 0; i < nfft; i++) {
+                float psd = waterfall_psd[i];
+                
+                if (psd < -130.0f) {
+                    waterfall_psd[i] = -130.0f;
+                } else if (psd > 60.0f) {
+                    waterfall_psd[i] = 60.0f;
+                }
+            }
+        
             waterfall_data(waterfall_psd, nfft);
         }
 
