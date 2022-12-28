@@ -14,6 +14,7 @@
 #include "main.h"
 #include "radio.h"
 #include "events.h"
+#include "dsp.h"
 
 static lv_obj_t         *obj;
 
@@ -89,9 +90,11 @@ static void spectrum_draw_cb(lv_event_t * e) {
     rect_dsc.bg_color = lv_color_hex(0x004080);
     rect_dsc.bg_opa = LV_OPA_50;
     
-    area.x1 = x1 + w / 2 + w * filter_from / width_hz;
+    uint32_t w_hz = width_hz / dsp_get_spectrum_factor();
+    
+    area.x1 = x1 + w / 2 + w * filter_from / w_hz;
     area.y1 = y1 + 0;
-    area.x2 = x1 + w / 2 + w * filter_to / width_hz;
+    area.x2 = x1 + w / 2 + w * filter_to / w_hz;
     area.y2 = y1 + h;
 
     lv_draw_rect(draw_ctx, &rect_dsc, &area);

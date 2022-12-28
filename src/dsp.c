@@ -19,7 +19,7 @@
 static unsigned int     nfft = 400;
 static iirfilt_cccf     dc_block;
 
-static uint8_t          spectrum_factor = 1;
+static uint8_t          spectrum_factor = 4;
 static firdecim_crcf    spectrum_decim;
 
 static spgramcf         spectrum_sg;
@@ -42,8 +42,8 @@ void dsp_init() {
     dc_block = iirfilt_cccf_create_dc_blocker(0.01f);
 
     if (spectrum_factor > 1) {
-        spectrum_decim = firdecim_crcf_create_prototype(LIQUID_FIRFILT_RCOS, spectrum_factor, 2, 0.1f, 0.0f);
-        spectrum_dec_buf = (float complex *) malloc(nfft * sizeof(float) / spectrum_factor);
+        spectrum_decim = firdecim_crcf_create_kaiser(spectrum_factor, 1, 60.0f);
+        spectrum_dec_buf = (float complex *) malloc(RADIO_SAMPLES * sizeof(float complex) / spectrum_factor);
     }
     
     spectrum_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
@@ -79,7 +79,9 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     if (spectrum_factor > 1) {
         firdecim_crcf_execute_block(spectrum_decim, buf_filtered, size / spectrum_factor, spectrum_dec_buf);
-        spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
+        
+        for (uint8_t i = 0; i < spectrum_factor / 2; i++)
+            spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
     } else {
         spgramcf_write(spectrum_sg, buf_filtered, size);
     }
@@ -106,4 +108,8 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
         spgramcf_reset(waterfall_sg);
         waterfall_time = now;
     }
+}
+
+uint8_t dsp_get_spectrum_factor() {
+    return spectrum_factor;
 }
