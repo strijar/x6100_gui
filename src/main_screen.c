@@ -22,6 +22,13 @@
 #include "dsp.h"
 
 typedef enum {
+    VOL_VOL = 0,
+    VOL_RFG,
+    
+    VOL_LAST
+} vol_mode_t;
+
+typedef enum {
     MFK_MIN_LEVEL = 0,
     MFK_MAX_LEVEL,
     MFK_SPECTRUM_FACTOR,
@@ -31,6 +38,7 @@ typedef enum {
 } mfk_mode_t;
 
 static mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
+static vol_mode_t   vol_mode = VOL_VOL;
 
 static uint8_t      pad = 10;
 static uint16_t     spectrum_height = (480 / 3);
@@ -42,6 +50,7 @@ static int16_t      grid_min = -70;
 static int16_t      grid_max = -40;
 static int16_t      spectrum_factor = 1;
 static int16_t      spectrum_beta = 70;
+static uint16_t     freq_step = 500;
 
 static lv_obj_t     *obj;
 
@@ -62,6 +71,31 @@ void main_screen_set_freq(uint64_t f) {
 
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
+}
+
+static void vol_rotate(int16_t diff) {
+    int32_t x;
+
+    switch (vol_mode) {
+        case VOL_VOL:
+            x = radio_change_vol(diff);
+            msg_set_text_fmt("Volume: %i", x);
+            break;
+            
+        case VOL_RFG:
+            x = radio_change_rfg(diff);
+            msg_set_text_fmt("RF gain: %i", x);
+            break;
+            
+        default:
+            break;
+    }
+}
+
+static void vol_press() {
+    vol_mode = (vol_mode + 1) % VOL_LAST;
+    
+    vol_rotate(0);
 }
 
 static void mfk_rotate(int16_t diff) {
@@ -123,15 +157,16 @@ static void mfk_press() {
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
-    event_rotary_t *rotary = lv_event_get_param(e);
+    event_rotary_t  *rotary = lv_event_get_param(e);
 
     switch (rotary->id) {
         case 0:
-            radio_change_freq(rotary->diff);
+            radio_change_freq(rotary->diff * freq_step);
+            waterfall_change_freq(rotary->diff * freq_step);
             break;
             
         case 1:
-            radio_change_vol(rotary->diff);
+            vol_rotate(rotary->diff);
             break;
             
         case 2:
@@ -146,7 +181,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     
     switch (keypad->key) {
         case key_rotary_vol:
-            LV_LOG_INFO("VOL");
+            if (!keypad->pressed) {
+                vol_press();
+            }
             break;
             
         case key_rotary_mfk:

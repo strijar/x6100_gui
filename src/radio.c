@@ -35,15 +35,20 @@ static uint64_t         prev_time;
 static uint64_t         idle_time;
 
 static uint64_t         freq;
-static uint16_t         freq_step = 500;
 static int16_t          vol = 0;
+static int16_t          rfg = 64;
 
 bool radio_tick() {
     uint32_t    d = now_time - prev_time;
 
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
-        
+#if 0
+        printf("tx=%d "
+               "txpwr=%.1f swr=%.1f alc=%.1f vext=%.1f vbat=%.1f bat=%d CRC=%08X\n",
+               pack->flag.tx, pack->tx_power * 0.1, pack->vswr * 0.1f, pack->alc_level * 0.1,
+               pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->crc);
+#endif        
         for (uint16_t i = 0; i < RADIO_SAMPLES; i++) {
             complex float *s = &pack->samples[i];
         
@@ -130,15 +135,18 @@ void radio_set_freq(uint64_t f) {
     main_screen_set_freq(f);
 }
 
-void radio_change_freq(int32_t df) {
-    int16_t d = df * freq_step;
-
-    freq += d;
+uint64_t radio_change_freq(int32_t df) {
+    freq += df;
     radio_set_freq(freq);
-    waterfall_change_freq(d);
+    
+    return freq;
 }
 
-void radio_change_vol(int32_t df) {
+uint16_t radio_change_vol(int16_t df) {
+    if (df == 0) {
+        return vol;
+    }
+    
     vol += df;
     
     if (vol < 0 ) {
@@ -150,4 +158,26 @@ void radio_change_vol(int32_t df) {
     pthread_mutex_lock(&control_mux);
     x6100_control_rxvol_set(vol);
     pthread_mutex_unlock(&control_mux);
+    
+    return vol;
+}
+
+uint16_t radio_change_rfg(int16_t df) {
+    if (df == 0) {
+        return rfg;
+    }
+    
+    rfg += df;
+    
+    if (rfg < 0) {
+        rfg = 0;
+    } else if (rfg > 100) {
+        rfg = 100;
+    }
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_rfg_set(rfg);
+    pthread_mutex_unlock(&control_mux);
+
+    return rfg;
 }

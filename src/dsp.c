@@ -76,25 +76,45 @@ void dsp_reset() {
 }
 
 void dsp_samples(float complex *buf_samples, uint16_t size) {
+    int res;
+
     if (delay)
         delay--;
 
     uint64_t now = get_time();
 
-    iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
+    res = iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
+
+    if (res) {
+        LV_LOG_ERROR("iirfilt_cccf_execute_block");
+    }
 
     pthread_mutex_lock(&spectrum_mux);
 
     if (spectrum_factor > 1) {
         firdecim_crcf_execute_block(spectrum_decim, buf_filtered, size / spectrum_factor, spectrum_dec_buf);
         
-        for (uint8_t i = 0; i < spectrum_factor / 2; i++)
-            spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
+        for (uint8_t i = 0; i < spectrum_factor / 2; i++) {
+            res = spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
+
+            if (res) {
+                LV_LOG_ERROR("spgramcf_write");
+            }
+        }
     } else {
-        spgramcf_write(spectrum_sg, buf_filtered, size);
+        res = spgramcf_write(spectrum_sg, buf_filtered, size);
+        
+        if (res) {
+            LV_LOG_ERROR("spgramcf_write");
+        }
     }
 
-    spgramcf_get_psd(spectrum_sg, spectrum_psd);
+    res = spgramcf_get_psd(spectrum_sg, spectrum_psd);
+
+    if (res) {
+        LV_LOG_ERROR("spgramcf_get_psd");
+    }
+    
     pthread_mutex_unlock(&spectrum_mux);
     
     if (now - spectrum_time > spectrum_fps_ms) {
