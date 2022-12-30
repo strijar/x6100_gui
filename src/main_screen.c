@@ -20,6 +20,7 @@
 #include "events.h"
 #include "msg.h"
 #include "dsp.h"
+#include "params.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -45,12 +46,6 @@ static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
 static uint8_t      btn_height = 54;
 static uint8_t      over = 30;
-
-static int16_t      grid_min = -70;
-static int16_t      grid_max = -40;
-static int16_t      spectrum_factor = 1;
-static int16_t      spectrum_beta = 70;
-static uint16_t     freq_step = 500;
 
 static lv_obj_t     *obj;
 
@@ -102,50 +97,60 @@ static void mfk_rotate(int16_t diff) {
     switch (mfk_mode) {
         case MFK_MIN_LEVEL:
             if (diff != 0) {
-                grid_min += diff;
-                spectrum_set_min(grid_min);
-                waterfall_set_min(grid_min);
+                params_lock();
+                params.grid_min += diff;
+                params_unlock(&params.durty.grid_min);
+                
+                spectrum_set_min(params.grid_min);
+                waterfall_set_min(params.grid_min);
             }
-            msg_set_text_fmt("Min level: %idb", grid_min);
+            msg_set_text_fmt("Min level: %idb", params.grid_min);
             break;
             
         case MFK_MAX_LEVEL:
             if (diff != 0) {
-                grid_max += diff;
-                spectrum_set_max(grid_max);
-                waterfall_set_max(grid_max);
+                params_lock();
+                params.grid_max += diff;
+                params_unlock(&params.durty.grid_max);
+                
+                spectrum_set_max(params.grid_max);
+                waterfall_set_max(params.grid_max);
             }
-            msg_set_text_fmt("Max level: %idb", grid_max);
+            msg_set_text_fmt("Max level: %idb", params.grid_max);
             break;
 
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
-                spectrum_factor += diff;
+                params_lock();
+                params.spectrum_factor += diff;
                 
-                if (spectrum_factor < 1) {
-                    spectrum_factor = 1;
-                } else if (spectrum_factor > 4) {
-                    spectrum_factor = 4;
+                if (params.spectrum_factor < 1) {
+                    params.spectrum_factor = 1;
+                } else if (params.spectrum_factor > 4) {
+                    params.spectrum_factor = 4;
                 }
+                params_unlock(&params.durty.spectrum_factor);
             
-                dsp_set_spectrum_factor(spectrum_factor);
+                dsp_set_spectrum_factor(params.spectrum_factor);
             }
-            msg_set_text_fmt("Spectrum zoom: x%i", spectrum_factor);
+            msg_set_text_fmt("Spectrum zoom: x%i", params.spectrum_factor);
             break;
 
         case MFK_SPECTRUM_BETA:
             if (diff != 0) {
-                spectrum_beta += (diff < 0) ? -5 : 5;
+                params_lock();
+                params.spectrum_beta += (diff < 0) ? -5 : 5;
                 
-                if (spectrum_beta < 0) {
-                    spectrum_beta = 0;
-                } else if (spectrum_beta > 90) {
-                    spectrum_beta = 90;
+                if (params.spectrum_beta < 0) {
+                    params.spectrum_beta = 0;
+                } else if (params.spectrum_beta > 90) {
+                    params.spectrum_beta = 90;
                 }
+                params_unlock(&params.durty.spectrum_beta);
             
-                dsp_set_spectrum_beta(spectrum_beta / 100.0f);
+                dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
             }
-            msg_set_text_fmt("Spectrum beta: %i", spectrum_beta);
+            msg_set_text_fmt("Spectrum beta: %i", params.spectrum_beta);
             break;
     }
 }
@@ -161,8 +166,8 @@ static void main_screen_rotary_cb(lv_event_t * e) {
 
     switch (rotary->id) {
         case 0:
-            radio_change_freq(rotary->diff * freq_step);
-            waterfall_change_freq(rotary->diff * freq_step);
+            radio_change_freq(rotary->diff * params.freq_step);
+            waterfall_change_freq(rotary->diff * params.freq_step);
             break;
             
         case 1:
@@ -191,6 +196,12 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 mfk_press();
             }
             break;
+
+        case key_pre:
+            if (!keypad->pressed) {
+                radio_change_pre();
+            }
+            break;
             
         default:
             LV_LOG_WARN("Unsuported key");
@@ -210,8 +221,8 @@ lv_obj_t * main_screen() {
     
     spectrum = spectrum_init(obj);
     
-    spectrum_set_min(grid_min);
-    spectrum_set_max(grid_max);
+    spectrum_set_min(params.grid_min);
+    spectrum_set_max(params.grid_max);
 
     lv_obj_set_y(spectrum, y);
     lv_obj_set_height(spectrum, spectrum_height);
@@ -248,8 +259,8 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    spectrum_set_min(grid_min);
-    spectrum_set_max(grid_max);
+    spectrum_set_min(params.grid_min);
+    spectrum_set_max(params.grid_max);
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y - pad);

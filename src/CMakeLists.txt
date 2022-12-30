@@ -4,7 +4,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     main.c mouse_cursor_icon.c main_screen.c 
     styles.c spectrum.c radio.c dsp.c util.c 
     waterfall.c rotary.c mouse.c
-    events.c msg.c keypad.c
+    events.c msg.c keypad.c params.c
 )
 
 add_subdirectory(fonts)
@@ -16,3 +16,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
 target_link_libraries(${PROJECT_NAME} PRIVATE aether_x6100_control)
 target_link_libraries(${PROJECT_NAME} PRIVATE liquid)
+target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)

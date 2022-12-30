@@ -1,0 +1,9 @@
+band	5	5
+vol	30	30
+rfg	63	63
+grid_min	-60	-60
+grid_max	-40	-40
+spectrum_factor	1	1
+spectrum_beta	70	70
+freq_step	500	500
+bands	1,2,3,4,5,6,7,8,9	1,2,3,4,5,6,7,8,9

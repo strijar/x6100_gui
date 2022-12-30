@@ -22,6 +22,7 @@
 #include "dsp.h"
 #include "main_screen.h"
 #include "waterfall.h"
+#include "params.h"
 
 #define FLOW_RESTART_TIMOUT 50
 #define IDLE_TIMEOUT        (2 * 1000)
@@ -34,20 +35,29 @@ static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
 
+static uint8_t          vfo = X6100_VFO_A;
 static uint64_t         freq;
-static int16_t          vol = 0;
-static int16_t          rfg = 64;
+static int16_t          pre = x6100_pre_off;
 
 bool radio_tick() {
-    uint32_t    d = now_time - prev_time;
+    if (now_time < prev_time) {
+        prev_time = now_time;
+    }
+
+    int32_t d = now_time - prev_time;
 
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
 #if 0
-        printf("tx=%d "
-               "txpwr=%.1f swr=%.1f alc=%.1f vext=%.1f vbat=%.1f bat=%d CRC=%08X\n",
-               pack->flag.tx, pack->tx_power * 0.1, pack->vswr * 0.1f, pack->alc_level * 0.1,
-               pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->crc);
+        static uint8_t delay = 0;
+
+        if (delay++ > 10) {
+            delay = 0;
+            printf("tx=%d "
+                   "txpwr=%.1f swr=%.1f alc=%.1f vext=%.1f vbat=%.1f bat=%d hkey=%02X CRC=%08X\n",
+                   pack->flag.tx, pack->tx_power * 0.1, pack->vswr * 0.1f, pack->alc_level * 0.1,
+                   pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->hkey, pack->crc);
+        }
 #endif        
         for (uint16_t i = 0; i < RADIO_SAMPLES; i++) {
             complex float *s = &pack->samples[i];
@@ -110,9 +120,12 @@ void radio_init() {
 
     pack = malloc(sizeof(x6100_flow_t));
 
-    x6100_control_vfo_mode_set(X6100_VFO_A, x6100_mode_usb);
-    x6100_control_vfo_agc_set(X6100_VFO_A, x6100_agc_fast);
-    x6100_control_vfo_pre_set(X6100_VFO_A, x6100_pre_off);
+    x6100_control_vfo_mode_set(vfo, x6100_mode_usb);
+    x6100_control_vfo_agc_set(vfo, x6100_agc_fast);
+    x6100_control_vfo_pre_set(vfo, pre);
+
+    x6100_control_rxvol_set(params.vol);
+    x6100_control_rfg_set(params.rfg);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -129,7 +142,7 @@ void radio_set_freq(uint64_t f) {
     freq = f;
 
     pthread_mutex_lock(&control_mux);
-    x6100_control_vfo_freq_set(X6100_VFO_A, f);
+    x6100_control_vfo_freq_set(vfo, f);
     pthread_mutex_unlock(&control_mux);
 
     main_screen_set_freq(f);
@@ -144,40 +157,53 @@ uint64_t radio_change_freq(int32_t df) {
 
 uint16_t radio_change_vol(int16_t df) {
     if (df == 0) {
-        return vol;
+        return params.vol;
     }
     
-    vol += df;
+    params_lock();
+    params.vol += df;
     
-    if (vol < 0 ) {
-        vol = 0;
-    } else if (vol > 50) {
-        vol = 50;
+    if (params.vol < 0 ) {
+        params.vol = 0;
+    } else if (params.vol > 50) {
+        params.vol = 50;
     }
+
+    params_unlock(&params.durty.vol);
     
     pthread_mutex_lock(&control_mux);
-    x6100_control_rxvol_set(vol);
+    x6100_control_rxvol_set(params.vol);
     pthread_mutex_unlock(&control_mux);
     
-    return vol;
+    return params.vol;
 }
 
 uint16_t radio_change_rfg(int16_t df) {
     if (df == 0) {
-        return rfg;
+        return params.rfg;
     }
     
-    rfg += df;
+    params_lock();
+    params.rfg += df;
     
-    if (rfg < 0) {
-        rfg = 0;
-    } else if (rfg > 100) {
-        rfg = 100;
+    if (params.rfg < 0) {
+        params.rfg = 0;
+    } else if (params.rfg > 100) {
+        params.rfg = 100;
     }
+    params_unlock(&params.durty.rfg);
 
     pthread_mutex_lock(&control_mux);
-    x6100_control_rfg_set(rfg);
+    x6100_control_rfg_set(params.rfg);
     pthread_mutex_unlock(&control_mux);
 
-    return rfg;
+    return params.rfg;
+}
+
+bool radio_change_pre() {
+    pre = (pre == x6100_pre_off) ? x6100_pre_on : x6100_pre_off;
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_vfo_pre_set(vfo, pre);
+    pthread_mutex_unlock(&control_mux);
 }

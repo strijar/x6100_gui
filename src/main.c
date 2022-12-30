@@ -23,6 +23,7 @@
 #include "spectrum.h"
 #include "waterfall.h"
 #include "keypad.h"
+#include "params.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -73,6 +74,7 @@ int main(void) {
 
     pthread_mutex_init(&lv_mux, NULL);
 
+    params_init();
     styles_init();
     
     lv_obj_t *main_obj = main_screen();
