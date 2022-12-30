@@ -14,6 +14,7 @@
 #include "lvgl/lvgl.h"
 #include "params.h"
 #include "util.h"
+#include "bands.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
@@ -29,7 +30,6 @@ params_t params = {
 };
 
 params_band_t params_band = {
-    .id                 = 0,
     .vfo                = X6100_VFO_A,
 
     .vfoa_freq          = 14000000,
@@ -66,7 +66,7 @@ void params_band_load() {
         return;
     }
 
-    sqlite3_bind_int(stmt, 1, params_band.id);
+    sqlite3_bind_int(stmt, 1, params.band);
 
     while (sqlite3_step(stmt) != SQLITE_DONE) {
         const char *name = sqlite3_column_text(stmt, 0);
@@ -100,7 +100,7 @@ void params_band_load() {
 }
 
 static void params_band_write_int(const char *name, int data, bool *durty) {
-    sqlite3_bind_int(write_band_stmt, 1, params_band.id);
+    sqlite3_bind_int(write_band_stmt, 1, params.band);
     sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
     sqlite3_bind_int(write_band_stmt, 3, data);
     sqlite3_step(write_band_stmt);
@@ -111,7 +111,7 @@ static void params_band_write_int(const char *name, int data, bool *durty) {
 }
 
 static void params_band_write_int64(const char *name, uint64_t data, bool *durty) {
-    sqlite3_bind_int(write_band_stmt, 1, params_band.id);
+    sqlite3_bind_int(write_band_stmt, 1, params.band);
     sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
     sqlite3_bind_int64(write_band_stmt, 3, data);
     sqlite3_step(write_band_stmt);
@@ -162,7 +162,6 @@ static bool params_load() {
 
         if (strcmp(name, "band") == 0) {
             params.band = sqlite3_column_int(stmt, 1);
-            params_band.id = params.band;
             params_band_load();
         } else if (strcmp(name, "vol") == 0) {
             params.vol = sqlite3_column_int(stmt, 1);
@@ -178,7 +177,6 @@ static bool params_load() {
             params.spectrum_beta = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "freq_step") == 0) {
             params.freq_step = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "bands") == 0) {
         }
     }
     
@@ -233,6 +231,30 @@ static bool params_save() {
 
 /* * */
 
+bool params_bands_load() {
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,used FROM bands ORDER BY used ASC", -1, &stmt, 0);
+    
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+    
+    while (sqlite3_step(stmt) != SQLITE_DONE) {
+        int         id = sqlite3_column_int(stmt, 0);
+        const char  *name = sqlite3_column_text(stmt, 1);
+        uint64_t    start_freq = sqlite3_column_int64(stmt, 2);
+        uint64_t    stop_freq = sqlite3_column_int64(stmt, 3);
+        uint8_t     used = sqlite3_column_int(stmt, 4);
+        
+        bands_insert(id, name, start_freq, stop_freq, used);
+    }
+    
+    sqlite3_finalize(stmt);
+    return true;
+}
+
 static void * params_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&params_mux);
@@ -279,6 +301,10 @@ void params_init() {
 
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare band write");
+        }
+        
+        if (!params_bands_load()) {
+            LV_LOG_ERROR("Load bands");
         }
     } else {
         LV_LOG_ERROR("Open params.db");

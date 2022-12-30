@@ -14,8 +14,6 @@
 #include <aether_radio/x6100_control/control.h>
 
 typedef struct {
-    uint16_t        id;
-    
     uint8_t         vfo;
     
     uint64_t        vfoa_freq;

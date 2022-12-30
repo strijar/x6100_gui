@@ -24,6 +24,7 @@
 #include "waterfall.h"
 #include "keypad.h"
 #include "params.h"
+#include "bands.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -74,6 +75,7 @@ int main(void) {
 
     pthread_mutex_init(&lv_mux, NULL);
 
+    bands_init();
     params_init();
     styles_init();
     

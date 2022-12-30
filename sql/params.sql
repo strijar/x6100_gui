@@ -5,7 +5,7 @@ CREATE TABLE bands(
     name        TEXT,
     start_freq  INTEGER,
     stop_freq   INTEGER,
-    ham         INTEGER
+    used        INTEGER
 );
 
 .import bands_r1.csv bands

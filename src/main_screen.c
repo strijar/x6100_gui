@@ -21,6 +21,7 @@
 #include "msg.h"
 #include "dsp.h"
 #include "params.h"
+#include "bands.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -202,6 +203,18 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case key_pre:
             if (!keypad->pressed) {
                 radio_change_pre();
+            }
+            break;
+            
+        case key_band_up:
+            if (!keypad->pressed) {
+                bands_change(true);
+            }
+            break;
+            
+        case key_band_down:
+            if (!keypad->pressed) {
+                bands_change(false);
             }
             break;
             
