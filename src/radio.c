@@ -35,10 +35,6 @@ static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
 
-static uint8_t          vfo = X6100_VFO_A;
-static uint64_t         freq;
-static int16_t          pre = x6100_pre_off;
-
 bool radio_tick() {
     if (now_time < prev_time) {
         prev_time = now_time;
@@ -108,6 +104,17 @@ static void * radio_thread(void *arg) {
     }
 }
 
+void radio_band_set() {
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    x6100_control_vfo_mode_set(params_band.vfo, vfoa ? params_band.vfoa_mode : params_band.vfob_mode);
+    x6100_control_vfo_agc_set(params_band.vfo, vfoa ? params_band.vfoa_agc : params_band.vfob_agc);
+    x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
+    x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+
+    main_screen_set_freq(vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+}
+
 void radio_init() {
     if (!x6100_control_init())
         return;
@@ -120,9 +127,7 @@ void radio_init() {
 
     pack = malloc(sizeof(x6100_flow_t));
 
-    x6100_control_vfo_mode_set(vfo, x6100_mode_usb);
-    x6100_control_vfo_agc_set(vfo, x6100_agc_fast);
-    x6100_control_vfo_pre_set(vfo, pre);
+    radio_band_set();
 
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
@@ -138,21 +143,22 @@ void radio_init() {
     pthread_detach(thread);
 }
 
-void radio_set_freq(uint64_t f) {
-    freq = f;
-
-    pthread_mutex_lock(&control_mux);
-    x6100_control_vfo_freq_set(vfo, f);
-    pthread_mutex_unlock(&control_mux);
-
-    main_screen_set_freq(f);
-}
-
 uint64_t radio_change_freq(int32_t df) {
-    freq += df;
-    radio_set_freq(freq);
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    params_lock();
+
+    if (vfoa) {
+        params_band.vfoa_freq += df;
+        params_unlock(&params_band.durty.vfoa_freq);
+    } else {
+        params_band.vfob_freq += df;
+        params_unlock(&params_band.durty.vfob_freq);
+    }
     
-    return freq;
+    x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+
+    return vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
 }
 
 uint16_t radio_change_vol(int16_t df) {
@@ -201,9 +207,21 @@ uint16_t radio_change_rfg(int16_t df) {
 }
 
 bool radio_change_pre() {
-    pre = (pre == x6100_pre_off) ? x6100_pre_on : x6100_pre_off;
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    params_lock();
+    
+    if (vfoa) {
+        params_band.vfoa_pre = !params_band.vfoa_pre;
+        params_unlock(&params_band.durty.vfoa_pre);
+    } else {
+        params_band.vfob_pre = !params_band.vfob_pre;
+        params_unlock(&params_band.durty.vfob_pre);
+    }
 
     pthread_mutex_lock(&control_mux);
-    x6100_control_vfo_pre_set(vfo, pre);
+    x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
     pthread_mutex_unlock(&control_mux);
+
+    return vfoa ? params_band.vfoa_pre : params_band.vfoa_pre;
 }

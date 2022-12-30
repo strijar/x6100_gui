@@ -82,8 +82,6 @@ int main(void) {
     dsp_init();
     radio_init();
 
-    radio_set_freq(14074000);
-    
     uint64_t prev_time = get_time();
     
 //    lv_scr_load_anim(main_obj, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 2000, 0, false);

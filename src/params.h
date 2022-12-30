@@ -11,6 +11,44 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <aether_radio/x6100_control/control.h>
+
+typedef struct {
+    uint16_t        id;
+    
+    uint8_t         vfo;
+    
+    uint64_t        vfoa_freq;
+    x6100_att_t     vfoa_att;
+    x6100_pre_t     vfoa_pre;
+    x6100_mode_t    vfoa_mode;
+    x6100_agc_t     vfoa_agc;
+
+    uint64_t        vfob_freq;
+    x6100_att_t     vfob_att;
+    x6100_pre_t     vfob_pre;
+    x6100_mode_t    vfob_mode;
+    x6100_agc_t     vfob_agc;
+
+    /* durty flags */
+    
+    struct {
+        bool    vfo;
+    
+        bool    vfoa_freq;
+        bool    vfoa_att;
+        bool    vfoa_pre;
+        bool    vfoa_mode;
+        bool    vfoa_agc;
+
+        bool    vfob_freq;
+        bool    vfob_att;
+        bool    vfob_pre;
+        bool    vfob_mode;
+        bool    vfob_agc;
+    } durty;
+} params_band_t;
+
 typedef struct {
     /* radio */
     
@@ -44,7 +82,11 @@ typedef struct {
 } params_t;
 
 extern params_t params;
+extern params_band_t params_band;
 
 void params_init();
 void params_lock();
 void params_unlock(bool *durty);
+
+bool params_band_save();
+void params_band_load();

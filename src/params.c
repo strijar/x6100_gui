@@ -28,10 +28,124 @@ params_t params = {
     .rfg                = 63
 };
 
+params_band_t params_band = {
+    .id                 = 0,
+    .vfo                = X6100_VFO_A,
+
+    .vfoa_freq          = 14000000,
+    .vfoa_att           = x6100_att_off,
+    .vfoa_pre           = x6100_pre_off,
+    .vfoa_mode          = x6100_mode_usb,
+    .vfoa_agc           = x6100_agc_fast,
+
+    .vfob_freq          = 14100000,
+    .vfob_att           = x6100_att_off,
+    .vfob_pre           = x6100_pre_off,
+    .vfob_mode          = x6100_mode_usb,
+    .vfob_agc           = x6100_agc_fast
+};
+
 static pthread_mutex_t  params_mux;
 static uint64_t         durty_time;
 static sqlite3          *db = NULL;
 static sqlite3_stmt     *write_stmt;
+static sqlite3_stmt     *write_band_stmt;
+
+static bool params_exec(const char *sql);
+
+/* Bands params */
+
+void params_band_load() {
+    sqlite3_stmt    *stmt;
+    int             rc;
+
+    rc = sqlite3_prepare_v2(db, "SELECT name,val FROM band_params WHERE bands_id = ?", -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        LV_LOG_ERROR("Prepare");
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, params_band.id);
+
+    while (sqlite3_step(stmt) != SQLITE_DONE) {
+        const char *name = sqlite3_column_text(stmt, 0);
+
+        if (strcmp(name, "vfo") == 0) {
+            params_band.vfo = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfoa_freq") == 0) {
+            params_band.vfoa_freq = sqlite3_column_int64(stmt, 1);
+        } else if (strcmp(name, "vfoa_att") == 0) {
+            params_band.vfoa_att = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfoa_pre") == 0) {
+            params_band.vfoa_pre = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfoa_mode") == 0) {
+            params_band.vfoa_mode = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfoa_agc") == 0) {
+            params_band.vfoa_agc = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfob_freq") == 0) {
+            params_band.vfob_freq = sqlite3_column_int64(stmt, 1);
+        } else if (strcmp(name, "vfob_att") == 0) {
+            params_band.vfob_att = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfob_pre") == 0) {
+            params_band.vfob_pre = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfob_mode") == 0) {
+            params_band.vfob_mode = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "vfob_agc") == 0) {
+            params_band.vfob_agc = sqlite3_column_int(stmt, 1);
+        }
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+static void params_band_write_int(const char *name, int data, bool *durty) {
+    sqlite3_bind_int(write_band_stmt, 1, params_band.id);
+    sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
+    sqlite3_bind_int(write_band_stmt, 3, data);
+    sqlite3_step(write_band_stmt);
+    sqlite3_reset(write_band_stmt);
+    sqlite3_clear_bindings(write_band_stmt);
+    
+    *durty = false;
+}
+
+static void params_band_write_int64(const char *name, uint64_t data, bool *durty) {
+    sqlite3_bind_int(write_band_stmt, 1, params_band.id);
+    sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
+    sqlite3_bind_int64(write_band_stmt, 3, data);
+    sqlite3_step(write_band_stmt);
+    sqlite3_reset(write_band_stmt);
+    sqlite3_clear_bindings(write_band_stmt);
+    
+    *durty = false;
+}
+
+bool params_band_save() {
+    if (!params_exec("BEGIN")) {
+        return false;
+    }
+
+    if (params_band.durty.vfo)          params_band_write_int("vfo", params_band.vfo, &params_band.durty.vfo);
+    if (params_band.durty.vfoa_freq)    params_band_write_int64("vfoa_freq", params_band.vfoa_freq, &params_band.durty.vfoa_freq);
+    if (params_band.durty.vfoa_att)     params_band_write_int("vfoa_att", params_band.vfoa_att, &params_band.durty.vfoa_att);
+    if (params_band.durty.vfoa_pre)     params_band_write_int("vfoa_pre", params_band.vfoa_pre, &params_band.durty.vfoa_pre);
+    if (params_band.durty.vfoa_mode)    params_band_write_int("vfoa_mode", params_band.vfoa_mode, &params_band.durty.vfoa_mode);
+    if (params_band.durty.vfoa_agc)     params_band_write_int("vfoa_agc", params_band.vfoa_agc, &params_band.durty.vfoa_agc);
+
+    if (params_band.durty.vfob_freq)    params_band_write_int64("vfob_freq", params_band.vfob_freq, &params_band.durty.vfob_freq);
+    if (params_band.durty.vfob_att)     params_band_write_int("vfob_att", params_band.vfob_att, &params_band.durty.vfob_att);
+    if (params_band.durty.vfob_pre)     params_band_write_int("vfob_pre", params_band.vfob_pre, &params_band.durty.vfob_pre);
+    if (params_band.durty.vfob_mode)    params_band_write_int("vfob_mode", params_band.vfob_mode, &params_band.durty.vfob_mode);
+    if (params_band.durty.vfob_agc)     params_band_write_int("vfob_agc", params_band.vfob_agc, &params_band.durty.vfob_agc);
+
+    if (!params_exec("COMMIT")) {
+        return false;
+    }
+    return true;
+}
+
+/* System params */
 
 static bool params_load() {
     sqlite3_stmt    *stmt;
@@ -48,6 +162,8 @@ static bool params_load() {
 
         if (strcmp(name, "band") == 0) {
             params.band = sqlite3_column_int(stmt, 1);
+            params_band.id = params.band;
+            params_band_load();
         } else if (strcmp(name, "vol") == 0) {
             params.vol = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "rfg") == 0) {
@@ -115,6 +231,8 @@ static bool params_save() {
     return true;
 }
 
+/* * */
+
 static void * params_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&params_mux);
@@ -126,10 +244,12 @@ static void * params_thread(void *arg) {
             if (d > PARAMS_SAVE_TIMEOUT) {
                 durty_time = 0;
                 
-                if (params_save()) {
-                    LV_LOG_INFO("Params saved");
-                } else {
+                if (!params_save()) {
                     LV_LOG_ERROR("Params not saved");
+                }
+
+                if (!params_band_save()) {
+                    LV_LOG_ERROR("Band params not saved");
                 }
             }
         }
@@ -154,6 +274,12 @@ void params_init() {
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare write");
         }
+
+        rc = sqlite3_prepare_v2(db, "INSERT INTO band_params(bands_id, name, val) VALUES(?, ?, ?)", -1, &write_band_stmt, 0);
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare band write");
+        }
     } else {
         LV_LOG_ERROR("Open params.db");
     }
@@ -173,7 +299,10 @@ void params_lock() {
 }
 
 void params_unlock(bool *durty) {
-    *durty = true;
+    if (durty != NULL) {
+        *durty = true;
+    }
+
     durty_time = get_time();
     pthread_mutex_unlock(&params_mux);
 }

@@ -163,11 +163,13 @@ static void mfk_press() {
 
 static void main_screen_rotary_cb(lv_event_t * e) {
     event_rotary_t  *rotary = lv_event_get_param(e);
+    uint64_t        freq;
 
     switch (rotary->id) {
         case 0:
-            radio_change_freq(rotary->diff * params.freq_step);
+            freq = radio_change_freq(rotary->diff * params.freq_step);
             waterfall_change_freq(rotary->diff * params.freq_step);
+            main_screen_set_freq(freq);
             break;
             
         case 1:

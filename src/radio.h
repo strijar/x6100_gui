@@ -15,9 +15,8 @@
 void radio_init();
 bool radio_tick();
 
-void radio_set_freq(uint64_t f);
-
 uint64_t radio_change_freq(int32_t df);
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 bool radio_change_pre();
+void radio_band_set();
