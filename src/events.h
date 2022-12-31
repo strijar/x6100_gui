@@ -19,38 +19,38 @@ typedef struct {
 } event_rotary_t;
 
 typedef enum {
-    key_unknown = 0,
+    KEYPAD_UNKNOWN = 0,
     
-    key_rotary_vol,
-    key_rotary_mfk,
+    KEYPAD_ROTARY_VOL,
+    KEYPAD_ROTARY_MFK,
     
-    key_gen,
-    key_app,
-    key_key,
-    key_msg,
-    key_dfn,
-    key_dfl,
+    KEYPAD_GEN,
+    KEYPAD_APP,
+    KEYPAD_KEY,
+    KEYPAD_MSG,
+    KEYPAD_DFN,
+    KEYPAD_DFL,
     
-    key_f1,
-    key_f2,
-    key_f3,
-    key_f4,
-    key_f5,
-    key_lock,
+    KEYPAD_F1,
+    KEYPAD_F2,
+    KEYPAD_F3,
+    KEYPAD_F4,
+    KEYPAD_F5,
+    KEYPAD_LOCK,
     
-    key_ptt,
-    key_band_down,
-    key_band_up,
-    key_mode_am,
-    key_mode_cw,
-    key_mode_ssb,
+    KEYPAD_PTT,
+    KEYPAD_BAND_DOWN,
+    KEYPAD_BAND_UP,
+    KEYPAD_MODE_AM,
+    KEYPAD_MODE_CW,
+    KEYPAD_MODE_SSB,
     
-    key_ab,
-    key_pre,
-    key_atu,
-    key_vm,
-    key_agc,
-    key_fst
+    KEYPAD_AB,
+    KEYPAD_PRE,
+    KEYPAD_ATU,
+    KEYPAD_VM,
+    KEYPAD_AGC,
+    KEYPAD_FST
 } keypad_key_t;
 
 typedef struct {
@@ -58,10 +58,46 @@ typedef struct {
     bool            pressed;
 } event_keypad_t;
 
+typedef enum {
+    HKEY_UNKNOWN = 0,
+
+    HKEY_SPCH,
+    HKEY_TUNER,
+    HKEY_XFC,
+    HKEY_UP,
+    HKEY_DOWN,
+    HKEY_VM,
+    HKEY_NW,
+    HKEY_F1,
+    HKEY_F2,
+    HKEY_1,
+    HKEY_2,
+    HKEY_3,
+    HKEY_4,
+    HKEY_5,
+    HKEY_6,
+    HKEY_7,
+    HKEY_8,
+    HKEY_9,
+    HKEY_DOT,
+    HKEY_0, 
+    HKEY_CE,
+    HKEY_MODE,
+    HKEY_FIL,
+    HKEY_GENE,
+    HKEY_FINP
+} hkey_t;
+
+typedef struct {
+    hkey_t  key;
+    bool    pressed;
+} event_hkey_t;
+
 extern uint32_t EVENT_ROTARY;
 extern uint32_t EVENT_KEYPAD;
+extern uint32_t EVENT_HKEY;
 
 void event_init();
 
-void event_obj_invalidate(lv_obj_t *obj);
 void event_obj_check();
+void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param);

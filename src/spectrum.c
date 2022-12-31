@@ -114,6 +114,10 @@ static void spectrum_draw_cb(lv_event_t * e) {
     lv_draw_line(draw_ctx, &line_dsc, &a, &b);
 }
 
+static void spectrum_refresh_cb(lv_event_t * e) {
+    lv_obj_invalidate(obj);
+}
+
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
@@ -123,6 +127,7 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
 
     lv_obj_add_style(obj, &spectrum_style, 0);
     lv_obj_add_event_cb(obj, spectrum_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+    lv_obj_add_event_cb(obj, spectrum_refresh_cb, LV_EVENT_REFRESH, NULL);
 
     return obj;
 }
@@ -131,7 +136,7 @@ void spectrum_data(float *data_buf, uint16_t size) {
     for (uint16_t i = 0; i < size; i++)
         spectrum_buf[i] = data_buf[size - i];
 
-    event_obj_invalidate(obj);
+    event_send(obj, LV_EVENT_REFRESH, NULL);
 }
 
 void spectrum_set_max(int db) {

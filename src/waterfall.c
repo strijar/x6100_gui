@@ -120,7 +120,11 @@ void waterfall_data(float *data_buf, uint16_t size) {
         lv_img_buf_set_px_color(frame, width - x, 0, palette[id]);
     }
     
-    event_obj_invalidate(img);
+    event_send(img, LV_EVENT_REFRESH, NULL);
+}
+
+static void waterfall_refresh_cb(lv_event_t * e) {
+    lv_obj_invalidate(obj);
 }
 
 void waterfall_set_height(lv_coord_t h) {
@@ -140,6 +144,7 @@ void waterfall_set_height(lv_coord_t h) {
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
+    lv_obj_add_event_cb(img, waterfall_refresh_cb, LV_EVENT_REFRESH, NULL);
 }
 
 void waterfall_set_max(int db) {
@@ -161,5 +166,5 @@ void waterfall_change_freq(int16_t df) {
     }
 
     delay = 3;
-    event_obj_invalidate(img);
+    event_send(obj, LV_EVENT_REFRESH, NULL);
 }

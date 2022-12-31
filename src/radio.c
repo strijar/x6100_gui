@@ -23,6 +23,7 @@
 #include "main_screen.h"
 #include "waterfall.h"
 #include "params.h"
+#include "hkey.h"
 
 #define FLOW_RESTART_TIMOUT 50
 #define IDLE_TIMEOUT        (2 * 1000)
@@ -72,6 +73,7 @@ bool radio_tick() {
         }
         
         dsp_samples(pack->samples, RADIO_SAMPLES);
+        hkey_put(pack->hkey);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {
             LV_LOG_WARN("Flow reset");

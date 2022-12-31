@@ -188,31 +188,31 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
     
     switch (keypad->key) {
-        case key_rotary_vol:
+        case KEYPAD_ROTARY_VOL:
             if (!keypad->pressed) {
                 vol_press();
             }
             break;
             
-        case key_rotary_mfk:
+        case KEYPAD_ROTARY_MFK:
             if (!keypad->pressed) {
                 mfk_press();
             }
             break;
 
-        case key_pre:
+        case KEYPAD_PRE:
             if (!keypad->pressed) {
                 radio_change_pre();
             }
             break;
             
-        case key_band_up:
+        case KEYPAD_BAND_UP:
             if (!keypad->pressed) {
                 bands_change(true);
             }
             break;
             
-        case key_band_down:
+        case KEYPAD_BAND_DOWN:
             if (!keypad->pressed) {
                 bands_change(false);
             }
@@ -224,6 +224,27 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     }
 }
 
+static void main_screen_hkey_cb(lv_event_t * e) {
+    event_hkey_t *hkey = lv_event_get_param(e);
+
+    switch (hkey->key) {
+        case HKEY_UP:
+            if (!hkey->pressed) {
+                bands_change(true);
+            }
+            break;
+
+        case HKEY_DOWN:
+            if (!hkey->pressed) {
+                bands_change(false);
+            }
+            break;
+        
+        default:
+            break;
+    }
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = pad;
 
@@ -231,6 +252,7 @@ lv_obj_t * main_screen() {
 
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
     lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
+    lv_obj_add_event_cb(obj, main_screen_hkey_cb, EVENT_HKEY, NULL);
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     

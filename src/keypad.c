@@ -25,115 +25,115 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                 /* Rotary */
                 
                 case BTN_TRIGGER_HAPPY21:
-                    event.key = key_rotary_vol;
+                    event.key = KEYPAD_ROTARY_VOL;
                     break;
                     
                 case BTN_TRIGGER_HAPPY27:
-                    event.key = key_rotary_mfk;
+                    event.key = KEYPAD_ROTARY_MFK;
                     break;
                 
                 /* Front side */
                     
                 case BTN_TRIGGER_HAPPY1:
-                    event.key = key_gen;
+                    event.key = KEYPAD_GEN;
                     break;
 
                 case BTN_TRIGGER_HAPPY7:
-                    event.key = key_app;
+                    event.key = KEYPAD_APP;
                     break;
 
                 case BTN_TRIGGER_HAPPY2:
-                    event.key = key_key;
+                    event.key = KEYPAD_KEY;
                     break;
 
                 case BTN_TRIGGER_HAPPY8:
-                    event.key = key_msg;
+                    event.key = KEYPAD_MSG;
                     break;
 
                 case BTN_TRIGGER_HAPPY3:
-                    event.key = key_dfn;
+                    event.key = KEYPAD_DFN;
                     break;
 
                 case BTN_TRIGGER_HAPPY9:
-                    event.key = key_dfl;
+                    event.key = KEYPAD_DFL;
                     break;
 
                 case BTN_TRIGGER_HAPPY13:
-                    event.key = key_f1;
+                    event.key = KEYPAD_F1;
                     break;
 
                 case BTN_TRIGGER_HAPPY14:
-                    event.key = key_f2;
+                    event.key = KEYPAD_F2;
                     break;
 
                 case BTN_TRIGGER_HAPPY15:
-                    event.key = key_f3;
+                    event.key = KEYPAD_F3;
                     break;
 
                 case BTN_TRIGGER_HAPPY19:
-                    event.key = key_f4;
+                    event.key = KEYPAD_F4;
                     break;
 
                 case BTN_TRIGGER_HAPPY20:
-                    event.key = key_f5;
+                    event.key = KEYPAD_F5;
                     break;
 
                 case BTN_TRIGGER_HAPPY25:
-                    event.key = key_lock;
+                    event.key = KEYPAD_LOCK;
                     break;
 
                 /* Top side */ 
 
                 case BTN_TRIGGER_HAPPY4:
-                    event.key = key_ptt;
+                    event.key = KEYPAD_PTT;
                     break;
 
                 case BTN_TRIGGER_HAPPY5:
-                    event.key = key_band_down;
+                    event.key = KEYPAD_BAND_DOWN;
                     break;
 
                 case BTN_TRIGGER_HAPPY6:
-                    event.key = key_band_up;
+                    event.key = KEYPAD_BAND_UP;
                     break;
 
                 case BTN_TRIGGER_HAPPY10:
-                    event.key = key_mode_am;
+                    event.key = KEYPAD_MODE_AM;
                     break;
 
                 case BTN_TRIGGER_HAPPY11:
-                    event.key = key_mode_cw;
+                    event.key = KEYPAD_MODE_CW;
                     break;
 
                 case BTN_TRIGGER_HAPPY12:
-                    event.key = key_mode_ssb;
+                    event.key = KEYPAD_MODE_SSB;
                     break;
 
                 case BTN_TRIGGER_HAPPY16:
-                    event.key = key_ab;
+                    event.key = KEYPAD_AB;
                     break;
 
                 case BTN_TRIGGER_HAPPY17:
-                    event.key = key_pre;
+                    event.key = KEYPAD_PRE;
                     break;
 
                 case BTN_TRIGGER_HAPPY18:
-                    event.key = key_atu;
+                    event.key = KEYPAD_ATU;
                     break;
 
                 case BTN_TRIGGER_HAPPY22:
-                    event.key = key_vm;
+                    event.key = KEYPAD_VM;
                     break;
 
                 case BTN_TRIGGER_HAPPY23:
-                    event.key = key_agc;
+                    event.key = KEYPAD_AGC;
                     break;
 
                 case BTN_TRIGGER_HAPPY24:
-                    event.key = key_fst;
+                    event.key = KEYPAD_FST;
                     break;
                     
                 default:
-                    event.key = key_unknown;
+                    event.key = KEYPAD_UNKNOWN;
                     LV_LOG_WARN("Unknown key");
                     break;
             }
