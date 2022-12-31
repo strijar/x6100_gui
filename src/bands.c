@@ -91,7 +91,7 @@ void bands_change(bool up) {
             params_band_save();
             params.band = bands[index]->id;
             params_band_load();
-            params_unlock(NULL);
+            params_unlock(&params.durty.band);
             
             radio_band_set();
 

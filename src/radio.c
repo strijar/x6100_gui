@@ -225,3 +225,42 @@ bool radio_change_pre() {
 
     return vfoa ? params_band.vfoa_pre : params_band.vfoa_pre;
 }
+
+void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
+    bool            vfoa = (params_band.vfo == X6100_VFO_A);
+    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+
+    switch (mode) {
+        case x6100_mode_lsb:
+        case x6100_mode_lsb_dig:
+            *from_freq = -2950;
+            *to_freq = -50;
+            break;
+            
+        case x6100_mode_usb:
+        case x6100_mode_usb_dig:
+            *from_freq = 50;
+            *to_freq = 2950;
+            break;
+            
+        case x6100_mode_cw:
+            *from_freq = -700;
+            *to_freq = -200;
+            break;
+            
+        case x6100_mode_cwr:
+            *from_freq = 200;
+            *to_freq = 700;
+            break;
+
+        case x6100_mode_am:
+        case x6100_mode_nfm:
+            *from_freq = -3000;
+            *to_freq = 3000;
+            break;
+            
+        default:
+            *from_freq = 0;
+            *to_freq = 0;
+    }
+}

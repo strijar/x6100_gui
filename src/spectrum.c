@@ -22,9 +22,6 @@ static int              grid_min = -70;
 static int              grid_max = -40;
 static bool             filled = false;
 
-static int16_t          filter_from = 50;
-static int16_t          filter_to = 2950;
-
 static int32_t          width_hz = 100000;
 
 static uint16_t         spectrum_size = 400;
@@ -90,11 +87,17 @@ static void spectrum_draw_cb(lv_event_t * e) {
     rect_dsc.bg_color = lv_color_hex(0x004080);
     rect_dsc.bg_opa = LV_OPA_50;
     
-    uint32_t w_hz = width_hz / dsp_get_spectrum_factor();
+    uint32_t    w_hz = width_hz / dsp_get_spectrum_factor();
+    int32_t     filter_from, filter_to;
     
-    area.x1 = x1 + w / 2 + w * filter_from / w_hz;
+    radio_filter_get(&filter_from, &filter_to);
+    
+    int32_t f1 = (int64_t)(w * filter_from) / w_hz;
+    int32_t f2 = (int64_t)(w * filter_to) / w_hz;
+
+    area.x1 = x1 + w / 2 + f1;
     area.y1 = y1 + 0;
-    area.x2 = x1 + w / 2 + w * filter_to / w_hz;
+    area.x2 = x1 + w / 2 + f2;
     area.y2 = y1 + h;
 
     lv_draw_rect(draw_ctx, &rect_dsc, &area);
@@ -137,9 +140,4 @@ void spectrum_set_max(int db) {
 
 void spectrum_set_min(int db) {
     grid_min = db;
-}
-
-void spectrum_set_filter(int16_t from, int16_t to) {
-    filter_from = from;
-    filter_to = to;
 }
