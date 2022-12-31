@@ -296,8 +296,8 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    spectrum_set_min(params.grid_min);
-    spectrum_set_max(params.grid_max);
+    waterfall_set_min(params.grid_min);
+    waterfall_set_max(params.grid_max);
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y - pad);

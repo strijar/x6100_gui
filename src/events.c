@@ -37,7 +37,11 @@ void event_obj_check() {
         
         item_t *item = queue[queue_read];
         
-        lv_event_send(item->obj, item->event_code, item->param);
+        if (item->event_code == LV_EVENT_REFRESH) {
+            lv_obj_invalidate(item->obj);
+        } else {
+            lv_event_send(item->obj, item->event_code, item->param);
+        }
         
         if (item->param != NULL) {
             free(item->param);

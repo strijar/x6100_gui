@@ -123,10 +123,6 @@ void waterfall_data(float *data_buf, uint16_t size) {
     event_send(img, LV_EVENT_REFRESH, NULL);
 }
 
-static void waterfall_refresh_cb(lv_event_t * e) {
-    lv_obj_invalidate(obj);
-}
-
 void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
@@ -144,7 +140,6 @@ void waterfall_set_height(lv_coord_t h) {
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
-    lv_obj_add_event_cb(img, waterfall_refresh_cb, LV_EVENT_REFRESH, NULL);
 }
 
 void waterfall_set_max(int db) {
