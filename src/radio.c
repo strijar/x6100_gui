@@ -228,6 +228,26 @@ bool radio_change_pre() {
     return vfoa ? params_band.vfoa_pre : params_band.vfoa_pre;
 }
 
+bool radio_change_att() {
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    params_lock();
+    
+    if (vfoa) {
+        params_band.vfoa_att = !params_band.vfoa_att;
+        params_unlock(&params_band.durty.vfoa_att);
+    } else {
+        params_band.vfob_att = !params_band.vfob_att;
+        params_unlock(&params_band.durty.vfob_att);
+    }
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
+    pthread_mutex_unlock(&control_mux);
+
+    return vfoa ? params_band.vfoa_att : params_band.vfoa_att;
+}
+
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
     bool            vfoa = (params_band.vfo == X6100_VFO_A);
     x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;

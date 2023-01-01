@@ -19,6 +19,7 @@ uint64_t radio_change_freq(int32_t df);
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 bool radio_change_pre();
+bool radio_change_att();
 void radio_band_set();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);

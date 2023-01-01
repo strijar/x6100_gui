@@ -13,7 +13,16 @@
 
 #include "keypad.h"
 
+#define KEYPAD_LONG_TIME 1000
+
 static event_keypad_t   event;
+static lv_timer_t       *timer = NULL;
+
+static void keypad_timer(lv_timer_t *t) {
+    event.state = KEYPAD_LONG;
+    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+    timer = NULL;
+}
 
 static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
@@ -137,9 +146,24 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     LV_LOG_WARN("Unknown key");
                     break;
             }
+
+            if (timer) {
+                lv_timer_del(timer);
+                timer = NULL;
+            }
         
-            event.pressed = in.value;
-            lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+            if (in.value == 1) {
+                event.state = KEYPAD_PRESS;
+                lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+
+                timer = lv_timer_create(keypad_timer, KEYPAD_LONG_TIME, NULL);
+                lv_timer_set_repeat_count(timer, 1);
+            } else {
+                if (event.state == KEYPAD_PRESS) {
+                    event.state = KEYPAD_RELEASE;
+                    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+                }
+            }
         }
     }
 }
@@ -166,6 +190,6 @@ keypad_t * keypad_init(char *dev_name) {
     keypad->indev_drv.user_data = keypad;
     
     keypad->indev = lv_indev_drv_register(&keypad->indev_drv);
-    
+
     return keypad;
 }

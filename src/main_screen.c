@@ -189,31 +189,33 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     
     switch (keypad->key) {
         case KEYPAD_ROTARY_VOL:
-            if (!keypad->pressed) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 vol_press();
             }
             break;
             
         case KEYPAD_ROTARY_MFK:
-            if (!keypad->pressed) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 mfk_press();
             }
             break;
 
         case KEYPAD_PRE:
-            if (!keypad->pressed) {
+            if (keypad->state == KEYPAD_RELEASE) {
+                radio_change_att();
+            } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_pre();
             }
             break;
             
         case KEYPAD_BAND_UP:
-            if (!keypad->pressed) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
             }
             break;
             
         case KEYPAD_BAND_DOWN:
-            if (!keypad->pressed) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
             }
             break;
