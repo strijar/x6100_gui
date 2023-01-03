@@ -94,6 +94,9 @@ void bands_change(bool up) {
             params_unlock(&params.durty.band);
             
             radio_band_set();
+            spectrum_band_set();
+            waterfall_band_set();
+            main_screen_band_set();
 
             return;
         }

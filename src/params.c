@@ -19,8 +19,6 @@
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .grid_min           = -70,
-    .grid_max           = -40,
     .spectrum_factor    = 1,
     .spectrum_beta      = 70,
     .freq_step          = 500,
@@ -42,7 +40,10 @@ params_band_t params_band = {
     .vfob_att           = x6100_att_off,
     .vfob_pre           = x6100_pre_off,
     .vfob_mode          = x6100_mode_usb,
-    .vfob_agc           = x6100_agc_fast
+    .vfob_agc           = x6100_agc_fast,
+
+    .grid_min           = -70,
+    .grid_max           = -40,
 };
 
 static pthread_mutex_t  params_mux;
@@ -93,6 +94,10 @@ void params_band_load() {
             params_band.vfob_mode = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfob_agc") == 0) {
             params_band.vfob_agc = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "grid_min") == 0) {
+            params_band.grid_min = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "grid_max") == 0) {
+            params_band.grid_max = sqlite3_column_int(stmt, 1);
         }
     }
 
@@ -139,6 +144,9 @@ bool params_band_save() {
     if (params_band.durty.vfob_mode)    params_band_write_int("vfob_mode", params_band.vfob_mode, &params_band.durty.vfob_mode);
     if (params_band.durty.vfob_agc)     params_band_write_int("vfob_agc", params_band.vfob_agc, &params_band.durty.vfob_agc);
 
+    if (params_band.durty.grid_min)     params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
+    if (params_band.durty.grid_max)     params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
+
     if (!params_exec("COMMIT")) {
         return false;
     }
@@ -167,10 +175,6 @@ static bool params_load() {
             params.vol = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "rfg") == 0) {
             params.rfg = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "grid_min") == 0) {
-            params.grid_min = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "grid_max") == 0) {
-            params.grid_max = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_factor") == 0) {
             params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
@@ -216,8 +220,6 @@ static bool params_save() {
     if (params.durty.band)              params_write_int("band", params.band, &params.durty.band);
     if (params.durty.vol)               params_write_int("vol", params.vol, &params.durty.vol);
     if (params.durty.rfg)               params_write_int("rfg", params.rfg, &params.durty.rfg);
-    if (params.durty.grid_min)          params_write_int("grid_min", params.grid_min, &params.durty.grid_min);
-    if (params.durty.grid_max)          params_write_int("grid_max", params.grid_max, &params.durty.grid_max);
     if (params.durty.spectrum_factor)   params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
     if (params.durty.spectrum_beta)     params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
     if (params.durty.freq_step)         params_write_int("freq_step", params.freq_step, &params.durty.freq_step);

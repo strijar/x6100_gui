@@ -13,6 +13,7 @@
 #include "styles.h"
 #include "radio.h"
 #include "events.h"
+#include "params.h"
 
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
@@ -140,6 +141,19 @@ void waterfall_set_height(lv_coord_t h) {
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
+    
+    waterfall_band_set();
+}
+
+void waterfall_clear() {
+    memset(frame->data,0, frame->data_size);
+}
+
+void waterfall_band_set() {
+    waterfall_clear();
+
+    waterfall_set_min(params_band.grid_min);
+    waterfall_set_max(params_band.grid_max);
 }
 
 void waterfall_set_max(int db) {

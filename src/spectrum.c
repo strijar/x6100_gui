@@ -15,6 +15,7 @@
 #include "radio.h"
 #include "events.h"
 #include "dsp.h"
+#include "params.h"
 
 static lv_obj_t         *obj;
 
@@ -124,6 +125,8 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     lv_obj_add_style(obj, &spectrum_style, 0);
     lv_obj_add_event_cb(obj, spectrum_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
 
+    spectrum_band_set();
+
     return obj;
 }
 
@@ -132,6 +135,11 @@ void spectrum_data(float *data_buf, uint16_t size) {
         spectrum_buf[i] = data_buf[size - i];
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
+}
+
+void spectrum_band_set() {
+    spectrum_set_min(params_band.grid_min);
+    spectrum_set_max(params_band.grid_max);
 }
 
 void spectrum_set_max(int db) {

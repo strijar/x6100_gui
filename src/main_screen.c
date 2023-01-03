@@ -99,25 +99,25 @@ static void mfk_rotate(int16_t diff) {
         case MFK_MIN_LEVEL:
             if (diff != 0) {
                 params_lock();
-                params.grid_min += diff;
-                params_unlock(&params.durty.grid_min);
+                params_band.grid_min += diff;
+                params_unlock(&params_band.durty.grid_min);
                 
-                spectrum_set_min(params.grid_min);
-                waterfall_set_min(params.grid_min);
+                spectrum_set_min(params_band.grid_min);
+                waterfall_set_min(params_band.grid_min);
             }
-            msg_set_text_fmt("Min level: %idb", params.grid_min);
+            msg_set_text_fmt("Min level: %idb", params_band.grid_min);
             break;
             
         case MFK_MAX_LEVEL:
             if (diff != 0) {
                 params_lock();
-                params.grid_max += diff;
-                params_unlock(&params.durty.grid_max);
+                params_band.grid_max += diff;
+                params_unlock(&params_band.durty.grid_max);
                 
-                spectrum_set_max(params.grid_max);
-                waterfall_set_max(params.grid_max);
+                spectrum_set_max(params_band.grid_max);
+                waterfall_set_max(params_band.grid_max);
             }
-            msg_set_text_fmt("Max level: %idb", params.grid_max);
+            msg_set_text_fmt("Max level: %idb", params_band.grid_max);
             break;
 
         case MFK_SPECTRUM_FACTOR:
@@ -260,8 +260,8 @@ lv_obj_t * main_screen() {
     
     spectrum = spectrum_init(obj);
     
-    spectrum_set_min(params.grid_min);
-    spectrum_set_max(params.grid_max);
+    spectrum_set_min(params_band.grid_min);
+    spectrum_set_max(params_band.grid_max);
 
     lv_obj_set_y(spectrum, y);
     lv_obj_set_height(spectrum, spectrum_height);
@@ -298,8 +298,8 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    waterfall_set_min(params.grid_min);
-    waterfall_set_max(params.grid_max);
+    waterfall_set_min(params_band.grid_min);
+    waterfall_set_max(params_band.grid_max);
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y - pad);
@@ -335,5 +335,13 @@ lv_obj_t * main_screen() {
 
     msg = msg_init(obj);
     
+    main_screen_band_set();
+    
     return obj;
+}
+
+void main_screen_band_set() {
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    main_screen_set_freq(vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
 }

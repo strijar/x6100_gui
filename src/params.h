@@ -28,6 +28,9 @@ typedef struct {
     x6100_mode_t    vfob_mode;
     x6100_agc_t     vfob_agc;
 
+    int16_t         grid_min;
+    int16_t         grid_max;
+
     /* durty flags */
     
     struct {
@@ -44,6 +47,9 @@ typedef struct {
         bool    vfob_pre;
         bool    vfob_mode;
         bool    vfob_agc;
+
+        bool    grid_min;
+        bool    grid_max;
     } durty;
 } params_band_t;
 
@@ -57,8 +63,6 @@ typedef struct {
     
     /* main screen */
     
-    int16_t     grid_min;
-    int16_t     grid_max;
     int16_t     spectrum_factor;
     int16_t     spectrum_beta;
     uint16_t    freq_step;
@@ -71,8 +75,6 @@ typedef struct {
         bool    rfg;
         bool    pre;
         
-        bool    grid_min;
-        bool    grid_max;
         bool    spectrum_factor;
         bool    spectrum_beta;
         bool    freq_step;
