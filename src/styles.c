@@ -15,6 +15,7 @@ lv_style_t  freq_main_style;
 lv_style_t  waterfall_style;
 lv_style_t  btn_style;
 lv_style_t  msg_style;
+lv_style_t  clock_style;
 
 extern lv_font_t    eco_sans_14;
 extern lv_font_t    eco_sans_16;
@@ -59,7 +60,6 @@ void styles_init() {
     lv_style_init(&btn_style);
     lv_style_set_bg_opa(&btn_style, LV_OPA_50);
     lv_style_set_bg_color(&btn_style, lv_color_hex(0x004080));
-
     lv_style_set_border_opa(&btn_style, LV_OPA_50);
     lv_style_set_border_color(&btn_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&btn_style, 2);
@@ -79,4 +79,16 @@ void styles_init() {
     lv_style_set_x(&msg_style, 800 / 2 - (600 / 2));
     lv_style_set_y(&msg_style, 260);
     lv_style_set_pad_ver(&msg_style, 10);
+
+    lv_style_init(&clock_style);
+    lv_style_set_bg_opa(&clock_style, LV_OPA_50);
+    lv_style_set_bg_color(&clock_style, lv_color_hex(0x004080));
+    lv_style_set_border_color(&clock_style, lv_color_hex(0x000000));
+    lv_style_set_border_width(&clock_style, 2);
+    lv_style_set_radius(&clock_style, radius);
+    lv_style_set_clip_corner(&clock_style, true);
+    lv_style_set_width(&clock_style, 200);
+    lv_style_set_x(&clock_style, 800 - 200);
+    lv_style_set_text_font(&clock_style, &eco_sans_38);
+    lv_style_set_text_color(&clock_style, lv_color_white());
 }

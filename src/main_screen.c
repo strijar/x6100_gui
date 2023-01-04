@@ -22,6 +22,7 @@
 #include "dsp.h"
 #include "params.h"
 #include "bands.h"
+#include "clock.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -334,6 +335,8 @@ lv_obj_t * main_screen() {
     }
 
     msg = msg_init(obj);
+
+    clock_init(obj);
     
     main_screen_band_set();
     

@@ -18,5 +18,6 @@ extern lv_style_t   freq_main_style;
 extern lv_style_t   waterfall_style;
 extern lv_style_t   btn_style;
 extern lv_style_t   msg_style;
+extern lv_style_t   clock_style;
 
 void styles_init();
