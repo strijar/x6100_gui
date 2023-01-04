@@ -25,7 +25,7 @@
 #include "params.h"
 #include "hkey.h"
 
-#define FLOW_RESTART_TIMOUT 50
+#define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (2 * 1000)
 
 static pthread_mutex_t  control_mux;
@@ -56,22 +56,6 @@ bool radio_tick() {
                    pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->hkey, pack->crc);
         }
 #endif        
-        for (uint16_t i = 0; i < RADIO_SAMPLES; i++) {
-            complex float *s = &pack->samples[i];
-        
-            if (__real__ *s < -1.0f) {
-                __real__ *s = -1.0f;
-            } else if (__real__ *s > 1.0f) {
-                __real__ *s = 1.0f;
-            }
-            
-            if (__imag__ *s < -1.0f) {
-                __imag__ *s = -1.0f;
-            } else if (__imag__ *s > 1.0f) {
-                __imag__ *s = 1.0f;
-            }
-        }
-        
         dsp_samples(pack->samples, RADIO_SAMPLES);
         hkey_put(pack->hkey);
     } else {
