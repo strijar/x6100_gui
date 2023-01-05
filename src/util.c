@@ -23,3 +23,7 @@ void split_freq(uint64_t freq, uint16_t *mhz, uint16_t *khz, uint16_t *hz) {
     *khz = (freq / 1000) % 1000;
     *hz = freq % 1000;
 }
+
+int32_t align_int(int32_t x, uint16_t step) {
+    return x - (x % step);
+}

@@ -24,6 +24,8 @@ bool radio_tick();
 uint64_t radio_change_freq(int32_t df);
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
+uint32_t radio_change_filter_low(int32_t freq);
+uint32_t radio_change_filter_high(int32_t freq);
 bool radio_change_pre();
 bool radio_change_att();
 void radio_change_mode(radio_mode_t select);

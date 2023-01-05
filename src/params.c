@@ -44,6 +44,9 @@ params_band_t params_band = {
 
     .grid_min           = -70,
     .grid_max           = -40,
+
+    .filter_low         = 50,
+    .filter_high        = 2950
 };
 
 static pthread_mutex_t  params_mux;
@@ -98,6 +101,10 @@ void params_band_load() {
             params_band.grid_min = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "grid_max") == 0) {
             params_band.grid_max = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "filter_low") == 0) {
+            params_band.filter_low = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "filter_high") == 0) {
+            params_band.filter_high = sqlite3_column_int(stmt, 1);
         }
     }
 
@@ -146,6 +153,9 @@ bool params_band_save() {
 
     if (params_band.durty.grid_min)     params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
     if (params_band.durty.grid_max)     params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
+
+    if (params_band.durty.filter_low)   params_band_write_int("filter_low", params_band.filter_low, &params_band.durty.filter_low);
+    if (params_band.durty.filter_high)  params_band_write_int("filter_high", params_band.filter_high, &params_band.durty.filter_high);
 
     if (!params_exec("COMMIT")) {
         return false;

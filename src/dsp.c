@@ -14,6 +14,7 @@
 #include "waterfall.h"
 #include "util.h"
 #include "radio.h"
+#include "params.h"
 
 static unsigned int     nfft = 400;
 static iirfilt_cccf     dc_block;
@@ -50,7 +51,7 @@ void dsp_init() {
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
     spectrum_psd_filtered = (float *) malloc(nfft * sizeof(float));
 
-    dsp_set_spectrum_factor(1);
+    dsp_set_spectrum_factor(params.spectrum_factor);
 
     for (uint16_t i = 0; i < nfft; i++)
         spectrum_psd_filtered[i] = -130.0f;

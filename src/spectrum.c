@@ -132,8 +132,8 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     filter_grad.stops[3].color = lv_color_darken(bg_color, 196);
     
     filter_grad.stops[0].frac  = 0;
-    filter_grad.stops[1].frac  = 128 - 30;
-    filter_grad.stops[2].frac  = 128 + 30;
+    filter_grad.stops[1].frac  = 128 - 70;
+    filter_grad.stops[2].frac  = 128 + 70;
     filter_grad.stops[3].frac  = 255;
 
     obj = lv_obj_create(parent);

@@ -30,6 +30,8 @@
 typedef enum {
     VOL_VOL = 0,
     VOL_RFG,
+    VOL_FILTER_LOW,
+    VOL_FILTER_HIGH,
     
     VOL_LAST
 } vol_mode_t;
@@ -86,14 +88,24 @@ static void vol_rotate(int16_t diff) {
             x = radio_change_rfg(diff);
             msg_set_text_fmt("RF gain: %i", x);
             break;
+
+        case VOL_FILTER_LOW:
+            x = radio_change_filter_low(diff);
+            msg_set_text_fmt("Filter low: %i", x);
+            break;
+
+        case VOL_FILTER_HIGH:
+            x = radio_change_filter_high(diff);
+            msg_set_text_fmt("Filter high: %i", x);
+            break;
             
         default:
             break;
     }
 }
 
-static void vol_press() {
-    vol_mode = (vol_mode + 1) % VOL_LAST;
+static void vol_press(int16_t dir) {
+    vol_mode = (vol_mode + dir) % VOL_LAST;
     
     vol_rotate(0);
 }
@@ -160,8 +172,8 @@ static void mfk_rotate(int16_t diff) {
     }
 }
 
-static void mfk_press() {
-    mfk_mode = (mfk_mode + 1) % MFK_LAST;
+static void mfk_press(int16_t dir) {
+    mfk_mode = (mfk_mode + dir) % MFK_LAST;
     
     mfk_rotate(0);
 }
@@ -194,13 +206,17 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     switch (keypad->key) {
         case KEYPAD_ROTARY_VOL:
             if (keypad->state == KEYPAD_RELEASE) {
-                vol_press();
+                vol_press(1);
+            } else if (keypad->state == KEYPAD_LONG) {
+                vol_press(-1);
             }
             break;
             
         case KEYPAD_ROTARY_MFK:
             if (keypad->state == KEYPAD_RELEASE) {
-                mfk_press();
+                mfk_press(1);
+            } else if (keypad->state == KEYPAD_LONG) {
+                mfk_press(-1);
             }
             break;
 

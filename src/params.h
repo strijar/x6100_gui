@@ -30,6 +30,9 @@ typedef struct {
 
     int16_t         grid_min;
     int16_t         grid_max;
+    
+    int32_t         filter_low;
+    int32_t         filter_high;
 
     /* durty flags */
     
@@ -50,6 +53,9 @@ typedef struct {
 
         bool    grid_min;
         bool    grid_max;
+
+        bool    filter_low;
+        bool    filter_high;
     } durty;
 } params_band_t;
 
