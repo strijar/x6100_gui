@@ -172,6 +172,7 @@ void styles_init() {
     lv_style_init(&info_item_style);
     lv_style_set_text_font(&info_item_style, &eco_sans_18);
     lv_style_set_pad_ver(&info_item_style, 3);
+    lv_style_set_radius(&info_item_style, 5);
 
     lv_style_init(&meter_style);
     lv_style_set_border_color(&meter_style, lv_color_hex(0x000000));

@@ -12,6 +12,12 @@
 
 #define RADIO_SAMPLES   (512)
 
+typedef enum {
+    RADIO_MODE_AM = 0,
+    RADIO_MODE_CW,
+    RADIO_MODE_SSB
+} radio_mode_t;
+
 void radio_init();
 bool radio_tick();
 
@@ -20,6 +26,7 @@ uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 bool radio_change_pre();
 bool radio_change_att();
+void radio_change_mode(radio_mode_t select);
 void radio_band_set();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);

@@ -45,19 +45,12 @@ lv_obj_t * info_init(lv_obj_t * parent) {
             lv_obj_t *item = lv_label_create(obj);
             
             lv_obj_add_style(item, &info_item_style, 0);
-            lv_obj_set_pos(item, x * 67, y * 27);
+            lv_obj_set_pos(item, x * 67, y * 25);
             lv_obj_set_style_text_align(item, LV_TEXT_ALIGN_CENTER, 0);
             
             lv_obj_set_style_text_color(item, lv_color_white(), 0);
-            lv_obj_set_size(item, 190/3, 24);
+            lv_obj_set_size(item, 190/3, 25);
 
-            /*            
-            if (index % 2 == 0) {
-                lv_obj_set_style_bg_color(item, lv_color_black(), 0);
-                lv_obj_set_style_bg_opa(item, LV_OPA_COVER, 0);
-            }
-            */
-            
             items[index] = item;
             index++;
         }
@@ -153,7 +146,7 @@ void info_params_set() {
     } else {
         lv_obj_set_style_text_color(items[INFO_ATT], lv_color_black(), 0);
         lv_obj_set_style_bg_color(items[INFO_ATT], lv_color_white(), 0);
-        lv_obj_set_style_bg_opa(items[INFO_ATT], LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_opa(items[INFO_ATT], LV_OPA_50, 0);
     }
 
     if (pre == x6100_pre_off) {
@@ -163,6 +156,6 @@ void info_params_set() {
     } else {
         lv_obj_set_style_text_color(items[INFO_PRE], lv_color_black(), 0);
         lv_obj_set_style_bg_color(items[INFO_PRE], lv_color_white(), 0);
-        lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_COVER, 0);
+        lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_50, 0);
     }
 }

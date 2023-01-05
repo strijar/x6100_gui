@@ -247,15 +247,15 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
             *from_freq = 50;
             *to_freq = 2950;
             break;
-            
+
         case x6100_mode_cw:
-            *from_freq = -700;
-            *to_freq = -200;
+            *from_freq = 200;
+            *to_freq = 700;
             break;
             
         case x6100_mode_cwr:
-            *from_freq = 200;
-            *to_freq = 700;
+            *from_freq = -700;
+            *to_freq = -200;
             break;
 
         case x6100_mode_am:
@@ -268,4 +268,84 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
             *from_freq = 0;
             *to_freq = 0;
     }
+}
+
+void radio_change_mode(radio_mode_t select) {
+    params_lock();
+
+    bool            vfoa = (params_band.vfo == X6100_VFO_A);
+    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+
+    switch (select) {
+        case RADIO_MODE_AM:
+            switch (mode) {
+                case x6100_mode_am:
+                    mode = x6100_mode_nfm;
+                    break;
+                    
+                case x6100_mode_nfm:
+                    mode = x6100_mode_am;
+                    break;
+                    
+                default:
+                    mode = x6100_mode_am;
+                    break;
+            }
+            break;
+            
+        case RADIO_MODE_CW:
+            switch (mode) {
+                case x6100_mode_cw:
+                    mode = x6100_mode_cwr;
+                    break;
+                    
+                case x6100_mode_cwr:
+                    mode = x6100_mode_cw;
+                    break;
+                    
+                default:
+                    mode = x6100_mode_cw;
+                    break;
+            }
+            break;
+            
+        case RADIO_MODE_SSB:
+            switch (mode) {
+                case x6100_mode_lsb:
+                    mode = x6100_mode_lsb_dig;
+                    break;
+                    
+                case x6100_mode_lsb_dig:
+                    mode = x6100_mode_usb;
+                    break;
+                    
+                case x6100_mode_usb:
+                    mode = x6100_mode_usb_dig;
+                    break;
+                    
+                case x6100_mode_usb_dig:
+                    mode = x6100_mode_lsb;
+                    break;
+                    
+                default: 
+                    mode = x6100_mode_lsb;
+                    break;
+            }
+            break;
+            
+        default:
+            break;
+    }
+
+    if (vfoa) {
+        params_band.vfoa_mode = mode;
+        params_unlock(&params_band.durty.vfoa_mode);
+    } else {
+        params_band.vfob_mode = mode;
+        params_unlock(&params_band.durty.vfob_mode);
+    }
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_vfo_mode_set(params_band.vfo, mode);
+    pthread_mutex_unlock(&control_mux);
 }
