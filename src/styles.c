@@ -41,15 +41,17 @@ void styles_init() {
     /* Top */
     
     grad_top.dir = LV_GRAD_DIR_VER;
-    grad_top.stops_count = 3;
+    grad_top.stops_count = 4;
     
-    grad_top.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_top.stops[0].color = lv_color_lighten(bg_color, 196);
     grad_top.stops[1].color = bg_color;
-    grad_top.stops[2].color = lv_color_darken(bg_color, 164);
+    grad_top.stops[2].color = bg_color;
+    grad_top.stops[3].color = lv_color_darken(bg_color, 196);
     
-    grad_top.stops[0].frac  = 130;
-    grad_top.stops[1].frac  = (255 + 130)/2;
-    grad_top.stops[2].frac  = 255;
+    grad_top.stops[0].frac  = 90;
+    grad_top.stops[1].frac  = (255 + 90)/2 - 30;
+    grad_top.stops[2].frac  = (255 + 90)/2 + 30;
+    grad_top.stops[3].frac  = 255;
 
     lv_style_init(&panel_top_style);
     lv_style_set_bg_opa(&panel_top_style, LV_OPA_60);
@@ -58,15 +60,17 @@ void styles_init() {
     /* Mid */
     
     grad_mid.dir = LV_GRAD_DIR_VER;
-    grad_mid.stops_count = 3;
+    grad_mid.stops_count = 4;
 
-    grad_mid.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_mid.stops[0].color = lv_color_lighten(bg_color, 196);
     grad_mid.stops[1].color = bg_color;
-    grad_mid.stops[2].color = lv_color_darken(bg_color, 164);
+    grad_mid.stops[2].color = bg_color;
+    grad_mid.stops[3].color = lv_color_darken(bg_color, 196);
     
     grad_mid.stops[0].frac  = 0;
-    grad_mid.stops[1].frac  = 128;
-    grad_mid.stops[2].frac  = 255;
+    grad_mid.stops[1].frac  = 128 - 30;
+    grad_mid.stops[2].frac  = 128 + 30;
+    grad_mid.stops[3].frac  = 255;
 
     lv_style_init(&panel_mid_style);
     lv_style_set_bg_opa(&panel_mid_style, LV_OPA_60);
@@ -75,15 +79,17 @@ void styles_init() {
     /* Bottom */
     
     grad_bottom.dir = LV_GRAD_DIR_VER;
-    grad_bottom.stops_count = 3;
+    grad_bottom.stops_count = 4;
 
-    grad_bottom.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_bottom.stops[0].color = lv_color_lighten(bg_color, 196);
     grad_bottom.stops[1].color = bg_color;
-    grad_bottom.stops[2].color = lv_color_darken(bg_color, 164);
+    grad_bottom.stops[2].color = bg_color;
+    grad_bottom.stops[3].color = lv_color_darken(bg_color, 196);
     
     grad_bottom.stops[0].frac  = 0;
-    grad_bottom.stops[1].frac  = (0 + 150) / 2;
-    grad_bottom.stops[2].frac  = 150;
+    grad_bottom.stops[1].frac  = (0 + 165)/2 - 30;
+    grad_bottom.stops[2].frac  = (0 + 165)/2 + 30;
+    grad_bottom.stops[3].frac  = 165;
 
     lv_style_init(&panel_bottom_style);
     lv_style_set_bg_opa(&panel_bottom_style, LV_OPA_60);
