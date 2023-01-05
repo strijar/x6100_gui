@@ -26,7 +26,9 @@ static void show_time() {
 lv_obj_t * clock_init(lv_obj_t * parent) {
     obj = lv_label_create(parent);
 
+    lv_obj_add_style(obj, &panel_top_style, 0);
     lv_obj_add_style(obj, &clock_style, 0);
+    
     lv_obj_set_height(obj, clock_height + over);
     lv_obj_set_style_pad_top(obj, over, 0);
     lv_obj_set_y(obj, -over);

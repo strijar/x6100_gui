@@ -313,7 +313,9 @@ lv_obj_t * main_screen() {
     for (uint8_t i = 0; i < 5; i++) {
         lv_obj_t *f = lv_btn_create(obj);
 
+        lv_obj_add_style(f, &panel_bottom_style, 0);
         lv_obj_add_style(f, &btn_style, 0);
+
         lv_obj_set_pos(f, x, y);
         lv_obj_set_size(f, width, btn_height + over);
         lv_obj_set_style_pad_bottom(f, over, 0);

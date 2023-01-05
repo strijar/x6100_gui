@@ -17,6 +17,12 @@ lv_style_t  btn_style;
 lv_style_t  msg_style;
 lv_style_t  clock_style;
 
+lv_style_t  panel_top_style;
+lv_style_t  panel_mid_style;
+lv_style_t  panel_bottom_style;
+
+lv_color_t  bg_color;
+
 extern lv_font_t    eco_sans_14;
 extern lv_font_t    eco_sans_16;
 extern lv_font_t    eco_sans_32;
@@ -25,9 +31,68 @@ extern lv_font_t    eco_sans_38;
 
 static const uint16_t radius = 25;
 
+static lv_grad_dsc_t    grad_top;
+static lv_grad_dsc_t    grad_mid;
+static lv_grad_dsc_t    grad_bottom;
+
 void styles_init() {
+    bg_color = lv_color_hex(0x0040A0);
+
+    /* Top */
+    
+    grad_top.dir = LV_GRAD_DIR_VER;
+    grad_top.stops_count = 3;
+    
+    grad_top.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_top.stops[1].color = bg_color;
+    grad_top.stops[2].color = lv_color_darken(bg_color, 164);
+    
+    grad_top.stops[0].frac  = 130;
+    grad_top.stops[1].frac  = (255 + 130)/2;
+    grad_top.stops[2].frac  = 255;
+
+    lv_style_init(&panel_top_style);
+    lv_style_set_bg_opa(&panel_top_style, LV_OPA_60);
+    lv_style_set_bg_grad(&panel_top_style, &grad_top);
+
+    /* Mid */
+    
+    grad_mid.dir = LV_GRAD_DIR_VER;
+    grad_mid.stops_count = 3;
+
+    grad_mid.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_mid.stops[1].color = bg_color;
+    grad_mid.stops[2].color = lv_color_darken(bg_color, 164);
+    
+    grad_mid.stops[0].frac  = 0;
+    grad_mid.stops[1].frac  = 128;
+    grad_mid.stops[2].frac  = 255;
+
+    lv_style_init(&panel_mid_style);
+    lv_style_set_bg_opa(&panel_mid_style, LV_OPA_60);
+    lv_style_set_bg_grad(&panel_mid_style, &grad_mid);
+
+    /* Bottom */
+    
+    grad_bottom.dir = LV_GRAD_DIR_VER;
+    grad_bottom.stops_count = 3;
+
+    grad_bottom.stops[0].color = lv_color_lighten(bg_color, 164);
+    grad_bottom.stops[1].color = bg_color;
+    grad_bottom.stops[2].color = lv_color_darken(bg_color, 164);
+    
+    grad_bottom.stops[0].frac  = 0;
+    grad_bottom.stops[1].frac  = (0 + 150) / 2;
+    grad_bottom.stops[2].frac  = 150;
+
+    lv_style_init(&panel_bottom_style);
+    lv_style_set_bg_opa(&panel_bottom_style, LV_OPA_60);
+    lv_style_set_bg_grad(&panel_bottom_style, &grad_bottom);
+
+    /* * */
+
     lv_style_init(&background_style);
-    lv_style_set_bg_color(&background_style, lv_color_hex(0x004080));
+    lv_style_set_bg_color(&background_style, bg_color);
 
     lv_style_init(&spectrum_style);
     lv_style_set_bg_color(&spectrum_style, lv_color_hex(0x000000));
@@ -58,8 +123,6 @@ void styles_init() {
     lv_style_set_x(&waterfall_style, 5);
 
     lv_style_init(&btn_style);
-    lv_style_set_bg_opa(&btn_style, LV_OPA_50);
-    lv_style_set_bg_color(&btn_style, lv_color_hex(0x004080));
     lv_style_set_border_opa(&btn_style, LV_OPA_50);
     lv_style_set_border_color(&btn_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&btn_style, 2);
@@ -67,8 +130,6 @@ void styles_init() {
     lv_style_set_radius(&btn_style, radius);
 
     lv_style_init(&msg_style);
-    lv_style_set_bg_opa(&msg_style, LV_OPA_50);
-    lv_style_set_bg_color(&msg_style, lv_color_hex(0x004080));
     lv_style_set_text_color(&msg_style, lv_color_white());
     lv_style_set_text_font(&msg_style, &eco_sans_38);
     lv_style_set_border_opa(&msg_style, LV_OPA_50);
@@ -81,8 +142,6 @@ void styles_init() {
     lv_style_set_pad_ver(&msg_style, 10);
 
     lv_style_init(&clock_style);
-    lv_style_set_bg_opa(&clock_style, LV_OPA_50);
-    lv_style_set_bg_color(&clock_style, lv_color_hex(0x004080));
     lv_style_set_border_color(&clock_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&clock_style, 2);
     lv_style_set_radius(&clock_style, radius);

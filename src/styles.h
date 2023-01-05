@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include "lvgl/lvgl.h"
 
+extern lv_color_t   bg_color;
+
 extern lv_style_t   background_style;
 extern lv_style_t   spectrum_style;
 extern lv_style_t   freq_style;
@@ -19,5 +21,9 @@ extern lv_style_t   waterfall_style;
 extern lv_style_t   btn_style;
 extern lv_style_t   msg_style;
 extern lv_style_t   clock_style;
+
+extern lv_style_t   panel_top_style;
+extern lv_style_t   panel_mid_style;
+extern lv_style_t   panel_bottom_style;
 
 void styles_init();
