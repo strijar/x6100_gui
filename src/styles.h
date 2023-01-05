@@ -21,6 +21,9 @@ extern lv_style_t   waterfall_style;
 extern lv_style_t   btn_style;
 extern lv_style_t   msg_style;
 extern lv_style_t   clock_style;
+extern lv_style_t   info_style;
+extern lv_style_t   info_item_style;
+extern lv_style_t   meter_style;
 
 extern lv_style_t   panel_top_style;
 extern lv_style_t   panel_mid_style;

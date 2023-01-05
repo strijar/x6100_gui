@@ -11,10 +11,10 @@
 #include "clock.h"
 #include "styles.h"
 
-static uint8_t      over = 30;
+static uint8_t      over = 25;
 static uint8_t      clock_height = 54;
 
-lv_obj_t            *obj;
+static lv_obj_t     *obj;
 
 static void show_time() {
     time_t      now = time(NULL);

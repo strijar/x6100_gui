@@ -59,7 +59,6 @@ typedef struct {
     uint8_t     band;
     int16_t     vol;
     int16_t     rfg;
-    int16_t     pre;
     
     /* main screen */
     
@@ -73,7 +72,6 @@ typedef struct {
         bool    band;
         bool    vol;
         bool    rfg;
-        bool    pre;
         
         bool    spectrum_factor;
         bool    spectrum_beta;

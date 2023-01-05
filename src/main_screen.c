@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "lvgl/lvgl.h"
+#include "main_screen.h"
 #include "styles.h"
 #include "spectrum.h"
 #include "waterfall.h"
@@ -23,6 +24,8 @@
 #include "params.h"
 #include "bands.h"
 #include "clock.h"
+#include "info.h"
+#include "meter.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -47,7 +50,7 @@ static uint8_t      pad = 10;
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
 static uint8_t      btn_height = 54;
-static uint8_t      over = 30;
+static uint8_t      over = 25;
 
 static lv_obj_t     *obj;
 
@@ -204,8 +207,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_PRE:
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_att();
+                info_params_set();
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_pre();
+                info_params_set();
             }
             break;
             
@@ -339,6 +344,8 @@ lv_obj_t * main_screen() {
     msg = msg_init(obj);
 
     clock_init(obj);
+    info_init(obj);
+    meter_init(obj);
     
     main_screen_band_set();
     

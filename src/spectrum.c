@@ -24,9 +24,12 @@ static int              grid_max = -40;
 static bool             filled = false;
 
 static int32_t          width_hz = 100000;
+static int16_t          visor_height = 115;
 
 static uint16_t         spectrum_size = 400;
 static float            *spectrum_buf = NULL;
+
+static lv_grad_dsc_t    filter_grad;
 
 static pthread_mutex_t  data_mux;
 
@@ -85,7 +88,7 @@ static void spectrum_draw_cb(lv_event_t * e) {
 
     lv_draw_rect_dsc_init(&rect_dsc);
 
-    rect_dsc.bg_color = bg_color;
+    rect_dsc.bg_grad = filter_grad;
     rect_dsc.bg_opa = LV_OPA_50;
     
     uint32_t    w_hz = width_hz / dsp_get_spectrum_factor();
@@ -97,7 +100,7 @@ static void spectrum_draw_cb(lv_event_t * e) {
     int32_t f2 = (int64_t)(w * filter_to) / w_hz;
 
     area.x1 = x1 + w / 2 + f1;
-    area.y1 = y1 + 0;
+    area.y1 = y1 + h - visor_height;
     area.x2 = x1 + w / 2 + f2;
     area.y2 = y1 + h;
 
@@ -108,7 +111,7 @@ static void spectrum_draw_cb(lv_event_t * e) {
     line_dsc.width = 1;
     
     a.x = x1 + w / 2;
-    a.y = y1;
+    a.y = y1 + h - visor_height;
     b.x = a.x;
     b.y = y1 + h;
 
@@ -119,6 +122,19 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
     spectrum_buf = malloc(spectrum_size * sizeof(lv_point_t));
+
+    filter_grad.dir = LV_GRAD_DIR_VER;
+    filter_grad.stops_count = 4;
+
+    filter_grad.stops[0].color = lv_color_lighten(bg_color, 196);
+    filter_grad.stops[1].color = bg_color;
+    filter_grad.stops[2].color = bg_color;
+    filter_grad.stops[3].color = lv_color_darken(bg_color, 196);
+    
+    filter_grad.stops[0].frac  = 0;
+    filter_grad.stops[1].frac  = 128 - 30;
+    filter_grad.stops[2].frac  = 128 + 30;
+    filter_grad.stops[3].frac  = 255;
 
     obj = lv_obj_create(parent);
 

@@ -10,6 +10,7 @@
 #include "bands.h"
 #include "params.h"
 #include "radio.h"
+#include "info.h"
 
 #define BANDS_MAX   32
 
@@ -97,6 +98,7 @@ void bands_change(bool up) {
             spectrum_band_set();
             waterfall_band_set();
             main_screen_band_set();
+            info_params_set();
 
             return;
         }
