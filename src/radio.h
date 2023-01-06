@@ -21,7 +21,7 @@ typedef enum {
 void radio_init();
 bool radio_tick();
 
-uint64_t radio_change_freq(int32_t df);
+uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);

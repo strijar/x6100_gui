@@ -198,6 +198,10 @@ static void params_band_write_int64(const char *name, uint64_t data, bool *durty
 }
 
 bool params_band_save() {
+    if (!params.freq_band) {
+        return true;
+    }
+
     if (!params_exec("BEGIN")) {
         return false;
     }
@@ -308,7 +312,7 @@ bool params_bands_load() {
     sqlite3_stmt    *stmt;
     int             rc;
     
-    rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,used FROM bands ORDER BY used ASC", -1, &stmt, 0);
+    rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,type FROM bands ORDER BY start_freq ASC", -1, &stmt, 0);
     
     if (rc != SQLITE_OK) {
         return false;
@@ -319,9 +323,9 @@ bool params_bands_load() {
         const char  *name = sqlite3_column_text(stmt, 1);
         uint64_t    start_freq = sqlite3_column_int64(stmt, 2);
         uint64_t    stop_freq = sqlite3_column_int64(stmt, 3);
-        uint8_t     used = sqlite3_column_int(stmt, 4);
+        uint8_t     type = sqlite3_column_int(stmt, 4);
         
-        bands_insert(id, name, start_freq, stop_freq, used);
+        bands_insert(id, name, start_freq, stop_freq, type);
     }
     
     sqlite3_finalize(stmt);
@@ -414,4 +418,18 @@ void params_unlock(bool *durty) {
 
     durty_time = get_time();
     pthread_mutex_unlock(&params_mux);
+}
+
+void params_band_freq_set(uint64_t freq) {
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+
+    params_lock();
+
+    if (vfoa) {
+        params_band.vfoa_freq = freq;
+        params_unlock(&params_band.durty.vfoa_freq);
+    } else {
+        params_band.vfob_freq = freq;
+        params_unlock(&params_band.durty.vfob_freq);
+   }
 }

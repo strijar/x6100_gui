@@ -26,13 +26,6 @@ lv_style_t  panel_bottom_style;
 
 lv_color_t  bg_color;
 
-extern lv_font_t    eco_sans_14;
-extern lv_font_t    eco_sans_16;
-extern lv_font_t    eco_sans_18;
-extern lv_font_t    eco_sans_32;
-extern lv_font_t    eco_sans_36;
-extern lv_font_t    eco_sans_38;
-
 static const uint16_t radius = 25;
 
 static lv_grad_dsc_t    grad_top;
@@ -148,10 +141,11 @@ void styles_init() {
     lv_style_set_radius(&msg_style, radius);
     lv_style_set_size(&msg_style, 600, 60);
     lv_style_set_x(&msg_style, 800 / 2 - (600 / 2));
-    lv_style_set_y(&msg_style, 260);
+    lv_style_set_y(&msg_style, 300);
     lv_style_set_pad_ver(&msg_style, 10);
 
     lv_style_init(&clock_style);
+    lv_style_set_border_opa(&clock_style, LV_OPA_50);
     lv_style_set_border_color(&clock_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&clock_style, 2);
     lv_style_set_radius(&clock_style, radius);
@@ -162,6 +156,7 @@ void styles_init() {
     lv_style_set_text_color(&clock_style, lv_color_white());
 
     lv_style_init(&info_style);
+    lv_style_set_border_opa(&info_style, LV_OPA_50);
     lv_style_set_border_color(&info_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&info_style, 2);
     lv_style_set_radius(&info_style, radius);
@@ -175,6 +170,7 @@ void styles_init() {
     lv_style_set_radius(&info_item_style, 5);
 
     lv_style_init(&meter_style);
+    lv_style_set_border_opa(&meter_style, LV_OPA_50);
     lv_style_set_border_color(&meter_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&meter_style, 2);
     lv_style_set_radius(&meter_style, radius);

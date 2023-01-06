@@ -137,15 +137,19 @@ void radio_init() {
     pthread_detach(thread);
 }
 
-uint64_t radio_change_freq(int32_t df) {
+uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
     bool vfoa = (params_band.vfo == X6100_VFO_A);
 
     params_lock();
 
     if (vfoa) {
+        *prev_freq = params_band.vfoa_freq;
+        
         params_band.vfoa_freq = align_long(params_band.vfoa_freq + df, abs(df));
         params_unlock(&params_band.durty.vfoa_freq);
     } else {
+        *prev_freq = params_band.vfob_freq;
+        
         params_band.vfob_freq = align_long(params_band.vfob_freq + df, abs(df));
         params_unlock(&params_band.durty.vfob_freq);
     }

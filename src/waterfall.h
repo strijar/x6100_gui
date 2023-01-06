@@ -22,3 +22,4 @@ void waterfall_band_set();
 void waterfall_set_max(int db);
 void waterfall_set_min(int db);
 void waterfall_change_freq(int16_t df);
+void waterfall_update_band(uint64_t f);

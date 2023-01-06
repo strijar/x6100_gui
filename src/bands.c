@@ -17,14 +17,6 @@
 
 #define BANDS_MAX   32
 
-typedef struct {
-    uint8_t     id;
-    char        *name;
-    uint64_t    start_freq;
-    uint64_t    stop_freq;
-    uint8_t     used;
-} band_t;
-
 static band_t   *bands[BANDS_MAX];
 
 void bands_init() {
@@ -44,14 +36,14 @@ void bands_clear() {
     }
 }
 
-void bands_insert(uint8_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t used) {
+void bands_insert(uint8_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t type) {
     band_t *band = malloc(sizeof(band_t));
     
     band->id = id;
     band->name = strdup(name);
     band->start_freq = start_freq;
     band->stop_freq = stop_freq;
-    band->used = used;
+    band->type = type;
     
     for (uint8_t i = 0; i < BANDS_MAX; i++)
         if (bands[i] == NULL) {
@@ -61,6 +53,24 @@ void bands_insert(uint8_t id, const char *name, uint64_t start_freq, uint64_t st
 
    LV_LOG_ERROR("Too many bands");
    free(band);
+}
+
+void bands_activate(band_t *band, uint64_t *freq) {
+    params_lock();
+    params_band_save();
+    params.band = band->id;
+    params_band_load();
+    params_unlock(&params.durty.band);
+
+    if (freq) {
+        params_band_freq_set(*freq);
+    }
+
+    radio_band_set();
+    radio_mode_set();
+    spectrum_band_set();
+    waterfall_band_set();
+    info_params_set();
 }
 
 void bands_change(bool up) {
@@ -74,7 +84,7 @@ void bands_change(bool up) {
             index = i;
             break;
         }
-        
+
     while (true) {
         if (up) {
             index++;
@@ -90,21 +100,55 @@ void bands_change(bool up) {
             }
         }
         
-        if (bands[index] != NULL && bands[index]->used != 0) {
-            params_lock();
-            params_band_save();
-            params.band = bands[index]->id;
-            params_band_load();
-            params_unlock(&params.durty.band);
+        if (bands[index] != NULL && bands[index]->type != 0) {
+            band_t *band = bands[index];
+
+            bands_activate(band, NULL);
             
-            radio_band_set();
-            radio_mode_set();
-            spectrum_band_set();
-            waterfall_band_set();
+            waterfall_clear();
             main_screen_band_set();
-            info_params_set();
 
             return;
         }
     }
+}
+
+bands_t * bands_find_all(uint64_t freq, int32_t half_width) {
+    uint64_t    left = freq - half_width;
+    uint64_t    right = freq + half_width;
+    bands_t     *res = NULL;
+
+    for (uint8_t i = 0; i < BANDS_MAX; i++) {
+        band_t *band = bands[i];
+        
+        if (band == NULL)
+            return res;
+        
+        if ((band->stop_freq >= left && band->stop_freq <= right) ||
+            (band->start_freq >= left && band->start_freq <= right) ||
+            (band->start_freq <= left && band->stop_freq >= right))
+        {
+            bands_t *item = malloc(sizeof(bands_t));
+            
+            item->item = band;
+            item->next = res;
+            res = item;
+        }
+    }
+    
+    return res;
+}
+
+band_t * bands_find(uint64_t freq) {
+    for (uint8_t i = 0; i < BANDS_MAX; i++) {
+        band_t *band = bands[i];
+        
+        if (band == NULL)
+            break;
+            
+        if (freq >= band->start_freq && freq <= band->stop_freq)
+            return band;
+    }
+    
+    return NULL;
 }

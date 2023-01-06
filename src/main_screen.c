@@ -73,6 +73,19 @@ void main_screen_set_freq(uint64_t f) {
 
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
+    
+    waterfall_update_band(f);
+}
+
+static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
+    params.freq_band = bands_find(freq);
+    
+    if (params.freq_band) {
+        if (params.freq_band->type != 0 && params.freq_band->id != params.band) {
+            params_band_freq_set(prev_freq);
+            bands_activate(params.freq_band, &freq);
+        }
+    }
 }
 
 static void vol_rotate(int16_t diff) {
@@ -212,13 +225,14 @@ static void next_freq_step() {
 
 static void main_screen_rotary_cb(lv_event_t * e) {
     event_rotary_t  *rotary = lv_event_get_param(e);
-    uint64_t        freq;
+    uint64_t        freq, prev_freq;
 
     switch (rotary->id) {
         case 0:
-            freq = radio_change_freq(rotary->diff * params_mode.freq_step);
+            freq = radio_change_freq(rotary->diff * params_mode.freq_step, &prev_freq);
             waterfall_change_freq(rotary->diff * params_mode.freq_step);
             main_screen_set_freq(freq);
+            check_cross_band(freq, prev_freq);
             break;
             
         case 1:

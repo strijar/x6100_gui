@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include <aether_radio/x6100_control/control.h>
+#include "bands.h"
 
 typedef struct {
     int32_t         filter_low;
@@ -46,7 +47,6 @@ typedef struct {
 
     int16_t         grid_min;
     int16_t         grid_max;
-    
 
     /* durty flags */
     
@@ -71,6 +71,10 @@ typedef struct {
 } params_band_t;
 
 typedef struct {
+    /* band info */
+    
+    band_t      *freq_band;
+
     /* radio */
     
     uint8_t     band;
@@ -108,3 +112,5 @@ void params_band_load();
 
 bool params_mode_save();
 void params_mode_load();
+
+void params_band_freq_set(uint64_t freq);

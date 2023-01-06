@@ -29,4 +29,11 @@ extern lv_style_t   panel_top_style;
 extern lv_style_t   panel_mid_style;
 extern lv_style_t   panel_bottom_style;
 
+extern lv_font_t    eco_sans_14;
+extern lv_font_t    eco_sans_16;
+extern lv_font_t    eco_sans_18;
+extern lv_font_t    eco_sans_32;
+extern lv_font_t    eco_sans_36;
+extern lv_font_t    eco_sans_38;
+
 void styles_init();

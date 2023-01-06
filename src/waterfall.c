@@ -14,16 +14,22 @@
 #include "radio.h"
 #include "events.h"
 #include "params.h"
+#include "bands.h"
 
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
+static lv_obj_t         *band_info;
 
 static lv_coord_t       width;
 static lv_coord_t       height;
 static int32_t          width_hz = 100000;
+static lv_coord_t       band_info_height = 24;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
+
+static bands_t          *bands = NULL;
+static uint64_t         freq;
 
 static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
@@ -98,6 +104,89 @@ static void scroll_left(int16_t px) {
         }
 }
 
+static void band_info_draw_cb(lv_event_t * e) {
+    lv_event_code_t     code = lv_event_get_code(e);
+    lv_obj_t            *obj = lv_event_get_target(e);
+    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    
+    if (!bands) {
+        return;
+    }
+
+    lv_coord_t x1 = obj->coords.x1;
+    lv_coord_t y1 = obj->coords.y1;
+
+    lv_coord_t w = lv_obj_get_width(obj);
+    lv_coord_t h = lv_obj_get_height(obj) - 1;
+
+    bands_t *current = bands;
+    
+    while (current) {
+        band_t *band = current->item;
+
+        /* Rect */
+
+        lv_draw_rect_dsc_t  rect_dsc;
+        lv_area_t           area;
+
+        lv_draw_rect_dsc_init(&rect_dsc);
+
+        rect_dsc.bg_color = bg_color;
+        rect_dsc.bg_opa = LV_OPA_50;
+        rect_dsc.radius = 10;
+        rect_dsc.border_width = 2;
+        rect_dsc.border_color = lv_color_white();
+        rect_dsc.border_opa = LV_OPA_50;
+    
+        int32_t start = (int64_t)(band->start_freq - freq) * w / width_hz;
+        int32_t stop = (int64_t)(band->stop_freq - freq) * w / width_hz;
+
+        start += w / 2;
+        stop += w / 2;
+
+        if (start < 0) {
+            start = 0;
+        } else if (start > w) {
+            start = w;
+        }
+    
+        if (stop < 0) {
+            stop = 0;
+        } else if (stop > w) {
+            stop = w;
+        }
+
+        area.x1 = x1 + start;
+        area.y1 = y1;
+        area.x2 = x1 + stop;
+        area.y2 = y1 + h;
+
+        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+    
+        /* Label */
+
+        lv_draw_label_dsc_t dsc_label;
+        lv_draw_label_dsc_init(&dsc_label);
+    
+        dsc_label.color = lv_color_white();
+        dsc_label.font = &eco_sans_18;
+
+        lv_point_t label_size;
+        lv_txt_get_size(&label_size, band->name, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
+        
+        if (stop - start > label_size.x) {
+            area.x1 = x1 + (start + stop) / 2 - label_size.x / 2;
+            area.y1 = y1 + (h - label_size.y) / 2;
+            area.x2 = x1 + (start + stop / 2 + label_size.x / 2);
+            area.y2 = y1 + h;
+
+            lv_draw_label(draw_ctx, &dsc_label, &area, band->name, NULL);
+        }
+        
+        current = current->next;
+    }
+}
+
 void waterfall_data(float *data_buf, uint16_t size) {
     if (delay) {
         delay--;
@@ -143,6 +232,18 @@ void waterfall_set_height(lv_coord_t h) {
     lv_img_set_src(img, frame);
     
     waterfall_band_set();
+    
+    band_info = lv_obj_create(obj);
+    
+    lv_obj_set_size(band_info, lv_obj_get_width(obj), band_info_height);
+    lv_obj_align(band_info, LV_ALIGN_CENTER, 0, -height / 2 + 35);
+    lv_obj_clear_flag(band_info, LV_OBJ_FLAG_SCROLLABLE);
+    
+    lv_obj_set_style_radius(band_info, 0, 0);
+    lv_obj_set_style_border_width(band_info, 0, 0);
+    lv_obj_set_style_bg_opa(band_info, LV_OPA_0, 0);
+
+    lv_obj_add_event_cb(band_info, band_info_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
 }
 
 void waterfall_clear() {
@@ -150,8 +251,6 @@ void waterfall_clear() {
 }
 
 void waterfall_band_set() {
-    waterfall_clear();
-
     waterfall_set_min(params_band.grid_min);
     waterfall_set_max(params_band.grid_max);
 }
@@ -175,5 +274,21 @@ void waterfall_change_freq(int16_t df) {
     }
 
     delay = 3;
-    event_send(obj, LV_EVENT_REFRESH, NULL);
+    event_send(img, LV_EVENT_REFRESH, NULL);
+}
+
+void waterfall_update_band(uint64_t f) {
+    bands_t *current = bands;
+    
+    while (current) {
+        bands_t *next = current->next;
+        
+        free(current);
+        current = next;
+    }
+
+    bands = bands_find_all(f, width_hz / 2);
+    freq = f;
+
+    event_send(band_info, LV_EVENT_REFRESH, NULL);
 }

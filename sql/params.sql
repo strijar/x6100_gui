@@ -5,10 +5,11 @@ CREATE TABLE bands(
     name        TEXT,
     start_freq  INTEGER,
     stop_freq   INTEGER,
-    used        INTEGER
+    type        INTEGER
 );
 
 .import bands_r1.csv bands
+.import bands_broadcast.csv bands
 
 CREATE TABLE band_params(
     bands_id    INTEGER,
