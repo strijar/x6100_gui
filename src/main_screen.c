@@ -91,12 +91,12 @@ static void vol_rotate(int16_t diff) {
 
         case VOL_FILTER_LOW:
             x = radio_change_filter_low(diff);
-            msg_set_text_fmt("Filter low: %i", x);
+            msg_set_text_fmt("Filter low: %i Hz", x);
             break;
 
         case VOL_FILTER_HIGH:
             x = radio_change_filter_high(diff);
-            msg_set_text_fmt("Filter high: %i", x);
+            msg_set_text_fmt("Filter high: %i Hz", x);
             break;
             
         default:
@@ -176,6 +176,38 @@ static void mfk_press(int16_t dir) {
     mfk_mode = (mfk_mode + dir) % MFK_LAST;
     
     mfk_rotate(0);
+}
+
+static void next_freq_step() {
+    params_lock();
+    
+    switch (params_mode.freq_step) {
+        case 10:
+            params_mode.freq_step = 100;
+            break;
+            
+        case 100:
+            params_mode.freq_step = 500;
+            break;
+            
+        case 500:
+            params_mode.freq_step = 1000;
+            break;
+            
+        case 1000:
+            params_mode.freq_step = 5000;
+            break;
+            
+        case 5000:
+            params_mode.freq_step = 10;
+            break;
+            
+        default:
+            break;
+    }
+
+    params_unlock(&params_mode.durty.freq_step);
+    msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -266,6 +298,12 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 params_mode_load();
                 radio_mode_set();
                 info_params_set();
+            }
+            break;
+
+        case KEYPAD_FST:
+            if (keypad->state == KEYPAD_RELEASE) {
+                next_freq_step();
             }
             break;
 
