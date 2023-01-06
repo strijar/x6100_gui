@@ -403,3 +403,41 @@ uint32_t radio_change_filter_high(int32_t df) {
     
     return params_mode.filter_high;
 }
+
+void radio_change_agc() {
+    params_lock();
+
+    bool            vfoa = (params_band.vfo == X6100_VFO_A);
+    x6100_agc_t     agc = vfoa ? params_band.vfoa_agc : params_band.vfob_agc;
+    
+    switch (agc) {
+        case x6100_agc_off:
+            agc = x6100_agc_slow;
+            break;
+            
+        case x6100_agc_slow:
+            agc = x6100_agc_fast;
+            break;
+            
+        case x6100_agc_fast:
+            agc = x6100_agc_auto;
+            break;
+            
+        case x6100_agc_auto:
+            agc = x6100_agc_off;
+            break;
+    }
+
+    if (vfoa) {
+        params_band.vfoa_agc = agc;
+        params_unlock(&params_band.durty.vfoa_agc);
+    } else {
+        params_band.vfob_agc = agc;
+        params_unlock(&params_band.durty.vfob_agc);
+    }
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_vfo_agc_set(params_band.vfo, agc);
+    pthread_mutex_unlock(&control_mux);
+
+}

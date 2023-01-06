@@ -29,6 +29,7 @@ uint32_t radio_change_filter_high(int32_t freq);
 bool radio_change_pre();
 bool radio_change_att();
 void radio_change_mode(radio_mode_t select);
+void radio_change_agc();
 
 void radio_band_set();
 void radio_mode_set();

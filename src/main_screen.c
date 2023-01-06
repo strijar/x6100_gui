@@ -301,6 +301,13 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
+        case KEYPAD_AGC:
+            if (keypad->state == KEYPAD_RELEASE) {
+                radio_change_agc();
+                info_params_set();
+            }
+            break;
+
         case KEYPAD_FST:
             if (keypad->state == KEYPAD_RELEASE) {
                 next_freq_step();
