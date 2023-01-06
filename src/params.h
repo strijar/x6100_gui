@@ -14,6 +14,22 @@
 #include <aether_radio/x6100_control/control.h>
 
 typedef struct {
+    int32_t         filter_low;
+    int32_t         filter_high;
+
+    uint16_t        freq_step;
+
+    /* durty flags */
+    
+    struct {
+        bool    filter_low;
+        bool    filter_high;
+
+        bool    freq_step;
+    } durty;
+} params_mode_t;
+
+typedef struct {
     uint8_t         vfo;
     
     uint64_t        vfoa_freq;
@@ -31,8 +47,6 @@ typedef struct {
     int16_t         grid_min;
     int16_t         grid_max;
     
-    int32_t         filter_low;
-    int32_t         filter_high;
 
     /* durty flags */
     
@@ -53,9 +67,6 @@ typedef struct {
 
         bool    grid_min;
         bool    grid_max;
-
-        bool    filter_low;
-        bool    filter_high;
     } durty;
 } params_band_t;
 
@@ -70,7 +81,6 @@ typedef struct {
     
     int16_t     spectrum_factor;
     int16_t     spectrum_beta;
-    uint16_t    freq_step;
     
     /* durty flags */
     
@@ -87,6 +97,7 @@ typedef struct {
 
 extern params_t params;
 extern params_band_t params_band;
+extern params_mode_t params_mode;
 
 void params_init();
 void params_lock();
@@ -94,3 +105,6 @@ void params_unlock(bool *durty);
 
 bool params_band_save();
 void params_band_load();
+
+bool params_mode_save();
+void params_mode_load();

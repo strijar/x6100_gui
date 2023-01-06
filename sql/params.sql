@@ -21,8 +21,16 @@ CREATE TABLE band_params(
 
 CREATE TABLE params(
     name        TEXT PRIMARY KEY ON CONFLICT REPLACE,
-    val         TEXT,
-    val_def     TEXT
+    val         TEXT
 );
 
 .import params.csv params
+
+CREATE TABLE mode_params(
+    mode        INTEGER,
+    name        TEXT,
+    val         TEXT,
+    UNIQUE      (mode, name) ON CONFLICT REPLACE
+);
+
+.import mode_params.csv mode_params

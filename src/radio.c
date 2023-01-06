@@ -98,12 +98,14 @@ void radio_band_set() {
     x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
     x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
     x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+}
 
-    x6100_control_cmd(x6100_filter1_low, params_band.filter_low);
-    x6100_control_cmd(x6100_filter2_low, params_band.filter_low);
+void radio_mode_set() {
+    x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
+    x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
 
-    x6100_control_cmd(x6100_filter1_high, params_band.filter_high);
-    x6100_control_cmd(x6100_filter2_high, params_band.filter_high);
+    x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
+    x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
 }
 
 void radio_init() {
@@ -119,6 +121,7 @@ void radio_init() {
     pack = malloc(sizeof(x6100_flow_t));
 
     radio_band_set();
+    radio_mode_set();
 
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
@@ -140,10 +143,10 @@ uint64_t radio_change_freq(int32_t df) {
     params_lock();
 
     if (vfoa) {
-        params_band.vfoa_freq += df;
+        params_band.vfoa_freq = align_long(params_band.vfoa_freq + df, abs(df));
         params_unlock(&params_band.durty.vfoa_freq);
     } else {
-        params_band.vfob_freq += df;
+        params_band.vfob_freq = align_long(params_band.vfob_freq + df, abs(df));
         params_unlock(&params_band.durty.vfob_freq);
     }
     
@@ -244,30 +247,30 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
     switch (mode) {
         case x6100_mode_lsb:
         case x6100_mode_lsb_dig:
-            *from_freq = -params_band.filter_high;
-            *to_freq = -params_band.filter_low;
+            *from_freq = -params_mode.filter_high;
+            *to_freq = -params_mode.filter_low;
             break;
             
         case x6100_mode_usb:
         case x6100_mode_usb_dig:
-            *from_freq = params_band.filter_low;
-            *to_freq = params_band.filter_high;
+            *from_freq = params_mode.filter_low;
+            *to_freq = params_mode.filter_high;
             break;
 
         case x6100_mode_cw:
-            *from_freq = params_band.filter_low;
-            *to_freq = params_band.filter_high;
+            *from_freq = params_mode.filter_low;
+            *to_freq = params_mode.filter_high;
             break;
             
         case x6100_mode_cwr:
-            *from_freq = -params_band.filter_high;
-            *to_freq = -params_band.filter_low;
+            *from_freq = -params_mode.filter_high;
+            *to_freq = -params_mode.filter_low;
             break;
 
         case x6100_mode_am:
         case x6100_mode_nfm:
-            *from_freq = -params_band.filter_high;
-            *to_freq = params_band.filter_high;
+            *from_freq = -params_mode.filter_high;
+            *to_freq = params_mode.filter_high;
             break;
             
         default:
@@ -343,6 +346,8 @@ void radio_change_mode(radio_mode_t select) {
             break;
     }
 
+    params_mode_save();
+
     if (vfoa) {
         params_band.vfoa_mode = mode;
         params_unlock(&params_band.durty.vfoa_mode);
@@ -359,42 +364,42 @@ void radio_change_mode(radio_mode_t select) {
 uint32_t radio_change_filter_low(int32_t df) {
     params_lock();
 
-    params_band.filter_low = align_int(params_band.filter_low + df * 50, 50);
+    params_mode.filter_low = align_int(params_mode.filter_low + df * 50, 50);
     
-    if (params_band.filter_low < 0) {
-        params_band.filter_low = 0;
-    } else if (params_band.filter_low > 6000) {
-        params_band.filter_low = 6000;
-    } else if (params_band.filter_low > params_band.filter_high) {
-        params_band.filter_low = params_band.filter_high;
+    if (params_mode.filter_low < 0) {
+        params_mode.filter_low = 0;
+    } else if (params_mode.filter_low > 6000) {
+        params_mode.filter_low = 6000;
+    } else if (params_mode.filter_low > params_mode.filter_high) {
+        params_mode.filter_low = params_mode.filter_high;
     }
-    params_unlock(&params_band.durty.filter_low);
+    params_unlock(&params_mode.durty.filter_low);
 
     pthread_mutex_lock(&control_mux);
-    x6100_control_cmd(x6100_filter1_low, params_band.filter_low);
-    x6100_control_cmd(x6100_filter2_low, params_band.filter_low);
+    x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
+    x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
     pthread_mutex_unlock(&control_mux);
     
-    return params_band.filter_low;
+    return params_mode.filter_low;
 }
 
 uint32_t radio_change_filter_high(int32_t df) {
     params_lock();
-    params_band.filter_high = align_int(params_band.filter_high + df * 50, 50);
+    params_mode.filter_high = align_int(params_mode.filter_high + df * 50, 50);
 
-    if (params_band.filter_high < 0) {
-        params_band.filter_high = 0;
-    } else if (params_band.filter_high > 6000) {
-        params_band.filter_high = 6000;
-    } else if (params_band.filter_high < params_band.filter_low) {
-        params_band.filter_high = params_band.filter_low;
+    if (params_mode.filter_high < 0) {
+        params_mode.filter_high = 0;
+    } else if (params_mode.filter_high > 6000) {
+        params_mode.filter_high = 6000;
+    } else if (params_mode.filter_high < params_mode.filter_low) {
+        params_mode.filter_high = params_mode.filter_low;
     }
-    params_unlock(&params_band.durty.filter_high);
+    params_unlock(&params_mode.durty.filter_high);
 
     pthread_mutex_lock(&control_mux);
-    x6100_control_cmd(x6100_filter1_high, params_band.filter_high);
-    x6100_control_cmd(x6100_filter2_high, params_band.filter_high);
+    x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
+    x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
     pthread_mutex_unlock(&control_mux);
     
-    return params_band.filter_high;
+    return params_mode.filter_high;
 }

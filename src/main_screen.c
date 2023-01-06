@@ -184,8 +184,8 @@ static void main_screen_rotary_cb(lv_event_t * e) {
 
     switch (rotary->id) {
         case 0:
-            freq = radio_change_freq(rotary->diff * params.freq_step);
-            waterfall_change_freq(rotary->diff * params.freq_step);
+            freq = radio_change_freq(rotary->diff * params_mode.freq_step);
+            waterfall_change_freq(rotary->diff * params_mode.freq_step);
             main_screen_set_freq(freq);
             break;
             
@@ -245,6 +245,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_MODE_AM:
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_AM);
+                params_mode_load();
+                radio_mode_set();
                 info_params_set();
             }
             break;
@@ -252,6 +254,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_MODE_CW:
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_CW);
+                params_mode_load();
+                radio_mode_set();
                 info_params_set();
             }
             break;
@@ -259,6 +263,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_MODE_SSB:
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_SSB);
+                params_mode_load();
+                radio_mode_set();
                 info_params_set();
             }
             break;

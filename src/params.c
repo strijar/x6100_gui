@@ -21,7 +21,6 @@
 params_t params = {
     .spectrum_factor    = 1,
     .spectrum_beta      = 70,
-    .freq_step          = 500,
     
     .vol                = 20,
     .rfg                = 63
@@ -44,9 +43,13 @@ params_band_t params_band = {
 
     .grid_min           = -70,
     .grid_max           = -40,
+};
 
+params_mode_t params_mode = {
     .filter_low         = 50,
-    .filter_high        = 2950
+    .filter_high        = 2950,
+
+    .freq_step          = 500
 };
 
 static pthread_mutex_t  params_mux;
@@ -54,8 +57,72 @@ static uint64_t         durty_time;
 static sqlite3          *db = NULL;
 static sqlite3_stmt     *write_stmt;
 static sqlite3_stmt     *write_band_stmt;
+static sqlite3_stmt     *write_mode_stmt;
 
 static bool params_exec(const char *sql);
+
+/* Mode params */
+
+void params_mode_load() {
+    sqlite3_stmt    *stmt;
+    int             rc;
+
+    rc = sqlite3_prepare_v2(db, "SELECT name,val FROM mode_params WHERE mode = ?", -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        LV_LOG_ERROR("Prepare");
+        return;
+    }
+
+    bool            vfoa = (params_band.vfo == X6100_VFO_A);
+    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+
+    sqlite3_bind_int(stmt, 1, mode);
+
+    while (sqlite3_step(stmt) != SQLITE_DONE) {
+        const char *name = sqlite3_column_text(stmt, 0);
+
+        if (strcmp(name, "filter_low") == 0) {
+            params_mode.filter_low = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "filter_high") == 0) {
+            params_mode.filter_high = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "freq_step") == 0) {
+            params_mode.freq_step = sqlite3_column_int(stmt, 1);
+        }
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+static void params_mode_write_int(const char *name, int data, bool *durty) {
+    bool            vfoa = (params_band.vfo == X6100_VFO_A);
+    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+
+    sqlite3_bind_int(write_mode_stmt, 1, mode);
+    sqlite3_bind_text(write_mode_stmt, 2, name, strlen(name), 0);
+    sqlite3_bind_int(write_mode_stmt, 3, data);
+    sqlite3_step(write_mode_stmt);
+    sqlite3_reset(write_mode_stmt);
+    sqlite3_clear_bindings(write_mode_stmt);
+    
+    *durty = false;
+}
+
+bool params_mode_save() {
+    if (!params_exec("BEGIN")) {
+        return false;
+    }
+
+    if (params_mode.durty.filter_low)   params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
+    if (params_mode.durty.filter_high)  params_mode_write_int("filter_high", params_mode.filter_high, &params_mode.durty.filter_high);
+    if (params_mode.durty.freq_step)    params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
+
+    if (!params_exec("COMMIT")) {
+        return false;
+    }
+
+    return true;
+}
 
 /* Bands params */
 
@@ -101,14 +168,11 @@ void params_band_load() {
             params_band.grid_min = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "grid_max") == 0) {
             params_band.grid_max = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "filter_low") == 0) {
-            params_band.filter_low = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "filter_high") == 0) {
-            params_band.filter_high = sqlite3_column_int(stmt, 1);
         }
     }
 
     sqlite3_finalize(stmt);
+    params_mode_load();
 }
 
 static void params_band_write_int(const char *name, int data, bool *durty) {
@@ -154,12 +218,12 @@ bool params_band_save() {
     if (params_band.durty.grid_min)     params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
     if (params_band.durty.grid_max)     params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
 
-    if (params_band.durty.filter_low)   params_band_write_int("filter_low", params_band.filter_low, &params_band.durty.filter_low);
-    if (params_band.durty.filter_high)  params_band_write_int("filter_high", params_band.filter_high, &params_band.durty.filter_high);
-
     if (!params_exec("COMMIT")) {
         return false;
     }
+
+    params_mode_save();
+
     return true;
 }
 
@@ -189,8 +253,6 @@ static bool params_load() {
             params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
             params.spectrum_beta = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "freq_step") == 0) {
-            params.freq_step = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -232,12 +294,11 @@ static bool params_save() {
     if (params.durty.rfg)               params_write_int("rfg", params.rfg, &params.durty.rfg);
     if (params.durty.spectrum_factor)   params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
     if (params.durty.spectrum_beta)     params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
-    if (params.durty.freq_step)         params_write_int("freq_step", params.freq_step, &params.durty.freq_step);
 
     if (!params_exec("COMMIT")) {
         return false;
     }
-    
+
     return true;
 }
 
@@ -277,13 +338,17 @@ static void * params_thread(void *arg) {
     
             if (d > PARAMS_SAVE_TIMEOUT) {
                 durty_time = 0;
-                
+
                 if (!params_save()) {
                     LV_LOG_ERROR("Params not saved");
                 }
 
                 if (!params_band_save()) {
                     LV_LOG_ERROR("Band params not saved");
+                }
+
+                if (!params_mode_save()) {
+                    LV_LOG_ERROR("Mode params not saved");
                 }
             }
         }
@@ -313,6 +378,12 @@ void params_init() {
 
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare band write");
+        }
+
+        rc = sqlite3_prepare_v2(db, "INSERT INTO mode_params(mode, name, val) VALUES(?, ?, ?)", -1, &write_mode_stmt, 0);
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare mode write");
         }
         
         if (!params_bands_load()) {
