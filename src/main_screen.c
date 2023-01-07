@@ -82,9 +82,13 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
     params.freq_band = bands_find(freq);
     
     if (params.freq_band) {
-        if (params.freq_band->type != 0 && params.freq_band->id != params.band) {
-            params_band_freq_set(prev_freq);
-            bands_activate(params.freq_band, &freq);
+        if (params.freq_band->type != 0) {
+            if (params.freq_band->id != params.band) {
+                params_band_freq_set(prev_freq);
+                bands_activate(params.freq_band, &freq);
+            }
+        } else {
+            params.freq_band = NULL;
         }
     }
 }
