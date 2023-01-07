@@ -28,10 +28,19 @@
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (2 * 1000)
 
+typedef enum {
+    RADIO_RX = 0,
+    RADIO_TX,
+    RADIO_ATU_START,
+    RADIO_ATU_WAIT,
+    RADIO_ATU_RUN,
+} radio_state_t;
+
 static pthread_mutex_t  control_mux;
 
 static x6100_flow_t     *pack;
 
+static radio_state_t    state = RADIO_RX;
 static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
@@ -55,8 +64,42 @@ bool radio_tick() {
                    pack->flag.tx, pack->tx_power * 0.1, pack->vswr * 0.1f, pack->alc_level * 0.1,
                    pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->hkey, pack->crc);
         }
-#endif        
-        dsp_samples(pack->samples, RADIO_SAMPLES);
+#endif  
+        switch (state) {
+            case RADIO_RX:
+                if (pack->flag.tx) {
+                    state = RADIO_TX;
+                } else {
+                    dsp_samples(pack->samples, RADIO_SAMPLES);
+                }
+                break;
+
+            case RADIO_TX:
+                if (!pack->flag.tx) {
+                    state = RADIO_RX;
+                }
+                break;
+
+            case RADIO_ATU_START:
+                x6100_control_atu_tune(true);
+                state = RADIO_ATU_WAIT;
+                break;
+                
+            case RADIO_ATU_WAIT:
+                if (pack->flag.tx) {
+                    state = RADIO_ATU_RUN;
+                }
+                break;
+                
+            case RADIO_ATU_RUN:
+                if (!pack->flag.tx) {
+                    x6100_control_atu_tune(false);
+                    x6100_control_cmd(x6100_atu_network, pack->atu_params);
+                    state = RADIO_RX;
+                }
+                break;
+        }
+        
         hkey_put(pack->hkey);
     } else {
         if (d > FLOW_RESTART_TIMOUT) {
@@ -443,5 +486,20 @@ void radio_change_agc() {
     pthread_mutex_lock(&control_mux);
     x6100_control_vfo_agc_set(params_band.vfo, agc);
     pthread_mutex_unlock(&control_mux);
+}
 
+void radio_change_atu() {
+    params_lock();
+    params.atu = !params.atu;
+    params_unlock(&params.durty.atu);
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_atu_set(params.atu);
+    pthread_mutex_unlock(&control_mux);
+}
+
+void radio_start_atu() {
+    if (state == RADIO_RX) {
+        state = RADIO_ATU_START;
+    }
 }

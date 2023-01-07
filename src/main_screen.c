@@ -333,6 +333,15 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
+        case KEYPAD_ATU:
+            if (keypad->state == KEYPAD_RELEASE) {
+                radio_change_atu();
+                info_params_set();
+            } else if (keypad->state == KEYPAD_LONG) {
+                radio_start_atu();
+            }
+            break;
+
         default:
             LV_LOG_WARN("Unsuported key");
             break;

@@ -158,4 +158,14 @@ void info_params_set() {
         lv_obj_set_style_bg_color(items[INFO_PRE], lv_color_white(), 0);
         lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_50, 0);
     }
+
+    if (!params.atu) {
+        lv_obj_set_style_text_color(items[INFO_ATU], lv_color_white(), 0);
+        lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_0, 0);
+    } else {
+        lv_obj_set_style_text_color(items[INFO_ATU], lv_color_black(), 0);
+        lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_white(), 0);
+        lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_50, 0);
+    }
 }
