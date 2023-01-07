@@ -3,7 +3,7 @@
  *
  *  Xiegu X6100 LVGL GUI
  *
- *  Copyright (c) 2022 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
  */
 
 #include <unistd.h>
@@ -26,6 +26,7 @@
 #include "clock.h"
 #include "info.h"
 #include "meter.h"
+#include "band_info.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -74,7 +75,7 @@ void main_screen_set_freq(uint64_t f) {
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
     
-    waterfall_update_band(f);
+    band_info_update(f);
 }
 
 static void check_cross_band(uint64_t freq, uint64_t prev_freq) {

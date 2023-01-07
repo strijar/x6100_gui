@@ -1,0 +1,151 @@
+/*
+ *  SPDX-License-Identifier: LGPL-2.1-or-later
+ *
+ *  Xiegu X6100 LVGL GUI
+ *
+ *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ */
+
+#include "bands.h"
+#include "band_info.h"
+#include "styles.h"
+#include "events.h"
+
+static lv_obj_t         *obj;
+
+static lv_coord_t       band_info_height = 24;
+static int32_t          width_hz = 100000;
+static bands_t          *bands = NULL;
+static uint64_t         freq;
+
+static lv_timer_t       *timer = NULL;
+
+static void band_info_timer(lv_timer_t *t) {
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    timer = NULL;
+}
+
+static void band_info_draw_cb(lv_event_t * e) {
+    lv_event_code_t     code = lv_event_get_code(e);
+    lv_obj_t            *obj = lv_event_get_target(e);
+    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    
+    if (!bands) {
+        return;
+    }
+
+    lv_coord_t x1 = obj->coords.x1;
+    lv_coord_t y1 = obj->coords.y1;
+
+    lv_coord_t w = lv_obj_get_width(obj);
+    lv_coord_t h = lv_obj_get_height(obj) - 1;
+
+    bands_t *current = bands;
+    
+    while (current) {
+        band_t *band = current->item;
+
+        /* Rect */
+
+        lv_draw_rect_dsc_t  rect_dsc;
+        lv_area_t           area;
+
+        lv_draw_rect_dsc_init(&rect_dsc);
+
+        rect_dsc.bg_color = bg_color;
+        rect_dsc.bg_opa = LV_OPA_50;
+        rect_dsc.radius = 10;
+        rect_dsc.border_width = 2;
+        rect_dsc.border_color = lv_color_white();
+        rect_dsc.border_opa = LV_OPA_50;
+    
+        int32_t start = (int64_t)(band->start_freq - freq) * w / width_hz;
+        int32_t stop = (int64_t)(band->stop_freq - freq) * w / width_hz;
+
+        start += w / 2;
+        stop += w / 2;
+
+        if (start < 0) {
+            start = 0;
+        } else if (start > w) {
+            start = w;
+        }
+    
+        if (stop < 0) {
+            stop = 0;
+        } else if (stop > w) {
+            stop = w;
+        }
+
+        area.x1 = x1 + start;
+        area.y1 = y1;
+        area.x2 = x1 + stop;
+        area.y2 = y1 + h;
+
+        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+    
+        /* Label */
+
+        lv_draw_label_dsc_t dsc_label;
+        lv_draw_label_dsc_init(&dsc_label);
+    
+        dsc_label.color = lv_color_white();
+        dsc_label.font = &eco_sans_18;
+
+        lv_point_t label_size;
+        lv_txt_get_size(&label_size, band->name, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
+        
+        if (stop - start > label_size.x) {
+            area.x1 = x1 + (start + stop) / 2 - label_size.x / 2;
+            area.y1 = y1 + (h - label_size.y) / 2;
+            area.x2 = x1 + (start + stop / 2 + label_size.x / 2);
+            area.y2 = y1 + h;
+
+            lv_draw_label(draw_ctx, &dsc_label, &area, band->name, NULL);
+        }
+        
+        current = current->next;
+    }
+}
+
+lv_obj_t * band_info_init(lv_obj_t *parent) {
+    obj = lv_obj_create(parent);
+    
+    lv_obj_set_size(obj, lv_obj_get_width(parent), band_info_height);
+    lv_obj_align(obj, LV_ALIGN_CENTER, 0, -lv_obj_get_height(parent) / 2 + 35);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    
+    lv_obj_set_style_radius(obj, 0, 0);
+    lv_obj_set_style_border_width(obj, 0, 0);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_0, 0);
+
+    lv_obj_add_event_cb(obj, band_info_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+
+    return obj;
+}
+
+void band_info_update(uint64_t f) {
+    bands_t *current = bands;
+    
+    while (current) {
+        bands_t *next = current->next;
+        
+        free(current);
+        current = next;
+    }
+
+    bands = bands_find_all(f, width_hz / 2);
+    freq = f;
+
+    event_send(obj, LV_EVENT_REFRESH, NULL);
+
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+
+    if (timer) {
+        lv_timer_reset(timer);
+    } else {
+        timer = lv_timer_create(band_info_timer, 2000, NULL);
+        lv_timer_set_repeat_count(timer, 1);
+    }
+}

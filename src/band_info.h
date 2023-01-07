@@ -8,7 +8,10 @@
 
 #pragma once
 
+#include <unistd.h>
 #include <stdint.h>
+
 #include "lvgl/lvgl.h"
 
-lv_obj_t * clock_init(lv_obj_t * parent);
+lv_obj_t * band_info_init(lv_obj_t *parent);
+void band_info_update(uint64_t f);

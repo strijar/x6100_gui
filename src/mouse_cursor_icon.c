@@ -3,7 +3,7 @@
  *
  *  Xiegu X6100 LVGL GUI
  *
- *  Copyright (c) 2022 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
  */
 
 #include "lvgl/lvgl.h"
