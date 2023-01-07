@@ -76,6 +76,7 @@ void main_screen_set_freq(uint64_t f) {
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
     
     band_info_update(f);
+    radio_load_atu();
 }
 
 static void check_cross_band(uint64_t freq, uint64_t prev_freq) {

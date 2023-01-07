@@ -93,8 +93,12 @@ bool radio_tick() {
                 
             case RADIO_ATU_RUN:
                 if (!pack->flag.tx) {
+                    params_atu_save(pack->atu_params);
                     x6100_control_atu_tune(false);
-                    x6100_control_cmd(x6100_atu_network, pack->atu_params);
+                    
+                    if (params.atu) {
+                        x6100_control_cmd(x6100_atu_network, pack->atu_params);
+                    }
                     state = RADIO_RX;
                 }
                 break;
@@ -165,9 +169,11 @@ void radio_init() {
 
     radio_band_set();
     radio_mode_set();
+    radio_load_atu();
 
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
+    x6100_control_atu_set(params.atu);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -496,10 +502,22 @@ void radio_change_atu() {
     pthread_mutex_lock(&control_mux);
     x6100_control_atu_set(params.atu);
     pthread_mutex_unlock(&control_mux);
+    
+    radio_load_atu();
 }
 
 void radio_start_atu() {
     if (state == RADIO_RX) {
         state = RADIO_ATU_START;
+    }
+}
+
+void radio_load_atu() {
+    if (params.atu) {
+        uint32_t atu = params_atu_load();
+
+        pthread_mutex_lock(&control_mux);
+        x6100_control_cmd(x6100_atu_network, atu);
+        pthread_mutex_unlock(&control_mux);
     }
 }

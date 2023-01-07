@@ -23,7 +23,8 @@ params_t params = {
     .spectrum_beta      = 70,
     
     .vol                = 20,
-    .rfg                = 63
+    .rfg                = 63,
+    .ant                 = 1
 };
 
 params_band_t params_band = {
@@ -58,6 +59,8 @@ static sqlite3          *db = NULL;
 static sqlite3_stmt     *write_stmt;
 static sqlite3_stmt     *write_band_stmt;
 static sqlite3_stmt     *write_mode_stmt;
+static sqlite3_stmt     *save_atu_stmt;
+static sqlite3_stmt     *load_atu_stmt;
 
 static bool params_exec(const char *sql);
 
@@ -392,6 +395,18 @@ void params_init() {
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare mode write");
         }
+
+        rc = sqlite3_prepare_v2(db, "INSERT INTO atu(ant, freq, val) VALUES(?, ?, ?)", -1, &save_atu_stmt, 0);
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare atu save");
+        }
+
+        rc = sqlite3_prepare_v2(db, "SELECT val FROM atu WHERE ant = ? AND freq = ?", -1, &load_atu_stmt, 0);
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare atu load");
+        }
         
         if (!params_bands_load()) {
             LV_LOG_ERROR("Load bands");
@@ -435,4 +450,43 @@ void params_band_freq_set(uint64_t freq) {
         params_band.vfob_freq = freq;
         params_unlock(&params_band.durty.vfob_freq);
    }
+}
+
+void params_atu_save(uint32_t val) {
+    bool vfoa = (params_band.vfo == X6100_VFO_A);
+    uint64_t freq = vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
+
+    params_lock();
+
+    sqlite3_bind_int(save_atu_stmt, 1, params.ant);
+    sqlite3_bind_int(save_atu_stmt, 2, freq / 50000);
+    sqlite3_bind_int(save_atu_stmt, 3, val);
+    
+    sqlite3_step(save_atu_stmt);
+    sqlite3_reset(save_atu_stmt);
+    sqlite3_clear_bindings(save_atu_stmt);
+    
+    params_unlock(NULL);
+}
+
+uint32_t params_atu_load() {
+    uint32_t    res = 0;
+    bool        vfoa = (params_band.vfo == X6100_VFO_A);
+    uint64_t    freq = vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
+
+    params_lock();
+
+    sqlite3_bind_int(load_atu_stmt, 1, params.ant);
+    sqlite3_bind_int(load_atu_stmt, 2, freq / 50000);
+
+    if (sqlite3_step(load_atu_stmt) != SQLITE_DONE) {
+        res = sqlite3_column_int64(load_atu_stmt, 0);
+    }
+
+    sqlite3_reset(load_atu_stmt);
+    sqlite3_clear_bindings(load_atu_stmt);
+
+    params_unlock(NULL);
+    
+    return res;
 }

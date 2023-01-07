@@ -81,6 +81,7 @@ typedef struct {
     int16_t     vol;
     int16_t     rfg;
     bool        atu;
+    uint8_t     ant;
     
     /* main screen */
     
@@ -94,6 +95,7 @@ typedef struct {
         bool    vol;
         bool    rfg;
         bool    atu;
+        bool    ant;
         
         bool    spectrum_factor;
         bool    spectrum_beta;
@@ -116,3 +118,6 @@ bool params_mode_save();
 void params_mode_load();
 
 void params_band_freq_set(uint64_t freq);
+
+void params_atu_save(uint32_t val);
+uint32_t params_atu_load();

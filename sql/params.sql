@@ -35,3 +35,10 @@ CREATE TABLE mode_params(
 );
 
 .import mode_params.csv mode_params
+
+CREATE TABLE atu(
+    ant         INTEGER,
+    freq        INTEGER,
+    val         INTEGER,
+    UNIQUE      (ant, freq) ON CONFLICT REPLACE
+);
