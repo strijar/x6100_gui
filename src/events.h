@@ -102,6 +102,8 @@ typedef struct {
 extern uint32_t EVENT_ROTARY;
 extern uint32_t EVENT_KEYPAD;
 extern uint32_t EVENT_HKEY;
+extern uint32_t EVENT_RADIO_TX;
+extern uint32_t EVENT_RADIO_RX;
 
 void event_init();
 

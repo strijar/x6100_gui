@@ -27,6 +27,7 @@
 #include "info.h"
 #include "meter.h"
 #include "band_info.h"
+#include "tx_info.h"
 
 typedef enum {
     VOL_VOL = 0,
@@ -62,6 +63,8 @@ static lv_obj_t     *freq[3];
 static lv_obj_t     *waterfall;
 static lv_obj_t     *btn[5];
 static lv_obj_t     *msg;
+static lv_obj_t     *meter;
+static lv_obj_t     *tx_info;
 
 void main_screen_set_freq(uint64_t f) {
     uint16_t    mhz, khz, hz;
@@ -370,6 +373,14 @@ static void main_screen_hkey_cb(lv_event_t * e) {
     }
 }
 
+static void main_screen_radio_cb(lv_event_t * e) {
+    lv_event_code_t code = lv_event_get_code(e);
+    
+    lv_event_send(meter, code, NULL);
+    lv_event_send(tx_info, code, NULL);
+    lv_event_send(spectrum, code, NULL);
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = pad;
 
@@ -378,6 +389,9 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
     lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
     lv_obj_add_event_cb(obj, main_screen_hkey_cb, EVENT_HKEY, NULL);
+    lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_TX, NULL);
+    lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
+    
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     
@@ -462,7 +476,9 @@ lv_obj_t * main_screen() {
 
     clock_init(obj);
     info_init(obj);
-    meter_init(obj);
+    
+    meter = meter_init(obj);
+    tx_info = tx_info_init(obj);
     
     main_screen_band_set();
     

@@ -82,7 +82,7 @@ int main(void) {
     lv_obj_t *main_obj = main_screen();
 
     dsp_init();
-    radio_init();
+    radio_init(main_obj);
 
     uint64_t prev_time = get_time();
     

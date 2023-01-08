@@ -118,6 +118,14 @@ static void spectrum_draw_cb(lv_event_t * e) {
     lv_draw_line(draw_ctx, &line_dsc, &a, &b);
 }
 
+static void tx_cb(lv_event_t * e) {
+    visor_height -= 54;
+}
+
+static void rx_cb(lv_event_t * e) {
+    visor_height += 54;
+}
+
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
@@ -140,6 +148,8 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
 
     lv_obj_add_style(obj, &spectrum_style, 0);
     lv_obj_add_event_cb(obj, spectrum_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+    lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
+    lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
 
     spectrum_band_set();
 

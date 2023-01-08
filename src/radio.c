@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <string.h>
 
-#include "lvgl/lvgl.h"
-
 #include <aether_radio/x6100_control/control.h>
 #include <aether_radio/x6100_control/low/gpio.h>
 #include <aether_radio/x6100_control/low/flow.h>
@@ -24,6 +22,9 @@
 #include "waterfall.h"
 #include "params.h"
 #include "hkey.h"
+#include "tx_info.h"
+#include "meter.h"
+#include "events.h"
 
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (2 * 1000)
@@ -35,6 +36,8 @@ typedef enum {
     RADIO_ATU_WAIT,
     RADIO_ATU_RUN,
 } radio_state_t;
+
+static lv_obj_t         *main_obj;
 
 static pthread_mutex_t  control_mux;
 
@@ -65,18 +68,22 @@ bool radio_tick() {
                    pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->hkey, pack->crc);
         }
 #endif  
+        dsp_samples(pack->samples, RADIO_SAMPLES);
+
         switch (state) {
             case RADIO_RX:
                 if (pack->flag.tx) {
                     state = RADIO_TX;
-                } else {
-                    dsp_samples(pack->samples, RADIO_SAMPLES);
+                    event_send(main_obj, EVENT_RADIO_TX, NULL);
                 }
                 break;
 
             case RADIO_TX:
                 if (!pack->flag.tx) {
                     state = RADIO_RX;
+                    event_send(lv_scr_act(), EVENT_RADIO_RX, NULL);
+                } else {
+                    tx_info_update(pack->tx_power * 0.1f, pack->vswr * 0.1f, pack->alc_level * 0.1f);
                 }
                 break;
 
@@ -87,6 +94,7 @@ bool radio_tick() {
                 
             case RADIO_ATU_WAIT:
                 if (pack->flag.tx) {
+                    event_send(main_obj, EVENT_RADIO_TX, NULL);
                     state = RADIO_ATU_RUN;
                 }
                 break;
@@ -95,11 +103,14 @@ bool radio_tick() {
                 if (!pack->flag.tx) {
                     params_atu_save(pack->atu_params);
                     x6100_control_atu_tune(false);
+                    event_send(main_obj, EVENT_RADIO_RX, NULL);
                     
                     if (params.atu) {
                         x6100_control_cmd(x6100_atu_network, pack->atu_params);
                     }
                     state = RADIO_RX;
+                } else {
+                    tx_info_update(pack->tx_power * 0.1f, pack->vswr * 0.1f, pack->alc_level * 0.1f);
                 }
                 break;
         }
@@ -155,7 +166,7 @@ void radio_mode_set() {
     x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
 }
 
-void radio_init() {
+void radio_init(lv_obj_t *obj) {
     if (!x6100_control_init())
         return;
 
@@ -164,6 +175,8 @@ void radio_init() {
 
     if (!x6100_flow_init())
         return;
+
+    main_obj = obj;
 
     pack = malloc(sizeof(x6100_flow_t));
 

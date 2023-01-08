@@ -14,6 +14,8 @@
 uint32_t        EVENT_ROTARY;
 uint32_t        EVENT_KEYPAD;
 uint32_t        EVENT_HKEY;
+uint32_t        EVENT_RADIO_TX;
+uint32_t        EVENT_RADIO_RX;
 
 typedef struct {
     lv_obj_t        *obj;
@@ -29,6 +31,8 @@ void event_init() {
     EVENT_ROTARY = lv_event_register_id();
     EVENT_KEYPAD = lv_event_register_id();
     EVENT_HKEY = lv_event_register_id();
+    EVENT_RADIO_TX = lv_event_register_id();
+    EVENT_RADIO_RX = lv_event_register_id();
 }
 
 void event_obj_check() {

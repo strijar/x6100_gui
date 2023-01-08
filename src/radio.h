@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "lvgl/lvgl.h"
 #include <stdbool.h>
 
 #define RADIO_SAMPLES   (512)
@@ -18,7 +19,7 @@ typedef enum {
     RADIO_MODE_SSB
 } radio_mode_t;
 
-void radio_init();
+void radio_init(lv_obj_t *obj);
 bool radio_tick();
 
 uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
