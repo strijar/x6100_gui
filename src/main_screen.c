@@ -34,6 +34,7 @@ typedef enum {
     VOL_RFG,
     VOL_FILTER_LOW,
     VOL_FILTER_HIGH,
+    VOL_PWR,
     
     VOL_LAST
 } vol_mode_t;
@@ -99,6 +100,7 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
 
 static void vol_rotate(int16_t diff) {
     int32_t x;
+    float   f;
 
     switch (vol_mode) {
         case VOL_VOL:
@@ -119,6 +121,11 @@ static void vol_rotate(int16_t diff) {
         case VOL_FILTER_HIGH:
             x = radio_change_filter_high(diff);
             msg_set_text_fmt("Filter high: %i Hz", x);
+            break;
+
+        case VOL_PWR:
+            f = radio_change_pwr(diff);
+            msg_set_text_fmt("Power: %0.1f W", f);
             break;
             
         default:

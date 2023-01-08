@@ -32,6 +32,7 @@ bool radio_change_att();
 void radio_change_mode(radio_mode_t select);
 void radio_change_agc();
 void radio_change_atu();
+float radio_change_pwr(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();

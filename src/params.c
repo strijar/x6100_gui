@@ -24,7 +24,8 @@ params_t params = {
     
     .vol                = 20,
     .rfg                = 63,
-    .ant                 = 1
+    .ant                = 1,
+    .pwr                = 5.0f
 };
 
 params_band_t params_band = {
@@ -258,6 +259,8 @@ static bool params_load() {
             params.rfg = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "atu") == 0) {
             params.atu = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "pwr") == 0) {
+            params.pwr = sqlite3_column_int(stmt, 1) * 0.1f;
         } else if (strcmp(name, "spectrum_factor") == 0) {
             params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
@@ -302,6 +305,7 @@ static bool params_save() {
     if (params.durty.vol)               params_write_int("vol", params.vol, &params.durty.vol);
     if (params.durty.rfg)               params_write_int("rfg", params.rfg, &params.durty.rfg);
     if (params.durty.atu)               params_write_int("atu", params.atu, &params.durty.atu);
+    if (params.durty.pwr)               params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
     if (params.durty.spectrum_factor)   params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
     if (params.durty.spectrum_beta)     params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
 

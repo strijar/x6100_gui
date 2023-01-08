@@ -187,6 +187,7 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
     x6100_control_atu_set(params.atu);
+    x6100_control_txpwr_set(params.pwr);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -533,4 +534,23 @@ void radio_load_atu() {
         x6100_control_cmd(x6100_atu_network, atu);
         pthread_mutex_unlock(&control_mux);
     }
+}
+
+float radio_change_pwr(int16_t d) {
+    params_lock();
+    params.pwr += d * 0.1f;
+    
+    if (params.pwr > 10.0f) {
+        params.pwr = 10.0f;
+    } else if (params.pwr < 0.1f) {
+        params.pwr = 0.1f;
+    }
+    
+    params_unlock(&params.durty.pwr);
+
+    pthread_mutex_lock(&control_mux);
+    x6100_control_txpwr_set(params.pwr);
+    pthread_mutex_unlock(&control_mux);
+    
+    return params.pwr;
 }
