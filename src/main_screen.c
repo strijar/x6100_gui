@@ -246,7 +246,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     switch (rotary->id) {
         case 0:
             freq = radio_change_freq(rotary->diff * params_mode.freq_step, &prev_freq);
-            waterfall_change_freq(rotary->diff * params_mode.freq_step);
+            waterfall_change_freq(freq - prev_freq);
             main_screen_set_freq(freq);
             check_cross_band(freq, prev_freq);
             break;
