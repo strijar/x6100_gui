@@ -8,8 +8,4 @@
 
 #pragma once
 
-#include <stdint.h>
-#include "lvgl/lvgl.h"
-
-lv_obj_t * meter_init(lv_obj_t * parent);
-void meter_update(int16_t db);
+void audio_init();

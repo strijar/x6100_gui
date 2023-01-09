@@ -25,6 +25,7 @@
 #include "keypad.h"
 #include "params.h"
 #include "bands.h"
+#include "audio.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -83,6 +84,7 @@ int main(void) {
 
     dsp_init();
     radio_init(main_obj);
+    audio_init();
 
     uint64_t prev_time = get_time();
     

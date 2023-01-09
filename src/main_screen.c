@@ -284,10 +284,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_PRE:
             if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_att();
+                radio_change_pre();
                 info_params_set();
             } else if (keypad->state == KEYPAD_LONG) {
-                radio_change_pre();
+                radio_change_att();
                 info_params_set();
             }
             break;

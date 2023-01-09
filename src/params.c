@@ -43,8 +43,8 @@ params_band_t params_band = {
     .vfob_mode          = x6100_mode_usb,
     .vfob_agc           = x6100_agc_fast,
 
-    .grid_min           = -70,
-    .grid_max           = -40,
+    .grid_min           = -121,
+    .grid_max           = -73,
 };
 
 params_mode_t params_mode = {

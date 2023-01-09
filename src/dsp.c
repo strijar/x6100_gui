@@ -15,8 +15,9 @@
 #include "util.h"
 #include "radio.h"
 #include "params.h"
+#include "meter.h"
 
-static unsigned int     nfft = 400;
+static int32_t          nfft = 400;
 static iirfilt_cccf     dc_block;
 
 static pthread_mutex_t  spectrum_mux;
@@ -84,11 +85,9 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     uint64_t now = get_time();
 
-    res = iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
+    /* Spectrum */
 
-    if (res) {
-        LV_LOG_ERROR("iirfilt_cccf_execute_block");
-    }
+    iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
 
     pthread_mutex_lock(&spectrum_mux);
 
@@ -96,26 +95,17 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
         firdecim_crcf_execute_block(spectrum_decim, buf_filtered, size / spectrum_factor, spectrum_dec_buf);
         
         for (uint8_t i = 0; i < spectrum_factor / 2; i++) {
-            res = spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
-
-            if (res) {
-                LV_LOG_ERROR("spgramcf_write");
-            }
+            spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
         }
     } else {
-        res = spgramcf_write(spectrum_sg, buf_filtered, size);
-        
-        if (res) {
-            LV_LOG_ERROR("spgramcf_write");
-        }
+        spgramcf_write(spectrum_sg, buf_filtered, size);
     }
 
-    res = spgramcf_get_psd(spectrum_sg, spectrum_psd);
+    spgramcf_get_psd(spectrum_sg, spectrum_psd);
 
-    if (res) {
-        LV_LOG_ERROR("spgramcf_get_psd");
-    }
-    
+    for (uint16_t i = 0; i < nfft; i++)
+        spectrum_psd[i] -= 30.0f;
+
     pthread_mutex_unlock(&spectrum_mux);
     
     if (now - spectrum_time > spectrum_fps_ms) {
@@ -123,12 +113,6 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
             for (uint16_t i = 0; i < nfft; i++) {
                 float psd = spectrum_psd[i];
                 
-                if (psd < -130.0f) {
-                    psd = -130.0f;
-                } else if (psd > 60.0f) {
-                    psd = 60.0f;
-                }
-            
                 spectrum_psd_filtered[i] = spectrum_psd_filtered[i] * spectrum_beta + psd * (1.0f - spectrum_beta);
             }
         
@@ -139,27 +123,44 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
         spectrum_time = now;
     }
 
+    /* Waterfall */
+
     spgramcf_write(waterfall_sg, buf_filtered, size);
     spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
+    for (uint16_t i = 0; i < nfft; i++)
+        waterfall_psd[i] -= 30.0f;
+
+    
     if (now - waterfall_time > waterfall_fps_ms) {
         if (!delay) {
-            for (uint16_t i = 0; i < nfft; i++) {
-                float psd = waterfall_psd[i];
-                
-                if (psd < -130.0f) {
-                    waterfall_psd[i] = -130.0f;
-                } else if (psd > 60.0f) {
-                    waterfall_psd[i] = 60.0f;
-                }
-            }
-        
             waterfall_data(waterfall_psd, nfft);
         }
 
         spgramcf_reset(waterfall_sg);
         waterfall_time = now;
     }
+
+    /* S-Meter */
+
+    int32_t filter_from, filter_to;
+    int32_t from, to;
+    
+    radio_filter_get(&filter_from, &filter_to);
+    
+    from = nfft / 2;
+    from -= filter_to * nfft / 100000;
+    
+    to = nfft / 2;
+    to -= filter_from * nfft / 100000;
+    
+    int16_t peak_db = -121;
+    
+    for (int32_t i = from; i <= to; i++)
+        if (waterfall_psd[i] > peak_db)
+            peak_db = waterfall_psd[i];
+    
+    meter_update(peak_db);
 }
 
 uint8_t dsp_get_spectrum_factor() {

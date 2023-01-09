@@ -27,7 +27,7 @@
 #include "events.h"
 
 #define FLOW_RESTART_TIMOUT 300
-#define IDLE_TIMEOUT        (2 * 1000)
+#define IDLE_TIMEOUT        (5 * 1000)
 
 typedef enum {
     RADIO_RX = 0,
@@ -47,6 +47,15 @@ static radio_state_t    state = RADIO_RX;
 static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
+
+static void radio_lock() {
+    pthread_mutex_lock(&control_mux);
+}
+
+static void radio_unlock() {
+    idle_time = get_time();
+    pthread_mutex_unlock(&control_mux);
+}
 
 bool radio_tick() {
     if (now_time < prev_time) {
@@ -88,7 +97,9 @@ bool radio_tick() {
                 break;
 
             case RADIO_ATU_START:
+                radio_lock();
                 x6100_control_atu_tune(true);
+                radio_unlock();
                 state = RADIO_ATU_WAIT;
                 break;
                 
@@ -102,11 +113,15 @@ bool radio_tick() {
             case RADIO_ATU_RUN:
                 if (!pack->flag.tx) {
                     params_atu_save(pack->atu_params);
+                    radio_lock();
                     x6100_control_atu_tune(false);
+                    radio_unlock();
                     event_send(main_obj, EVENT_RADIO_RX, NULL);
                     
                     if (params.atu) {
+                        radio_lock();
                         x6100_control_cmd(x6100_atu_network, pack->atu_params);
+                        radio_unlock();
                     }
                     state = RADIO_RX;
                 } else {
@@ -217,7 +232,9 @@ uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
         params_unlock(&params_band.durty.vfob_freq);
     }
     
+    radio_lock();
     x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+    radio_unlock();
 
     return vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
 }
@@ -238,9 +255,9 @@ uint16_t radio_change_vol(int16_t df) {
 
     params_unlock(&params.durty.vol);
     
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_rxvol_set(params.vol);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
     
     return params.vol;
 }
@@ -260,9 +277,9 @@ uint16_t radio_change_rfg(int16_t df) {
     }
     params_unlock(&params.durty.rfg);
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_rfg_set(params.rfg);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
 
     return params.rfg;
 }
@@ -280,9 +297,9 @@ bool radio_change_pre() {
         params_unlock(&params_band.durty.vfob_pre);
     }
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
 
     return vfoa ? params_band.vfoa_pre : params_band.vfoa_pre;
 }
@@ -300,9 +317,9 @@ bool radio_change_att() {
         params_unlock(&params_band.durty.vfob_att);
     }
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
 
     return vfoa ? params_band.vfoa_att : params_band.vfoa_att;
 }
@@ -423,9 +440,9 @@ void radio_change_mode(radio_mode_t select) {
         params_unlock(&params_band.durty.vfob_mode);
     }
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_vfo_mode_set(params_band.vfo, mode);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
 }
 
 uint32_t radio_change_filter_low(int32_t df) {
@@ -442,10 +459,10 @@ uint32_t radio_change_filter_low(int32_t df) {
     }
     params_unlock(&params_mode.durty.filter_low);
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
     x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
     
     return params_mode.filter_low;
 }
@@ -463,10 +480,10 @@ uint32_t radio_change_filter_high(int32_t df) {
     }
     params_unlock(&params_mode.durty.filter_high);
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
     x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
     
     return params_mode.filter_high;
 }
@@ -503,9 +520,9 @@ void radio_change_agc() {
         params_unlock(&params_band.durty.vfob_agc);
     }
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_vfo_agc_set(params_band.vfo, agc);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
 }
 
 void radio_change_atu() {
@@ -513,9 +530,9 @@ void radio_change_atu() {
     params.atu = !params.atu;
     params_unlock(&params.durty.atu);
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_atu_set(params.atu);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
     
     radio_load_atu();
 }
@@ -530,9 +547,9 @@ void radio_load_atu() {
     if (params.atu) {
         uint32_t atu = params_atu_load();
 
-        pthread_mutex_lock(&control_mux);
+        radio_lock();
         x6100_control_cmd(x6100_atu_network, atu);
-        pthread_mutex_unlock(&control_mux);
+        radio_unlock();
     }
 }
 
@@ -548,9 +565,9 @@ float radio_change_pwr(int16_t d) {
     
     params_unlock(&params.durty.pwr);
 
-    pthread_mutex_lock(&control_mux);
+    radio_lock();
     x6100_control_txpwr_set(params.pwr);
-    pthread_mutex_unlock(&control_mux);
+    radio_unlock();
     
     return params.pwr;
 }

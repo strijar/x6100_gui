@@ -7,6 +7,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     events.c msg.c keypad.c params.c
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
+    audio.c
 )
 
 add_subdirectory(fonts)
@@ -17,5 +18,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
 target_link_libraries(${PROJECT_NAME} PRIVATE aether_x6100_control)
-target_link_libraries(${PROJECT_NAME} PRIVATE liquid)
+target_link_libraries(${PROJECT_NAME} PRIVATE liquid m)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
+target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)

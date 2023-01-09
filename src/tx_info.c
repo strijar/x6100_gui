@@ -95,7 +95,7 @@ static void tx_info_draw_cb(lv_event_t * e) {
     rect_dsc.bg_opa = LV_OPA_50;
     rect_dsc.radius = 10;
     rect_dsc.border_width = 2;
-    rect_dsc.border_color = lv_color_black();
+    rect_dsc.border_color = lv_color_white();
     rect_dsc.border_opa = LV_OPA_50;
 
     area.x1 = x1 + 70;
