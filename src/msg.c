@@ -8,14 +8,21 @@
 
 #include "msg.h"
 #include "styles.h"
+#include "util.h"
 
 static lv_obj_t     *obj;
 static char         buf[512];
 static lv_timer_t   *timer = NULL;
+static lv_anim_t    fade;
 
 static void msg_timer(lv_timer_t *t) {
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_TRANSP);
+    lv_anim_start(&fade);
     timer = NULL;
+}
+
+static void fade_anim(void * obj, int32_t v) {
+    lv_obj_set_style_opa(obj, v, 0);
 }
 
 lv_obj_t * msg_init(lv_obj_t *parent) {
@@ -25,7 +32,12 @@ lv_obj_t * msg_init(lv_obj_t *parent) {
     lv_obj_add_style(obj, &msg_style, 0);
 
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_opa(obj, LV_OPA_TRANSP, 0);
+
+    lv_anim_init(&fade);
+    lv_anim_set_var(&fade, obj);
+    lv_anim_set_time(&fade, 250);
+    lv_anim_set_exec_cb(&fade, fade_anim);
 
     return obj;
 }
@@ -38,7 +50,9 @@ void msg_set_text_fmt(const char * fmt, ...) {
     va_end(args);
 
     lv_label_set_text(obj, buf);
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+
+    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
+    lv_anim_start(&fade);
 
     if (timer) {
         lv_timer_reset(timer);

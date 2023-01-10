@@ -17,11 +17,13 @@ static lv_coord_t       band_info_height = 24;
 static int32_t          width_hz = 100000;
 static bands_t          *bands = NULL;
 static uint64_t         freq;
+static lv_anim_t        fade;
 
 static lv_timer_t       *timer = NULL;
 
 static void band_info_timer(lv_timer_t *t) {
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_TRANSP);
+    lv_anim_start(&fade);
     timer = NULL;
 }
 
@@ -108,6 +110,10 @@ static void band_info_draw_cb(lv_event_t * e) {
     }
 }
 
+static void fade_anim(void * obj, int32_t v) {
+    lv_obj_set_style_opa(obj, v, 0);
+}
+
 lv_obj_t * band_info_init(lv_obj_t *parent) {
     obj = lv_obj_create(parent);
     
@@ -120,7 +126,11 @@ lv_obj_t * band_info_init(lv_obj_t *parent) {
     lv_obj_set_style_bg_opa(obj, LV_OPA_0, 0);
 
     lv_obj_add_event_cb(obj, band_info_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+
+    lv_anim_init(&fade);
+    lv_anim_set_var(&fade, obj);
+    lv_anim_set_time(&fade, 250);
+    lv_anim_set_exec_cb(&fade, fade_anim);
 
     return obj;
 }
@@ -140,7 +150,8 @@ void band_info_update(uint64_t f) {
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
 
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
+    lv_anim_start(&fade);
 
     if (timer) {
         lv_timer_reset(timer);

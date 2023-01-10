@@ -129,7 +129,7 @@ static void rx_cb(lv_event_t * e) {
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
-    spectrum_buf = malloc(spectrum_size * sizeof(lv_point_t));
+    spectrum_buf = malloc(spectrum_size * sizeof(float));
 
     filter_grad.dir = LV_GRAD_DIR_VER;
     filter_grad.stops_count = 4;
@@ -158,7 +158,7 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
 
 void spectrum_data(float *data_buf, uint16_t size) {
     for (uint16_t i = 0; i < size; i++)
-        spectrum_buf[i] = data_buf[size - i];
+        spectrum_buf[i] = data_buf[size - i - 1];
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
 }
