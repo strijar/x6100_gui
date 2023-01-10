@@ -6,6 +6,7 @@
  *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
  */
 
+#include <stdio.h>
 #include "msg.h"
 #include "styles.h"
 #include "util.h"
@@ -14,6 +15,7 @@ static lv_obj_t     *obj;
 static char         buf[512];
 static lv_timer_t   *timer = NULL;
 static lv_anim_t    fade;
+static bool         fade_run = false;
 
 static void msg_timer(lv_timer_t *t) {
     lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_TRANSP);
@@ -23,6 +25,10 @@ static void msg_timer(lv_timer_t *t) {
 
 static void fade_anim(void * obj, int32_t v) {
     lv_obj_set_style_opa(obj, v, 0);
+}
+
+static void fade_ready(lv_anim_t * a) {
+    fade_run = false;
 }
 
 lv_obj_t * msg_init(lv_obj_t *parent) {
@@ -38,6 +44,7 @@ lv_obj_t * msg_init(lv_obj_t *parent) {
     lv_anim_set_var(&fade, obj);
     lv_anim_set_time(&fade, 250);
     lv_anim_set_exec_cb(&fade, fade_anim);
+    lv_anim_set_ready_cb(&fade, fade_ready);
 
     return obj;
 }
@@ -51,8 +58,11 @@ void msg_set_text_fmt(const char * fmt, ...) {
 
     lv_label_set_text(obj, buf);
 
-    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
-    lv_anim_start(&fade);
+    if (!fade_run) {
+        fade_run = true;
+        lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
+        lv_anim_start(&fade);
+    }
 
     if (timer) {
         lv_timer_reset(timer);

@@ -234,6 +234,8 @@ uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
     
     radio_lock();
     x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+    x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
+    x6100_control_rfg_set(params.rfg);
     radio_unlock();
 
     return vfoa ? params_band.vfoa_freq : params_band.vfob_freq;

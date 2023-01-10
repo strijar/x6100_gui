@@ -18,6 +18,7 @@ static int32_t          width_hz = 100000;
 static bands_t          *bands = NULL;
 static uint64_t         freq;
 static lv_anim_t        fade;
+static bool             fade_run = false;
 
 static lv_timer_t       *timer = NULL;
 
@@ -114,6 +115,10 @@ static void fade_anim(void * obj, int32_t v) {
     lv_obj_set_style_opa(obj, v, 0);
 }
 
+static void fade_ready(lv_anim_t * a) {
+    fade_run = false;
+}
+
 lv_obj_t * band_info_init(lv_obj_t *parent) {
     obj = lv_obj_create(parent);
     
@@ -131,6 +136,7 @@ lv_obj_t * band_info_init(lv_obj_t *parent) {
     lv_anim_set_var(&fade, obj);
     lv_anim_set_time(&fade, 250);
     lv_anim_set_exec_cb(&fade, fade_anim);
+    lv_anim_set_ready_cb(&fade, fade_ready);
 
     return obj;
 }
@@ -150,8 +156,11 @@ void band_info_update(uint64_t f) {
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
 
-    lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
-    lv_anim_start(&fade);
+    if (!fade_run) {
+        fade_run = true;
+        lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
+        lv_anim_start(&fade);
+    }
 
     if (timer) {
         lv_timer_reset(timer);

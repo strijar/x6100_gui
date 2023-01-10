@@ -7,9 +7,10 @@
  */
 
 #include <stdlib.h>
+#include <pthread.h>
 #include "events.h"
 
-#define QUEUE_SIZE  16
+#define QUEUE_SIZE  32
 
 uint32_t        EVENT_ROTARY;
 uint32_t        EVENT_KEYPAD;
@@ -23,9 +24,10 @@ typedef struct {
     void            *param;
 } item_t;
 
-static item_t   *queue[QUEUE_SIZE];
-static uint8_t  queue_write = 0;
-static uint8_t  queue_read = 0;
+static item_t           *queue[QUEUE_SIZE];
+static uint8_t          queue_write = 0;
+static uint8_t          queue_read = 0;
+static pthread_mutex_t  queue_mux;
 
 void event_init() {
     EVENT_ROTARY = lv_event_register_id();
@@ -33,9 +35,14 @@ void event_init() {
     EVENT_HKEY = lv_event_register_id();
     EVENT_RADIO_TX = lv_event_register_id();
     EVENT_RADIO_RX = lv_event_register_id();
+    
+    for (uint8_t i = 0; i < QUEUE_SIZE; i++)
+        queue[i] = NULL;
 }
 
 void event_obj_check() {
+    pthread_mutex_lock(&queue_mux);
+
     while (queue_read != queue_write) {
         queue_read = (queue_read + 1) % QUEUE_SIZE;
         
@@ -52,11 +59,21 @@ void event_obj_check() {
         }
         
         free(item);
+        queue[queue_read] = NULL;
     }
+
+    pthread_mutex_unlock(&queue_mux);
 }
 
 void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
+    pthread_mutex_lock(&queue_mux);
+
     uint8_t next = (queue_write + 1) % QUEUE_SIZE;
+
+    if (queue[next]) {
+        LV_LOG_ERROR("Overflow");
+        return;
+    }
 
     item_t *item = malloc(sizeof(item_t));
     
@@ -66,4 +83,6 @@ void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
 
     queue[next] = item;
     queue_write = next;
+
+    pthread_mutex_unlock(&queue_mux);
 }
