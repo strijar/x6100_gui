@@ -87,9 +87,13 @@ int main(void) {
     audio_init();
 
     uint64_t prev_time = get_time();
-    
-//    lv_scr_load_anim(main_obj, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 2000, 0, false);
+
+#if 0    
+    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_0, 0);
+    lv_scr_load_anim(main_obj, LV_SCR_LOAD_ANIM_FADE_IN, 250, 0, false);
+#else
     lv_scr_load(main_obj);
+#endif
 
     while (1) {
         lv_lock();
