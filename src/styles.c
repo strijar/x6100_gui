@@ -129,7 +129,7 @@ void styles_init() {
     lv_style_set_border_opa(&btn_style, LV_OPA_50);
     lv_style_set_border_color(&btn_style, lv_color_hex(0x000000));
     lv_style_set_border_width(&btn_style, 2);
-    lv_style_set_text_font(&btn_style, &eco_sans_16);
+    lv_style_set_text_font(&btn_style, &eco_sans_24);
     lv_style_set_radius(&btn_style, radius);
 
     lv_style_init(&msg_style);

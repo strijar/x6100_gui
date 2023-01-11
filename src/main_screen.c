@@ -29,6 +29,9 @@
 #include "band_info.h"
 #include "tx_info.h"
 
+#define BUTTONS         5
+#define BUTTONS_PAGE    2
+
 typedef enum {
     VOL_VOL = 0,
     VOL_RFG,
@@ -62,10 +65,114 @@ static lv_obj_t     *obj;
 static lv_obj_t     *spectrum;
 static lv_obj_t     *freq[3];
 static lv_obj_t     *waterfall;
-static lv_obj_t     *btn[5];
+static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *msg;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
+
+typedef struct {
+    char            *label;
+    lv_event_cb_t   callback;
+} button_item_t;
+
+static void vol_update(int16_t diff);
+static void mfk_update(int16_t diff);
+
+static void button_next_page_cb(lv_event_t * e);
+static void button_vol_cb(lv_event_t * e);
+static void button_filter_low_cb(lv_event_t * e);
+static void button_filter_high_cb(lv_event_t * e);
+static void button_tx_power_cb(lv_event_t * e);
+static void button_min_level_cb(lv_event_t * e);
+static void button_max_level_cb(lv_event_t * e);
+static void button_spectrum_factor_cb(lv_event_t * e);
+static void button_spectrum_beta_cb(lv_event_t * e);
+
+static uint8_t          buttons_page = 0;
+
+static button_item_t    buttons[BUTTONS * BUTTONS_PAGE] = {
+    { .label = "(VOL)",             .callback = button_next_page_cb },
+    { .label = "Audio\nVol",        .callback = button_vol_cb },
+    { .label = "Filter\nLow",       .callback = button_filter_low_cb },
+    { .label = "Filter\nHigh",      .callback = button_filter_high_cb },
+    { .label = "TX\nPower",         .callback = button_tx_power_cb },
+    
+    { .label = "(MFK)",             .callback = button_next_page_cb },
+    { .label = "Min\nLevel",        .callback = button_min_level_cb },
+    { .label = "Max\nLevel",        .callback = button_max_level_cb },
+    { .label = "Spectrum\nZoom",    .callback = button_spectrum_factor_cb },
+    { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb }
+};
+
+/* Buttons */
+
+static void buttons_load_page() {
+    for (uint8_t i = 0; i < BUTTONS; i++) {
+        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
+        lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
+
+        lv_obj_add_event_cb(btn[i], item->callback, LV_EVENT_PRESSED, NULL);
+        lv_label_set_text(label, item->label);
+    }
+}
+
+static void button_next_page_cb(lv_event_t * e) {
+    for (uint8_t i = 0; i < BUTTONS; i++) {
+        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
+
+        lv_obj_remove_event_cb(btn[i], item->callback);
+    }
+
+    buttons_page++;
+    
+    if (buttons_page >= BUTTONS_PAGE) {
+        buttons_page = 0;
+    }
+    
+    buttons_load_page();
+}
+
+static void button_vol_cb(lv_event_t * e) {
+    vol_mode = VOL_VOL;
+    vol_update(0);
+}
+
+static void button_filter_low_cb(lv_event_t * e) {
+    vol_mode = VOL_FILTER_LOW;
+    vol_update(0);
+}
+
+static void button_filter_high_cb(lv_event_t * e) {
+    vol_mode = VOL_FILTER_HIGH;
+    vol_update(0);
+}
+
+static void button_tx_power_cb(lv_event_t * e) {
+    vol_mode = VOL_PWR;
+    vol_update(0);
+}
+
+static void button_min_level_cb(lv_event_t * e) {
+    mfk_mode = MFK_MIN_LEVEL;
+    mfk_update(0);
+}
+
+static void button_max_level_cb(lv_event_t * e) {
+    mfk_mode = MFK_MAX_LEVEL;
+    mfk_update(0);
+}
+
+static void button_spectrum_factor_cb(lv_event_t * e) {
+    mfk_mode = MFK_SPECTRUM_FACTOR;
+    mfk_update(0);
+}
+
+static void button_spectrum_beta_cb(lv_event_t * e) {
+    mfk_mode = MFK_SPECTRUM_BETA;
+    mfk_update(0);
+}
+
+/* * */
 
 void main_screen_set_freq(uint64_t f) {
     uint16_t    mhz, khz, hz;
@@ -98,7 +205,7 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
     }
 }
 
-static void vol_rotate(int16_t diff) {
+static void vol_update(int16_t diff) {
     int32_t x;
     float   f;
 
@@ -136,10 +243,10 @@ static void vol_rotate(int16_t diff) {
 static void vol_press(int16_t dir) {
     vol_mode = (vol_mode + dir) % VOL_LAST;
     
-    vol_rotate(0);
+    vol_update(0);
 }
 
-static void mfk_rotate(int16_t diff) {
+static void mfk_update(int16_t diff) {
     switch (mfk_mode) {
         case MFK_MIN_LEVEL:
             if (diff != 0) {
@@ -204,7 +311,7 @@ static void mfk_rotate(int16_t diff) {
 static void mfk_press(int16_t dir) {
     mfk_mode = (mfk_mode + dir) % MFK_LAST;
     
-    mfk_rotate(0);
+    mfk_update(0);
 }
 
 static void next_freq_step() {
@@ -252,11 +359,11 @@ static void main_screen_rotary_cb(lv_event_t * e) {
             break;
             
         case 1:
-            vol_rotate(rotary->diff);
+            vol_update(rotary->diff);
             break;
             
         case 2:
-            mfk_rotate(rotary->diff);
+            mfk_update(rotary->diff);
             break;
         
     }
@@ -350,6 +457,46 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_start_atu();
+            }
+            break;
+
+        case KEYPAD_F1:
+            if (keypad->state == KEYPAD_PRESS) {
+                lv_event_send(btn[0], LV_EVENT_PRESSED, NULL);
+            } else {
+                lv_event_send(btn[0], LV_EVENT_RELEASED, NULL);
+            }
+            break;
+
+        case KEYPAD_F2:
+            if (keypad->state == KEYPAD_PRESS) {
+                lv_event_send(btn[1], LV_EVENT_PRESSED, NULL);
+            } else {
+                lv_event_send(btn[1], LV_EVENT_RELEASED, NULL);
+            }
+            break;
+
+        case KEYPAD_F3:
+            if (keypad->state == KEYPAD_PRESS) {
+                lv_event_send(btn[2], LV_EVENT_PRESSED, NULL);
+            } else {
+                lv_event_send(btn[2], LV_EVENT_RELEASED, NULL);
+            }
+            break;
+
+        case KEYPAD_F4:
+            if (keypad->state == KEYPAD_PRESS) {
+                lv_event_send(btn[3], LV_EVENT_PRESSED, NULL);
+            } else {
+                lv_event_send(btn[3], LV_EVENT_RELEASED, NULL);
+            }
+            break;
+
+        case KEYPAD_F5:
+            if (keypad->state == KEYPAD_PRESS) {
+                lv_event_send(btn[4], LV_EVENT_PRESSED, NULL);
+            } else {
+                lv_event_send(btn[4], LV_EVENT_RELEASED, NULL);
             }
             break;
 
@@ -473,12 +620,13 @@ lv_obj_t * main_screen() {
         
         lv_obj_t *label = lv_label_create(f);
         
-        lv_label_set_text_fmt(label, "Button %i", i);
         lv_obj_center(label);
+        lv_obj_set_user_data(f, label);
     
         btn[i] = f;
     }
 
+    buttons_load_page();
     msg = msg_init(obj);
 
     clock_init(obj);
