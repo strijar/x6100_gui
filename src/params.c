@@ -25,7 +25,16 @@ params_t params = {
     .vol                = 20,
     .rfg                = 63,
     .ant                = 1,
-    .pwr                = 5.0f
+    .pwr                = 5.0f,
+
+    .key_speed          = 15,
+    .key_mode           = x6100_key_manual,
+    .iambic_mode        = x6100_iambic_a,
+    .key_tone           = 700,
+    .key_vol            = 10,
+    .key_train          = false,
+    .qsk_time           = 100,
+    .key_ratio          = 30
 };
 
 params_band_t params_band = {
@@ -265,6 +274,22 @@ static bool params_load() {
             params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
             params.spectrum_beta = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_speed") == 0) {
+            params.key_speed = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_mode") == 0) {
+            params.key_mode = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "iambic_mode") == 0) {
+            params.iambic_mode = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_tone") == 0) {
+            params.key_tone = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_vol") == 0) {
+            params.key_vol = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_train") == 0) {
+            params.key_train = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "qsk_time") == 0) {
+            params.qsk_time = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "key_ratio") == 0) {
+            params.key_ratio = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -308,6 +333,14 @@ static bool params_save() {
     if (params.durty.pwr)               params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
     if (params.durty.spectrum_factor)   params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
     if (params.durty.spectrum_beta)     params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
+    if (params.durty.key_speed)         params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
+    if (params.durty.key_mode)          params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
+    if (params.durty.iambic_mode)       params_write_int("iambic_mode", params.iambic_mode, &params.durty.iambic_mode);
+    if (params.durty.key_tone)          params_write_int("key_tone", params.key_tone, &params.durty.key_tone);
+    if (params.durty.key_vol)           params_write_int("key_vol", params.key_vol, &params.durty.key_vol);
+    if (params.durty.key_train)         params_write_int("key_train", params.key_train, &params.durty.key_train);
+    if (params.durty.qsk_time)          params_write_int("qsk_time", params.qsk_time, &params.durty.qsk_time);
+    if (params.durty.key_ratio)         params_write_int("key_ratio", params.key_ratio, &params.durty.key_ratio);
 
     if (!params_exec("COMMIT")) {
         return false;

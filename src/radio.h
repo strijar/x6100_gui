@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "lvgl/lvgl.h"
 #include <stdbool.h>
+#include <aether_radio/x6100_control/control.h>
+
+#include "lvgl/lvgl.h"
 
 #define RADIO_SAMPLES   (512)
 
@@ -33,6 +35,15 @@ void radio_change_mode(radio_mode_t select);
 void radio_change_agc();
 void radio_change_atu();
 float radio_change_pwr(int16_t d);
+
+uint16_t radio_change_key_speed(int16_t d);
+x6100_key_mode_t radio_change_key_mode(int16_t d);
+x6100_iambic_mode_t radio_change_iambic_mode(int16_t d);
+uint16_t radio_change_key_tone(int16_t d);
+uint16_t radio_change_key_vol(int16_t d);
+bool radio_change_key_train(int16_t d);
+uint16_t radio_change_qsk_time(int16_t d);
+uint8_t radio_change_key_ratio(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();

@@ -7,7 +7,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     events.c msg.c keypad.c params.c
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
-    audio.c
+    audio.c mfk.c
 )
 
 add_subdirectory(fonts)

@@ -28,9 +28,9 @@
 #include "meter.h"
 #include "band_info.h"
 #include "tx_info.h"
+#include "mfk.h"
 
 #define BUTTONS         5
-#define BUTTONS_PAGE    2
 
 typedef enum {
     VOL_VOL = 0,
@@ -42,16 +42,6 @@ typedef enum {
     VOL_LAST
 } vol_mode_t;
 
-typedef enum {
-    MFK_MIN_LEVEL = 0,
-    MFK_MAX_LEVEL,
-    MFK_SPECTRUM_FACTOR,
-    MFK_SPECTRUM_BETA,
-    
-    MFK_LAST
-} mfk_mode_t;
-
-static mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 static vol_mode_t   vol_mode = VOL_VOL;
 
 static uint8_t      pad = 10;
@@ -76,7 +66,6 @@ typedef struct {
 } button_item_t;
 
 static void vol_update(int16_t diff);
-static void mfk_update(int16_t diff);
 
 static void button_next_page_cb(lv_event_t * e);
 static void button_vol_cb(lv_event_t * e);
@@ -88,9 +77,25 @@ static void button_max_level_cb(lv_event_t * e);
 static void button_spectrum_factor_cb(lv_event_t * e);
 static void button_spectrum_beta_cb(lv_event_t * e);
 
-static uint8_t          buttons_page = 0;
+static void button_key_speed_cb(lv_event_t * e);
+static void button_key_mode_cb(lv_event_t * e);
+static void button_iambic_mode_cb(lv_event_t * e);
+static void button_key_tone_cb(lv_event_t * e);
+static void button_key_vol_cb(lv_event_t * e);
+static void button_key_train_cb(lv_event_t * e);
+static void button_qsk_time_cb(lv_event_t * e);
+static void button_key_ratio_cb(lv_event_t * e);
 
-static button_item_t    buttons[BUTTONS * BUTTONS_PAGE] = {
+typedef enum {
+    PAGE_VOL = 0,
+    PAGE_MFK,
+    PAGE_KEY_1,
+    PAGE_KEY_2
+} button_page_t;
+
+static button_page_t    buttons_page = PAGE_VOL;
+
+static button_item_t    buttons[] = {
     { .label = "(VOL)",             .callback = button_next_page_cb },
     { .label = "Audio\nVol",        .callback = button_vol_cb },
     { .label = "Filter\nLow",       .callback = button_filter_low_cb },
@@ -101,7 +106,21 @@ static button_item_t    buttons[BUTTONS * BUTTONS_PAGE] = {
     { .label = "Min\nLevel",        .callback = button_min_level_cb },
     { .label = "Max\nLevel",        .callback = button_max_level_cb },
     { .label = "Spectrum\nZoom",    .callback = button_spectrum_factor_cb },
-    { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb }
+    { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb },
+
+    /* CW */
+    
+    { .label = "(KEY 1:2)",         .callback = button_next_page_cb },
+    { .label = "Speed",             .callback = button_key_speed_cb },
+    { .label = "Key\nMode",         .callback = button_key_mode_cb },
+    { .label = "Iambic\nMode",      .callback = button_iambic_mode_cb },
+    { .label = "Tone",              .callback = button_key_tone_cb },
+    
+    { .label = "(KEY 2:2)",         .callback = button_next_page_cb },
+    { .label = "Volume",            .callback = button_key_vol_cb },
+    { .label = "Train",             .callback = button_key_train_cb },
+    { .label = "QSK\nTime",         .callback = button_qsk_time_cb },
+    { .label = "Ratio",             .callback = button_key_ratio_cb },
 };
 
 /* Buttons */
@@ -116,17 +135,33 @@ static void buttons_load_page() {
     }
 }
 
-static void button_next_page_cb(lv_event_t * e) {
+static void buttons_unload_page() {
     for (uint8_t i = 0; i < BUTTONS; i++) {
         button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
 
         lv_obj_remove_event_cb(btn[i], item->callback);
     }
+}
 
-    buttons_page++;
-    
-    if (buttons_page >= BUTTONS_PAGE) {
-        buttons_page = 0;
+static void button_next_page_cb(lv_event_t * e) {
+    buttons_unload_page();
+
+    switch (buttons_page) {
+        case PAGE_VOL:
+            buttons_page = PAGE_MFK;
+            break;
+            
+        case PAGE_MFK:
+            buttons_page = PAGE_VOL;
+            break;
+            
+        case PAGE_KEY_1:
+            buttons_page = PAGE_KEY_2;
+            break;
+            
+        case PAGE_KEY_2:
+            buttons_page = PAGE_KEY_1;
+            break;
     }
     
     buttons_load_page();
@@ -153,22 +188,62 @@ static void button_tx_power_cb(lv_event_t * e) {
 }
 
 static void button_min_level_cb(lv_event_t * e) {
-    mfk_mode = MFK_MIN_LEVEL;
+    mfk_set_mode(MFK_MIN_LEVEL);
     mfk_update(0);
 }
 
 static void button_max_level_cb(lv_event_t * e) {
-    mfk_mode = MFK_MAX_LEVEL;
+    mfk_set_mode(MFK_MAX_LEVEL);
     mfk_update(0);
 }
 
 static void button_spectrum_factor_cb(lv_event_t * e) {
-    mfk_mode = MFK_SPECTRUM_FACTOR;
+    mfk_set_mode(MFK_SPECTRUM_FACTOR);
     mfk_update(0);
 }
 
 static void button_spectrum_beta_cb(lv_event_t * e) {
-    mfk_mode = MFK_SPECTRUM_BETA;
+    mfk_set_mode(MFK_SPECTRUM_BETA);
+    mfk_update(0);
+}
+
+static void button_key_speed_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_SPEED);
+    mfk_update(0);
+}
+
+static void button_key_mode_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_MODE);
+    mfk_update(0);
+}
+
+static void button_iambic_mode_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_IAMBIC_MODE);
+    mfk_update(0);
+}
+
+static void button_key_tone_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_TONE);
+    mfk_update(0);
+}
+
+static void button_key_vol_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_VOL);
+    mfk_update(0);
+}
+
+static void button_key_train_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_TRAIN);
+    mfk_update(0);
+}
+
+static void button_qsk_time_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_QSK_TIME);
+    mfk_update(0);
+}
+
+static void button_key_ratio_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_KEY_RATIO);
     mfk_update(0);
 }
 
@@ -244,74 +319,6 @@ static void vol_press(int16_t dir) {
     vol_mode = (vol_mode + dir) % VOL_LAST;
     
     vol_update(0);
-}
-
-static void mfk_update(int16_t diff) {
-    switch (mfk_mode) {
-        case MFK_MIN_LEVEL:
-            if (diff != 0) {
-                params_lock();
-                params_band.grid_min += diff;
-                params_unlock(&params_band.durty.grid_min);
-                
-                spectrum_set_min(params_band.grid_min);
-                waterfall_set_min(params_band.grid_min);
-            }
-            msg_set_text_fmt("Min level: %idb", params_band.grid_min);
-            break;
-            
-        case MFK_MAX_LEVEL:
-            if (diff != 0) {
-                params_lock();
-                params_band.grid_max += diff;
-                params_unlock(&params_band.durty.grid_max);
-                
-                spectrum_set_max(params_band.grid_max);
-                waterfall_set_max(params_band.grid_max);
-            }
-            msg_set_text_fmt("Max level: %idb", params_band.grid_max);
-            break;
-
-        case MFK_SPECTRUM_FACTOR:
-            if (diff != 0) {
-                params_lock();
-                params.spectrum_factor += diff;
-                
-                if (params.spectrum_factor < 1) {
-                    params.spectrum_factor = 1;
-                } else if (params.spectrum_factor > 4) {
-                    params.spectrum_factor = 4;
-                }
-                params_unlock(&params.durty.spectrum_factor);
-            
-                dsp_set_spectrum_factor(params.spectrum_factor);
-            }
-            msg_set_text_fmt("Spectrum zoom: x%i", params.spectrum_factor);
-            break;
-
-        case MFK_SPECTRUM_BETA:
-            if (diff != 0) {
-                params_lock();
-                params.spectrum_beta += (diff < 0) ? -5 : 5;
-                
-                if (params.spectrum_beta < 0) {
-                    params.spectrum_beta = 0;
-                } else if (params.spectrum_beta > 90) {
-                    params.spectrum_beta = 90;
-                }
-                params_unlock(&params.durty.spectrum_beta);
-            
-                dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
-            }
-            msg_set_text_fmt("Spectrum beta: %i", params.spectrum_beta);
-            break;
-    }
-}
-
-static void mfk_press(int16_t dir) {
-    mfk_mode = (mfk_mode + dir) % MFK_LAST;
-    
-    mfk_update(0);
 }
 
 static void next_freq_step() {
@@ -497,6 +504,23 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 lv_event_send(btn[4], LV_EVENT_PRESSED, NULL);
             } else {
                 lv_event_send(btn[4], LV_EVENT_RELEASED, NULL);
+            }
+            break;
+
+        case KEYPAD_GEN:
+            if (keypad->state == KEYPAD_PRESS) {
+                mfk_set_mode(MFK_MIN_LEVEL);
+                buttons_unload_page();
+                buttons_page = PAGE_VOL;
+                buttons_load_page();
+            }
+            break;
+
+        case KEYPAD_KEY:
+            if (keypad->state == KEYPAD_PRESS) {
+                buttons_unload_page();
+                buttons_page = PAGE_KEY_1;
+                buttons_load_page();
             }
             break;
 

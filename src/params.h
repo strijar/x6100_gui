@@ -73,21 +73,32 @@ typedef struct {
 typedef struct {
     /* band info */
     
-    band_t      *freq_band;
+    band_t              *freq_band;
 
     /* radio */
     
-    uint8_t     band;
-    int16_t     vol;
-    int16_t     rfg;
-    bool        atu;
-    uint8_t     ant;
-    float       pwr;
+    uint8_t             band;
+    int16_t             vol;
+    int16_t             rfg;
+    bool                atu;
+    uint8_t             ant;
+    float               pwr;
     
     /* main screen */
     
-    int16_t     spectrum_factor;
-    int16_t     spectrum_beta;
+    int16_t             spectrum_factor;
+    int16_t             spectrum_beta;
+    
+    /* key */
+    
+    uint8_t             key_speed;
+    x6100_key_mode_t    key_mode;
+    x6100_iambic_mode_t iambic_mode;
+    uint16_t            key_tone;
+    uint16_t            key_vol;
+    bool                key_train;
+    uint16_t            qsk_time;
+    uint8_t             key_ratio;
     
     /* durty flags */
     
@@ -102,6 +113,15 @@ typedef struct {
         bool    spectrum_factor;
         bool    spectrum_beta;
         bool    freq_step;
+
+        bool    key_speed;
+        bool    key_mode;
+        bool    iambic_mode;
+        bool    key_tone;
+        bool    key_vol;
+        bool    key_train;
+        bool    qsk_time;
+        bool    key_ratio;
     } durty;
 } params_t;
 

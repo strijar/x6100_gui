@@ -11,9 +11,8 @@
 #include <pthread.h>
 #include <string.h>
 
-#include <aether_radio/x6100_control/control.h>
-#include <aether_radio/x6100_control/low/gpio.h>
 #include <aether_radio/x6100_control/low/flow.h>
+#include <aether_radio/x6100_control/low/gpio.h>
 
 #include "util.h"
 #include "radio.h"
@@ -576,4 +575,202 @@ float radio_change_pwr(int16_t d) {
     radio_unlock();
     
     return params.pwr;
+}
+
+uint16_t radio_change_key_speed(int16_t d) {
+    params_lock();
+    params.key_speed += d;
+    
+    if (params.key_speed < 5) {
+        params.key_speed = 5;
+    } else if (params.key_speed > 50) {
+        params.key_speed = 50;
+    }
+
+    params_unlock(&params.durty.key_speed);
+
+    radio_lock();
+    x6100_control_key_speed_set(params.key_speed);
+    radio_unlock();
+
+    return params.key_speed;
+}
+
+x6100_key_mode_t radio_change_key_mode(int16_t d) {
+    if (d == 0) {
+        return params.key_mode;
+    }
+
+    params_lock();
+
+    switch (params.key_mode) {
+        case x6100_key_manual:
+            params.key_mode = d > 0 ? x6100_key_auto_left : x6100_key_auto_right;
+            break;
+            
+        case x6100_key_auto_left:
+            params.key_mode = d > 0 ? x6100_key_auto_right : x6100_key_manual;
+            break;
+            
+        case x6100_key_auto_right:
+            params.key_mode = d > 0 ? x6100_key_manual : x6100_key_auto_left;
+            break;
+    }
+
+    params_unlock(&params.durty.key_mode);
+
+    radio_lock();
+    x6100_control_key_mode_set(params.key_mode);
+    radio_unlock();
+
+    return params.key_mode;
+}
+
+x6100_iambic_mode_t radio_change_iambic_mode(int16_t d) {
+    if (d == 0) {
+        return params.iambic_mode;
+    }
+
+    params_lock();
+
+    params.iambic_mode = (params.iambic_mode == x6100_iambic_a) ? x6100_iambic_b : x6100_iambic_a;
+
+    params_unlock(&params.durty.iambic_mode);
+
+    radio_lock();
+    x6100_control_iambic_mode_set(params.iambic_mode);
+    radio_unlock();
+
+    return params.iambic_mode;
+}
+
+uint16_t radio_change_key_tone(int16_t d) {
+    if (d == 0) {
+        return params.key_tone;
+    }
+
+    params_lock();
+
+    params.key_tone += (d > 0) ? 10 : -10;
+    
+    if (params.key_tone < 400) {
+        params.key_tone = 400;
+    } else if (params.key_tone > 1200) {
+        params.key_tone = 1200;
+    }
+
+    params_unlock(&params.durty.key_tone);
+
+    radio_lock();
+    x6100_control_key_tone_set(params.key_tone);
+    radio_unlock();
+    
+    return params.key_tone;
+}
+
+uint16_t radio_change_key_vol(int16_t d) {
+    if (d == 0) {
+        return params.key_vol;
+    }
+
+    params_lock();
+
+    int16_t x = params.key_vol + d;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 55) {
+        x = 55;
+    }
+
+    params.key_vol = x;
+    params_unlock(&params.durty.key_vol);
+
+    radio_lock();
+    x6100_control_key_vol_set(params.key_vol);
+    radio_unlock();
+
+    return params.key_vol;
+}
+
+bool radio_change_key_train(int16_t d) {
+    if (d == 0) {
+        return params.key_train;
+    }
+
+    params_lock();
+    params.key_train = !params.key_train;
+    params_unlock(&params.durty.key_train);
+
+    radio_lock();
+    x6100_control_key_train_set(params.key_train);
+    radio_unlock();
+    
+    return params.key_train;
+}
+
+uint16_t radio_change_qsk_time(int16_t d) {
+    if (d == 0) {
+        return params.qsk_time;
+    }
+
+    params_lock();
+
+    int16_t x = params.qsk_time;
+    
+    if (d > 0) {
+        x += 10;
+        
+        if (x > 1000) {
+            x = 1000;
+        }
+    } else {
+        x -= 10;
+        
+        if (x < 0) {
+            x = 0;
+        }
+    }
+    
+    params.qsk_time = x;
+    params_unlock(&params.durty.qsk_time);
+
+    radio_lock();
+    x6100_control_qsk_time_set(params.qsk_time);
+    radio_unlock();
+    
+    return params.qsk_time;
+}
+
+uint8_t radio_change_key_ratio(int16_t d) {
+    if (d == 0) {
+        return params.key_ratio;
+    }
+
+    params_lock();
+
+    int16_t x = params.key_ratio;
+
+    if (d > 0) {
+        x += 5;
+        
+        if (x > 45) {
+            x = 45;
+        }
+    } else {
+        x -= 5;
+        
+        if (x < 25) {
+            x = 25;
+        }
+    }
+
+    params.key_ratio = x;
+    params_unlock(&params.durty.key_ratio);
+
+    radio_lock();
+    x6100_control_key_ratio_set(params.key_ratio * 0.1f);
+    radio_unlock();
+
+    return params.key_ratio;
 }

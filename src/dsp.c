@@ -168,6 +168,9 @@ uint8_t dsp_get_spectrum_factor() {
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
+    if (x == spectrum_factor)
+        return;
+
     pthread_mutex_lock(&spectrum_mux);
 
     spectrum_factor = x;
