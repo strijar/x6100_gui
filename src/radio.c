@@ -206,6 +206,13 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_rfg_set(params.rfg);
     x6100_control_atu_set(params.atu);
     x6100_control_txpwr_set(params.pwr);
+    x6100_control_key_speed_set(params.key_speed);
+    x6100_control_key_mode_set(params.key_mode);
+    x6100_control_iambic_mode_set(params.iambic_mode);
+    x6100_control_key_tone_set(params.key_tone);
+    x6100_control_key_vol_set(params.key_vol);
+    x6100_control_qsk_time_set(params.qsk_time);
+    x6100_control_key_ratio_set(params.key_ratio * 0.1f);
     
     prev_time = get_time();
     idle_time = prev_time;
