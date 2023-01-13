@@ -15,9 +15,16 @@ add_subdirectory(fonts)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+target_compile_options(${PROJECT_NAME} PRIVATE -g -fno-omit-frame-pointer -fasynchronous-unwind-tables)
+target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
+
+# target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+# target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
 target_link_libraries(${PROJECT_NAME} PRIVATE aether_x6100_control)
 target_link_libraries(${PROJECT_NAME} PRIVATE liquid m)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
+target_link_libraries(${PROJECT_NAME} PRIVATE backtrace)
