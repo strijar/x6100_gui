@@ -17,12 +17,16 @@
 #include "bands.h"
 #include "band_info.h"
 
+#define PX_BYTES    4
+
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
 
 static lv_coord_t       width;
 static lv_coord_t       height;
 static int32_t          width_hz = 100000;
+static uint32_t         line_len;
+static uint8_t          *line_buf = NULL;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
@@ -63,41 +67,40 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
 }
 
 static void scroll_down() {
-    uint32_t    line = frame->data_size / frame->header.h;
-    uint8_t     *ptr = frame->data + frame->data_size - line * 2;
+    uint8_t     *ptr = frame->data + frame->data_size - line_len * 2;
 
     for (int y = 0; y < height-1; y++) {
-        memcpy(ptr + line, ptr, line);
-        ptr -= line;
+        memcpy(ptr + line_len, ptr, line_len);
+        ptr -= line_len;
     }
 }
 
 static void scroll_right(int16_t px) {
-    lv_color_t color;
-
-    for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++) {
-            if (x >= (width - px)) {
-                lv_img_buf_set_px_color(frame, x, y, lv_color_black());
-            } else {
-                color = lv_img_buf_get_px_color(frame, x + px, y, color);
-                lv_img_buf_set_px_color(frame, x, y, color);
-            }
-        }
+    uint8_t     *ptr = frame->data;
+    uint16_t    offset = px * PX_BYTES;
+    uint16_t    tail = (width - px) * PX_BYTES;
+    
+    for (int y = 0; y < height; y++) {
+        memset(line_buf + tail, 0, offset);
+        memcpy(line_buf, ptr + offset, tail);
+        memcpy(ptr, line_buf, line_len);
+        
+        ptr += line_len;
+    }
 }
 
 static void scroll_left(int16_t px) {
-    lv_color_t color;
-
-    for (int y = 0; y < height; y++)
-        for (int x = width - 1; x > 0; x--) {
-            if (x <= px) {
-                lv_img_buf_set_px_color(frame, x, y, lv_color_black());
-            } else {
-                color = lv_img_buf_get_px_color(frame, x - px, y, color);
-                lv_img_buf_set_px_color(frame, x, y, color);
-            }
-        }
+    uint8_t     *ptr = frame->data;
+    uint16_t    offset = px * PX_BYTES;
+    uint16_t    tail = (width - px) * PX_BYTES;
+    
+    for (int y = 0; y < height; y++) {
+        memset(line_buf, 0, offset);
+        memcpy(line_buf + offset, ptr, tail);
+        memcpy(ptr, line_buf, line_len);
+        
+        ptr += line_len;
+    }
 }
 
 void waterfall_data(float *data_buf, uint16_t size) {
@@ -137,6 +140,9 @@ void waterfall_set_height(lv_coord_t h) {
     height = lv_obj_get_height(obj);
 
     frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
+
+    line_len = frame->data_size / frame->header.h;
+    line_buf = malloc(line_len);
     
     calc_palette();
     
