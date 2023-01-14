@@ -687,8 +687,8 @@ uint16_t radio_change_key_vol(int16_t d) {
     
     if (x < 0) {
         x = 0;
-    } else if (x > 55) {
-        x = 55;
+    } else if (x > 32) {
+        x = 32;
     }
 
     params.key_vol = x;

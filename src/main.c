@@ -91,6 +91,7 @@ int main(void) {
     rotary_t *vol = rotary_init("/dev/input/event2", 1);
     rotary_t *mfk = rotary_init("/dev/input/event3", 2);
 
+    main->reverse = true;
     vol->reverse = true;
     mfk->reverse = true;
 
@@ -121,7 +122,7 @@ int main(void) {
         event_obj_check();
         lv_unlock();
         
-        usleep(5000);
+        usleep(1000);
         
         uint64_t now = get_time();
         lv_tick_inc(now - prev_time);

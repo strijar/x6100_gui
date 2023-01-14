@@ -112,13 +112,13 @@ static button_item_t    buttons[] = {
     
     { .label = "(KEY 1:2)",         .callback = button_next_page_cb },
     { .label = "Speed",             .callback = button_key_speed_cb },
-    { .label = "Key\nMode",         .callback = button_key_mode_cb },
-    { .label = "Iambic\nMode",      .callback = button_iambic_mode_cb },
+    { .label = "Volume",            .callback = button_key_vol_cb },
+    { .label = "Train",             .callback = button_key_train_cb },
     { .label = "Tone",              .callback = button_key_tone_cb },
     
     { .label = "(KEY 2:2)",         .callback = button_next_page_cb },
-    { .label = "Volume",            .callback = button_key_vol_cb },
-    { .label = "Train",             .callback = button_key_train_cb },
+    { .label = "Key\nMode",         .callback = button_key_mode_cb },
+    { .label = "Iambic\nMode",      .callback = button_iambic_mode_cb },
     { .label = "QSK\nTime",         .callback = button_qsk_time_cb },
     { .label = "Ratio",             .callback = button_key_ratio_cb },
 };

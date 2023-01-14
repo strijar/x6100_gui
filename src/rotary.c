@@ -59,6 +59,10 @@ rotary_t * rotary_init(char *dev_name, uint8_t id) {
     rotary->indev_drv.user_data = rotary;
     
     rotary->indev = lv_indev_drv_register(&rotary->indev_drv);
+
+    lv_timer_t *timer = lv_indev_get_read_timer(rotary->indev);
+    
+    lv_timer_set_period(timer, 100);
     
     return rotary;
 }
