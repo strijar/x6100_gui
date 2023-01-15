@@ -34,7 +34,6 @@ static void fade_ready(lv_anim_t * a) {
 lv_obj_t * msg_init(lv_obj_t *parent) {
     obj = lv_label_create(parent);
 
-    lv_obj_add_style(obj, &panel_mid_style, 0);
     lv_obj_add_style(obj, &msg_style, 0);
 
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);

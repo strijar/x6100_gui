@@ -19,23 +19,14 @@ typedef enum {
     INFO_ATU
 } info_items_t;
 
-static uint8_t      over = 25;
-static uint8_t      info_height = 54;
-
 static lv_obj_t     *obj;
 static lv_obj_t     *items[6];
 
 lv_obj_t * info_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
 
-    lv_obj_add_style(obj, &panel_top_style, 0);
     lv_obj_add_style(obj, &info_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_set_height(obj, info_height + over);
-    lv_obj_set_style_pad_top(obj, over, 0);
-    lv_obj_set_y(obj, -over);
-
     lv_obj_set_style_pad_left(obj, 0, 0);
     
     uint8_t index = 0;
@@ -45,11 +36,11 @@ lv_obj_t * info_init(lv_obj_t * parent) {
             lv_obj_t *item = lv_label_create(obj);
             
             lv_obj_add_style(item, &info_item_style, 0);
-            lv_obj_set_pos(item, x * 67, y * 25);
+            lv_obj_set_pos(item, x * 58 + 15, y * 24 + 5);
             lv_obj_set_style_text_align(item, LV_TEXT_ALIGN_CENTER, 0);
             
             lv_obj_set_style_text_color(item, lv_color_white(), 0);
-            lv_obj_set_size(item, 190/3, 25);
+            lv_obj_set_size(item, 56, 22);
 
             items[index] = item;
             index++;

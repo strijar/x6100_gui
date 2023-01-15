@@ -44,12 +44,9 @@ typedef enum {
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
-static uint8_t      pad = 10;
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
-static uint8_t      btn_height = 54;
-static uint8_t      over = 25;
-
+static uint8_t      btn_height = 62;
 static lv_obj_t     *obj;
 
 static lv_obj_t     *spectrum;
@@ -560,7 +557,7 @@ static void main_screen_radio_cb(lv_event_t * e) {
 }
 
 lv_obj_t * main_screen() {
-    uint16_t y = pad;
+    uint16_t y = 0;
 
     obj = lv_obj_create(NULL);
 
@@ -603,8 +600,8 @@ lv_obj_t * main_screen() {
                 break;
         }
         
-        lv_obj_set_pos(f, i * ((800 - pad * 2) / 3) + pad, y);
-        lv_obj_set_size(f, (800 - pad * 2) / 3, freq_height);
+        lv_obj_set_pos(f, i * ((800 - 10 * 2) / 3) + 10, y);
+        lv_obj_set_size(f, (800 - 10 * 2) / 3, freq_height);
         
         freq[i] = f;
     }
@@ -617,30 +614,23 @@ lv_obj_t * main_screen() {
     waterfall_set_max(params_band.grid_max);
     
     lv_obj_set_y(waterfall, y);
-    waterfall_set_height(480 - y - pad);
+    waterfall_set_height(480 - y);
     
     y = 480 - btn_height;
     
     uint16_t x = 0;
-    uint16_t width = (800 - pad * 4) / 5;
+    uint16_t width = 152;
 
     for (uint8_t i = 0; i < 5; i++) {
         lv_obj_t *f = lv_btn_create(obj);
-
-        lv_obj_add_style(f, &panel_bottom_style, 0);
+        
+        lv_obj_remove_style_all(f); 
         lv_obj_add_style(f, &btn_style, 0);
 
         lv_obj_set_pos(f, x, y);
-        lv_obj_set_size(f, width, btn_height + over);
-        lv_obj_set_style_pad_bottom(f, over, 0);
-        
-        if (i == 0) {
-            lv_obj_set_style_pad_left(f, over, 0);
-        } else if (i == 4) {
-            lv_obj_set_style_pad_right(f, over, 0);
-        }
-        
-        x += width + pad;
+        lv_obj_set_size(f, width, btn_height);
+
+        x += width + 10;
         
         lv_obj_t *label = lv_label_create(f);
         

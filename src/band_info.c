@@ -57,7 +57,6 @@ static void band_info_draw_cb(lv_event_t * e) {
 
         rect_dsc.bg_color = bg_color;
         rect_dsc.bg_opa = LV_OPA_50;
-        rect_dsc.radius = 10;
         rect_dsc.border_width = 2;
         rect_dsc.border_color = lv_color_white();
         rect_dsc.border_opa = LV_OPA_50;
@@ -80,9 +79,9 @@ static void band_info_draw_cb(lv_event_t * e) {
             stop = w;
         }
 
-        area.x1 = x1 + start;
+        area.x1 = x1 + start + 2;
         area.y1 = y1;
-        area.x2 = x1 + stop;
+        area.x2 = x1 + stop - 2;
         area.y2 = y1 + h;
 
         lv_draw_rect(draw_ctx, &rect_dsc, &area);
@@ -93,7 +92,7 @@ static void band_info_draw_cb(lv_event_t * e) {
         lv_draw_label_dsc_init(&dsc_label);
     
         dsc_label.color = lv_color_white();
-        dsc_label.font = &eco_sans_18;
+        dsc_label.font = &sony_22;
 
         lv_point_t label_size;
         lv_txt_get_size(&label_size, band->name, dsc_label.font, 0, 0, LV_COORD_MAX, 0);

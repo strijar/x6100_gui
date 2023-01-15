@@ -11,10 +11,7 @@
 #include "clock.h"
 #include "styles.h"
 
-static uint8_t      over = 25;
-static uint8_t      clock_height = 54;
-
-static lv_obj_t     *obj;
+static lv_obj_t *obj;
 
 static void show_time() {
     time_t      now = time(NULL);
@@ -26,12 +23,7 @@ static void show_time() {
 lv_obj_t * clock_init(lv_obj_t * parent) {
     obj = lv_label_create(parent);
 
-    lv_obj_add_style(obj, &panel_top_style, 0);
     lv_obj_add_style(obj, &clock_style, 0);
-    
-    lv_obj_set_height(obj, clock_height + over);
-    lv_obj_set_style_pad_top(obj, over, 0);
-    lv_obj_set_y(obj, -over);
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
 
     show_time();
