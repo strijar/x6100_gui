@@ -11,7 +11,6 @@
 
 #include "styles.h"
 #include "spectrum.h"
-#include "main.h"
 #include "radio.h"
 #include "events.h"
 #include "dsp.h"

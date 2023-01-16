@@ -31,8 +31,6 @@
 
 #define DISP_BUF_SIZE (128 * 1024)
 
-static pthread_mutex_t      lv_mux;
-
 static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
@@ -46,14 +44,6 @@ void handle_signal(int sig, siginfo_t *, void *) {
     exit(EXIT_FAILURE);
 }
        
-void lv_lock() {
-    pthread_mutex_lock(&lv_mux);
-}
-
-void lv_unlock() {
-    pthread_mutex_unlock(&lv_mux);
-}
-
 int main(void) {
     bt_state = backtrace_create_state(NULL, 1, NULL, NULL);
 
@@ -95,8 +85,6 @@ int main(void) {
     vol->reverse = true;
     mfk->reverse = true;
 
-    pthread_mutex_init(&lv_mux, NULL);
-
     bands_init();
     params_init();
     styles_init();
@@ -117,10 +105,8 @@ int main(void) {
 #endif
 
     while (1) {
-        lv_lock();
         lv_timer_handler();
         event_obj_check();
-        lv_unlock();
         
         usleep(1000);
         

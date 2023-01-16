@@ -8,5 +8,3 @@
 
 #pragma once
 
-void lv_lock();
-void lv_unlock();

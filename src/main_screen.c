@@ -17,7 +17,6 @@
 #include "waterfall.h"
 #include "util.h"
 #include "radio.h"
-#include "main.h"
 #include "events.h"
 #include "msg.h"
 #include "dsp.h"

@@ -8,7 +8,6 @@
 
 #include <stdlib.h>
 
-#include "main.h"
 #include "waterfall.h"
 #include "styles.h"
 #include "radio.h"
@@ -33,7 +32,7 @@ static int              grid_max = -40;
 
 static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
-static uint8_t          delay = 0;
+static int16_t          scroll_hor = 0;
 
 static void calc_palette() {
     lv_grad_dsc_t grad;
@@ -104,8 +103,7 @@ static void scroll_left(int16_t px) {
 }
 
 void waterfall_data(float *data_buf, uint16_t size) {
-    if (delay) {
-        delay--;
+    if (scroll_hor) {
         return;
     }
 
@@ -129,6 +127,32 @@ void waterfall_data(float *data_buf, uint16_t size) {
     event_send(img, LV_EVENT_REFRESH, NULL);
 }
 
+static void do_scroll_cb(lv_event_t * event) {
+    if (scroll_hor == 0) {
+        return;
+    }
+
+    int16_t px = abs(scroll_hor);
+
+    if (px > 16) {
+        px = 3;
+    } else if (px > 8) {
+        px = 2;
+    } else {
+        px = 1;
+    }
+    
+    if (scroll_hor > 0) {
+        scroll_right(px);
+    } else {
+        scroll_left(px);
+        px = -px;
+    }
+    
+    scroll_hor -= px;
+    event_send(img, LV_EVENT_REFRESH, NULL);
+}
+
 void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
@@ -149,6 +173,7 @@ void waterfall_set_height(lv_coord_t h) {
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
+    lv_obj_add_event_cb(img, do_scroll_cb, LV_EVENT_DRAW_POST, NULL);
     
     waterfall_band_set();
     band_info_init(obj);
@@ -156,6 +181,7 @@ void waterfall_set_height(lv_coord_t h) {
 
 void waterfall_clear() {
     memset(frame->data,0, frame->data_size);
+    scroll_hor = 0;
 }
 
 void waterfall_band_set() {
@@ -174,14 +200,7 @@ void waterfall_set_min(int db) {
 void waterfall_change_freq(int16_t df) {
     int32_t px = width * df / width_hz;
 
-    if (px > 0) {
-        scroll_right(px);
-    } else {
-        px = -px;
-        scroll_left(px);
-    }
-
-    delay = 3;
-    event_send(img, LV_EVENT_REFRESH, NULL);
+    scroll_hor += px;
+    
+    lv_obj_invalidate(img);
 }
-
