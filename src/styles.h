@@ -30,33 +30,6 @@ extern lv_style_t   panel_top_style;
 extern lv_style_t   panel_mid_style;
 extern lv_style_t   panel_bottom_style;
 
-extern lv_font_t    eco_sans_14;
-extern lv_font_t    eco_sans_16;
-extern lv_font_t    eco_sans_18;
-extern lv_font_t    eco_sans_20;
-extern lv_font_t    eco_sans_22;
-extern lv_font_t    eco_sans_24;
-extern lv_font_t    eco_sans_26;
-extern lv_font_t    eco_sans_28;
-extern lv_font_t    eco_sans_30;
-extern lv_font_t    eco_sans_32;
-extern lv_font_t    eco_sans_36;
-extern lv_font_t    eco_sans_38;
-
-extern lv_font_t    venus_14;
-extern lv_font_t    venus_16;
-extern lv_font_t    venus_18;
-extern lv_font_t    venus_20;
-extern lv_font_t    venus_22;
-extern lv_font_t    venus_24;
-extern lv_font_t    venus_26;
-extern lv_font_t    venus_28;
-extern lv_font_t    venus_30;
-extern lv_font_t    venus_32;
-extern lv_font_t    venus_34;
-extern lv_font_t    venus_36;
-extern lv_font_t    venus_38;
-
 extern lv_font_t    sony_14;
 extern lv_font_t    sony_16;
 extern lv_font_t    sony_18;

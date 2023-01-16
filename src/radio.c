@@ -152,7 +152,7 @@ static void * radio_thread(void *arg) {
         
         int32_t idle = now_time - idle_time;
         
-        if (idle > IDLE_TIMEOUT) {
+        if (idle > IDLE_TIMEOUT && state == RADIO_RX) {
             pthread_mutex_lock(&control_mux);
             x6100_control_idle();
             pthread_mutex_unlock(&control_mux);
