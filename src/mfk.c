@@ -21,6 +21,7 @@ void mfk_update(int16_t diff) {
     int32_t i;
     char    *str;
     bool    b;
+    float   f;
 
     switch (mfk_mode) {
         case MFK_MIN_LEVEL:
@@ -60,6 +61,7 @@ void mfk_update(int16_t diff) {
                 params_unlock(&params.durty.spectrum_factor);
             
                 dsp_set_spectrum_factor(params.spectrum_factor);
+                spectrum_clear();
             }
             msg_set_text_fmt("Spectrum zoom: x%i", params.spectrum_factor);
             break;
@@ -79,6 +81,58 @@ void mfk_update(int16_t diff) {
                 dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
             }
             msg_set_text_fmt("Spectrum beta: %i", params.spectrum_beta);
+            break;
+
+        case MFK_SPECTRUM_FILL:
+            if (diff != 0) {
+                params_lock();
+                params.spectrum_filled = !params.spectrum_filled;
+                params_unlock(&params.durty.spectrum_filled);
+            }
+            msg_set_text_fmt("Spectrum fill: %s", params.spectrum_filled ? "On" : "Off");
+            break;
+            
+        case MFK_SPECTRUM_PEAK:
+            if (diff != 0) {
+                params_lock();
+                params.spectrum_peak = !params.spectrum_peak;
+                params_unlock(&params.durty.spectrum_peak);
+            }
+            msg_set_text_fmt("Spectrum peak: %s", params.spectrum_peak ? "On" : "Off");
+            break;
+
+        case MFK_PEAK_HOLD:
+            if (diff != 0) {
+                i = params.spectrum_peak_hold + diff * 1000;
+                
+                if (i < 1000) {
+                    i = 1000;
+                } else if (i > 10000) {
+                    i = 10000;
+                }
+                
+                params_lock();
+                params.spectrum_peak_hold = i;
+                params_unlock(&params.durty.spectrum_peak_hold);
+            }
+            msg_set_text_fmt("Peak hold: %i s", params.spectrum_peak_hold / 1000);
+            break;
+            
+        case MFK_PEAK_SPEED:
+            if (diff != 0) {
+                f = params.spectrum_peak_speed + diff * 0.1f;
+                
+                if (f < 0.1f) {
+                    f = 0.1f;
+                } else if (f > 3.0f) {
+                    f = 3.0f;
+                }
+                
+                params_lock();
+                params.spectrum_peak_speed = f;
+                params_unlock(&params.durty.spectrum_peak_speed);
+            }
+            msg_set_text_fmt("Peak speed: %.1f db", params.spectrum_peak_speed);
             break;
             
         case MFK_KEY_SPEED:

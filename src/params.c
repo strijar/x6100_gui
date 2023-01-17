@@ -19,22 +19,26 @@
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .spectrum_factor    = 1,
-    .spectrum_beta      = 70,
+    .spectrum_factor        = 1,
+    .spectrum_beta          = 70,
+    .spectrum_filled        = true,
+    .spectrum_peak          = true,
+    .spectrum_peak_hold     = 5000,
+    .spectrum_peak_speed    = 0.5f,
     
-    .vol                = 20,
-    .rfg                = 63,
-    .ant                = 1,
-    .pwr                = 5.0f,
+    .vol                    = 20,
+    .rfg                    = 63,
+    .ant                    = 1,
+    .pwr                    = 5.0f,
 
-    .key_speed          = 15,
-    .key_mode           = x6100_key_manual,
-    .iambic_mode        = x6100_iambic_a,
-    .key_tone           = 700,
-    .key_vol            = 10,
-    .key_train          = false,
-    .qsk_time           = 100,
-    .key_ratio          = 30
+    .key_speed              = 15,
+    .key_mode               = x6100_key_manual,
+    .iambic_mode            = x6100_iambic_a,
+    .key_tone               = 700,
+    .key_vol                = 10,
+    .key_train              = false,
+    .qsk_time               = 100,
+    .key_ratio              = 30
 };
 
 params_band_t params_band = {
@@ -274,6 +278,14 @@ static bool params_load() {
             params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
             params.spectrum_beta = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "spectrum_filled") == 0) {
+            params.spectrum_filled = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "spectrum_peak") == 0) {
+            params.spectrum_peak = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "spectrum_peak_hold") == 0) {
+            params.spectrum_peak_hold = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "spectrum_peak_speed") == 0) {
+            params.spectrum_peak_speed = sqlite3_column_int(stmt, 1) * 0.1f;
         } else if (strcmp(name, "key_speed") == 0) {
             params.key_speed = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "key_mode") == 0) {
@@ -326,21 +338,27 @@ static bool params_save() {
         return false;
     }
 
-    if (params.durty.band)              params_write_int("band", params.band, &params.durty.band);
-    if (params.durty.vol)               params_write_int("vol", params.vol, &params.durty.vol);
-    if (params.durty.rfg)               params_write_int("rfg", params.rfg, &params.durty.rfg);
-    if (params.durty.atu)               params_write_int("atu", params.atu, &params.durty.atu);
-    if (params.durty.pwr)               params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
-    if (params.durty.spectrum_factor)   params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
-    if (params.durty.spectrum_beta)     params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
-    if (params.durty.key_speed)         params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
-    if (params.durty.key_mode)          params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
-    if (params.durty.iambic_mode)       params_write_int("iambic_mode", params.iambic_mode, &params.durty.iambic_mode);
-    if (params.durty.key_tone)          params_write_int("key_tone", params.key_tone, &params.durty.key_tone);
-    if (params.durty.key_vol)           params_write_int("key_vol", params.key_vol, &params.durty.key_vol);
-    if (params.durty.key_train)         params_write_int("key_train", params.key_train, &params.durty.key_train);
-    if (params.durty.qsk_time)          params_write_int("qsk_time", params.qsk_time, &params.durty.qsk_time);
-    if (params.durty.key_ratio)         params_write_int("key_ratio", params.key_ratio, &params.durty.key_ratio);
+    if (params.durty.band)                  params_write_int("band", params.band, &params.durty.band);
+    if (params.durty.vol)                   params_write_int("vol", params.vol, &params.durty.vol);
+    if (params.durty.rfg)                   params_write_int("rfg", params.rfg, &params.durty.rfg);
+    if (params.durty.atu)                   params_write_int("atu", params.atu, &params.durty.atu);
+    if (params.durty.pwr)                   params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
+
+    if (params.durty.spectrum_factor)       params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
+    if (params.durty.spectrum_beta)         params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
+    if (params.durty.spectrum_filled)       params_write_int("spectrum_filled", params.spectrum_filled, &params.durty.spectrum_filled);
+    if (params.durty.spectrum_peak)         params_write_int("spectrum_peak", params.spectrum_peak, &params.durty.spectrum_peak);
+    if (params.durty.spectrum_peak_hold)    params_write_int("spectrum_peak_hold", params.spectrum_peak_hold, &params.durty.spectrum_peak_hold);
+    if (params.durty.spectrum_peak_speed)   params_write_int("spectrum_peak_speed", params.spectrum_peak_speed * 10, &params.durty.spectrum_peak_speed);
+
+    if (params.durty.key_speed)             params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
+    if (params.durty.key_mode)              params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
+    if (params.durty.iambic_mode)           params_write_int("iambic_mode", params.iambic_mode, &params.durty.iambic_mode);
+    if (params.durty.key_tone)              params_write_int("key_tone", params.key_tone, &params.durty.key_tone);
+    if (params.durty.key_vol)               params_write_int("key_vol", params.key_vol, &params.durty.key_vol);
+    if (params.durty.key_train)             params_write_int("key_train", params.key_train, &params.durty.key_train);
+    if (params.durty.qsk_time)              params_write_int("qsk_time", params.qsk_time, &params.durty.qsk_time);
+    if (params.durty.key_ratio)             params_write_int("key_ratio", params.key_ratio, &params.durty.key_ratio);
 
     if (!params_exec("COMMIT")) {
         return false;

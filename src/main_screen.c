@@ -72,6 +72,10 @@ static void button_min_level_cb(lv_event_t * e);
 static void button_max_level_cb(lv_event_t * e);
 static void button_spectrum_factor_cb(lv_event_t * e);
 static void button_spectrum_beta_cb(lv_event_t * e);
+static void button_spectrum_fill_cb(lv_event_t * e);
+static void button_spectrum_peak_cb(lv_event_t * e);
+static void button_peak_hold_cb(lv_event_t * e);
+static void button_peak_speed_cb(lv_event_t * e);
 
 static void button_key_speed_cb(lv_event_t * e);
 static void button_key_mode_cb(lv_event_t * e);
@@ -84,7 +88,8 @@ static void button_key_ratio_cb(lv_event_t * e);
 
 typedef enum {
     PAGE_VOL = 0,
-    PAGE_MFK,
+    PAGE_MFK_1,
+    PAGE_MFK_2,
     PAGE_KEY_1,
     PAGE_KEY_2
 } button_page_t;
@@ -98,11 +103,17 @@ static button_item_t    buttons[] = {
     { .label = "Filter\nHigh",      .callback = button_filter_high_cb },
     { .label = "TX\nPower",         .callback = button_tx_power_cb },
     
-    { .label = "(MFK)",             .callback = button_next_page_cb },
+    { .label = "(MFK 1:2)",         .callback = button_next_page_cb },
     { .label = "Min\nLevel",        .callback = button_min_level_cb },
     { .label = "Max\nLevel",        .callback = button_max_level_cb },
     { .label = "Spectrum\nZoom",    .callback = button_spectrum_factor_cb },
     { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb },
+
+    { .label = "(MFK 2:2)",         .callback = button_next_page_cb },
+    { .label = "Spectrum\nFill",    .callback = button_spectrum_fill_cb },
+    { .label = "Spectrum\nPeak",    .callback = button_spectrum_peak_cb },
+    { .label = "Peaks\nhold",       .callback = button_peak_hold_cb },
+    { .label = "Peaks\nspeed",      .callback = button_peak_speed_cb },
 
     /* CW */
     
@@ -144,10 +155,14 @@ static void button_next_page_cb(lv_event_t * e) {
 
     switch (buttons_page) {
         case PAGE_VOL:
-            buttons_page = PAGE_MFK;
+            buttons_page = PAGE_MFK_1;
             break;
             
-        case PAGE_MFK:
+        case PAGE_MFK_1:
+            buttons_page = PAGE_MFK_2;
+            break;
+
+        case PAGE_MFK_2:
             buttons_page = PAGE_VOL;
             break;
             
@@ -200,6 +215,26 @@ static void button_spectrum_factor_cb(lv_event_t * e) {
 
 static void button_spectrum_beta_cb(lv_event_t * e) {
     mfk_set_mode(MFK_SPECTRUM_BETA);
+    mfk_update(0);
+}
+
+static void button_spectrum_fill_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_SPECTRUM_FILL);
+    mfk_update(0);
+}
+
+static void button_spectrum_peak_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_SPECTRUM_PEAK);
+    mfk_update(0);
+}
+
+static void button_peak_hold_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_PEAK_HOLD);
+    mfk_update(0);
+}
+
+static void button_peak_speed_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_PEAK_SPEED);
     mfk_update(0);
 }
 
@@ -357,6 +392,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
         case 0:
             freq = radio_change_freq(-rotary->diff * params_mode.freq_step, &prev_freq);
             waterfall_change_freq(freq - prev_freq);
+            spectrum_change_freq(freq - prev_freq);
             main_screen_set_freq(freq);
             check_cross_band(freq, prev_freq);
             break;

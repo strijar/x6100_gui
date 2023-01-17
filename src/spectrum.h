@@ -19,3 +19,5 @@ void spectrum_band_set();
 
 void spectrum_set_max(int db);
 void spectrum_set_min(int db);
+void spectrum_change_freq(int16_t df);
+void spectrum_clear();

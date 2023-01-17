@@ -88,6 +88,10 @@ typedef struct {
     
     int16_t             spectrum_factor;
     int16_t             spectrum_beta;
+    bool                spectrum_peak;
+    uint16_t            spectrum_peak_hold;
+    float               spectrum_peak_speed;
+    bool                spectrum_filled;
     
     /* key */
     
@@ -112,6 +116,10 @@ typedef struct {
         
         bool    spectrum_factor;
         bool    spectrum_beta;
+        bool    spectrum_peak;
+        bool    spectrum_peak_hold;
+        bool    spectrum_peak_speed;
+        bool    spectrum_filled;
         bool    freq_step;
 
         bool    key_speed;

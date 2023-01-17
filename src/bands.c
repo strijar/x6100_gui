@@ -106,6 +106,7 @@ void bands_change(bool up) {
             bands_activate(band, NULL);
             
             waterfall_clear();
+            spectrum_clear();
             main_screen_band_set();
 
             return;
