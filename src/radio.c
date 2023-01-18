@@ -214,6 +214,9 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_key_train_set(params.key_train);
     x6100_control_qsk_time_set(params.qsk_time);
     x6100_control_key_ratio_set(params.key_ratio * 0.1f);
+    x6100_control_mic_set(params.mic);
+    x6100_control_hmic_set(params.hmic);
+    x6100_control_imic_set(params.imic);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -781,4 +784,82 @@ uint8_t radio_change_key_ratio(int16_t d) {
     radio_unlock();
 
     return params.key_ratio;
+}
+
+x6100_mic_sel_t radio_change_mic(int16_t d) {
+    if (d == 0) {
+        return params.mic;
+    }
+    
+    params_lock();
+    
+    switch (params.mic) {
+        case x6100_mic_builtin:
+            params.mic = d > 0 ? x6100_mic_handle : x6100_mic_auto;
+            break;
+            
+        case x6100_mic_handle:
+            params.mic = d > 0 ? x6100_mic_auto : x6100_mic_builtin;
+            break;
+            
+        case x6100_mic_auto:
+            params.mic = d > 0 ? x6100_mic_builtin : x6100_mic_handle;
+            break;
+    }
+    
+    params_unlock(&params.durty.mic);
+    
+    radio_lock();
+    x6100_control_mic_set(params.mic);
+    radio_unlock();
+    
+    return params.mic;
+}
+
+uint8_t radio_change_hmic(int16_t d) {
+    if (d == 0) {
+        return params.hmic;
+    }
+
+    int16_t x = params.hmic + d;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 50) {
+        x = 50;
+    }
+    
+    params_lock();
+    params.hmic = x;
+    params_unlock(&params.durty.hmic);
+    
+    radio_lock();
+    x6100_control_hmic_set(params.hmic);
+    radio_unlock();
+    
+    return params.hmic;
+}
+
+uint8_t radio_change_imic(int16_t d) {
+    if (d == 0) {
+        return params.imic;
+    }
+
+    int16_t x = params.imic + d;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 50) {
+        x = 50;
+    }
+    
+    params_lock();
+    params.imic = x;
+    params_unlock(&params.durty.imic);
+    
+    radio_lock();
+    x6100_control_hmic_set(params.imic);
+    radio_unlock();
+    
+    return params.imic;
 }

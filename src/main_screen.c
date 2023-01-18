@@ -37,8 +37,11 @@ typedef enum {
     VOL_FILTER_LOW,
     VOL_FILTER_HIGH,
     VOL_PWR,
-    
-    VOL_LAST
+    VOL_HMIC,
+    VOL_LAST,
+
+    VOL_MIC,
+    VOL_IMIC,
 } vol_mode_t;
 
 static vol_mode_t   vol_mode = VOL_VOL;
@@ -68,6 +71,11 @@ static void button_vol_cb(lv_event_t * e);
 static void button_filter_low_cb(lv_event_t * e);
 static void button_filter_high_cb(lv_event_t * e);
 static void button_tx_power_cb(lv_event_t * e);
+
+static void button_mic_cb(lv_event_t * e);
+static void button_imic_cb(lv_event_t * e);
+static void button_hmic_cb(lv_event_t * e);
+
 static void button_min_level_cb(lv_event_t * e);
 static void button_max_level_cb(lv_event_t * e);
 static void button_spectrum_factor_cb(lv_event_t * e);
@@ -87,21 +95,28 @@ static void button_qsk_time_cb(lv_event_t * e);
 static void button_key_ratio_cb(lv_event_t * e);
 
 typedef enum {
-    PAGE_VOL = 0,
+    PAGE_VOL_1 = 0,
+    PAGE_VOL_2,
     PAGE_MFK_1,
     PAGE_MFK_2,
     PAGE_KEY_1,
     PAGE_KEY_2
 } button_page_t;
 
-static button_page_t    buttons_page = PAGE_VOL;
+static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL)",             .callback = button_next_page_cb },
+    { .label = "(VOL 1:2)",         .callback = button_next_page_cb },
     { .label = "Audio\nVol",        .callback = button_vol_cb },
     { .label = "Filter\nLow",       .callback = button_filter_low_cb },
     { .label = "Filter\nHigh",      .callback = button_filter_high_cb },
     { .label = "TX\nPower",         .callback = button_tx_power_cb },
+
+    { .label = "(VOL 2:2)",         .callback = button_next_page_cb },
+    { .label = "MIC\nSelect",       .callback = button_mic_cb },
+    { .label = "H-MIC\nGain",       .callback = button_hmic_cb },
+    { .label = "I-MIC\nGain",       .callback = button_imic_cb },
+    { .label = "",                  .callback = NULL },
     
     { .label = "(MFK 1:2)",         .callback = button_next_page_cb },
     { .label = "Min\nLevel",        .callback = button_min_level_cb },
@@ -154,7 +169,11 @@ static void button_next_page_cb(lv_event_t * e) {
     buttons_unload_page();
 
     switch (buttons_page) {
-        case PAGE_VOL:
+        case PAGE_VOL_1:
+            buttons_page = PAGE_VOL_2;
+            break;
+
+        case PAGE_VOL_2:
             buttons_page = PAGE_MFK_1;
             break;
             
@@ -163,7 +182,7 @@ static void button_next_page_cb(lv_event_t * e) {
             break;
 
         case PAGE_MFK_2:
-            buttons_page = PAGE_VOL;
+            buttons_page = PAGE_VOL_1;
             break;
             
         case PAGE_KEY_1:
@@ -195,6 +214,21 @@ static void button_filter_high_cb(lv_event_t * e) {
 
 static void button_tx_power_cb(lv_event_t * e) {
     vol_mode = VOL_PWR;
+    vol_update(0);
+}
+
+static void button_mic_cb(lv_event_t * e) {
+    vol_mode = VOL_MIC;
+    vol_update(0);
+}
+
+static void button_imic_cb(lv_event_t * e) {
+    vol_mode = VOL_IMIC;
+    vol_update(0);
+}
+
+static void button_hmic_cb(lv_event_t * e) {
+    vol_mode = VOL_HMIC;
     vol_update(0);
 }
 
@@ -314,6 +348,7 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
 static void vol_update(int16_t diff) {
     int32_t x;
     float   f;
+    char    *s;
 
     switch (vol_mode) {
         case VOL_VOL:
@@ -339,6 +374,36 @@ static void vol_update(int16_t diff) {
         case VOL_PWR:
             f = radio_change_pwr(diff);
             msg_set_text_fmt("Power: %0.1f W", f);
+            break;
+
+        case VOL_MIC:
+            x = radio_change_mic(diff);
+            
+            switch (x) {
+                case x6100_mic_builtin:
+                    s = "Built-In";
+                    break;
+
+                case x6100_mic_handle:
+                    s = "Handle";
+                    break;
+                    
+                case x6100_mic_auto:
+                    s = "Auto";
+                    break;
+            }
+            
+            msg_set_text_fmt("MIC: %s", s);
+            break;
+
+        case VOL_HMIC:
+            x = radio_change_hmic(diff);
+            msg_set_text_fmt("H-MIC gain: %i", x);
+            break;
+
+        case VOL_IMIC:
+            x = radio_change_imic(diff);
+            msg_set_text_fmt("I-MIC gain: %i", x);
             break;
             
         default:
@@ -543,7 +608,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_PRESS) {
                 mfk_set_mode(MFK_MIN_LEVEL);
                 buttons_unload_page();
-                buttons_page = PAGE_VOL;
+                buttons_page = PAGE_VOL_1;
                 buttons_load_page();
             }
             break;

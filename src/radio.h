@@ -45,6 +45,10 @@ bool radio_change_key_train(int16_t d);
 uint16_t radio_change_qsk_time(int16_t d);
 uint8_t radio_change_key_ratio(int16_t d);
 
+x6100_mic_sel_t radio_change_mic(int16_t d);
+uint8_t radio_change_hmic(int16_t d);
+uint8_t radio_change_imic(int16_t d);
+
 void radio_start_atu();
 void radio_load_atu();
 

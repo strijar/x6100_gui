@@ -83,6 +83,9 @@ typedef struct {
     bool                atu;
     uint8_t             ant;
     float               pwr;
+    x6100_mic_sel_t     mic;
+    uint8_t             hmic;
+    uint8_t             imic;
     
     /* main screen */
     
@@ -113,6 +116,9 @@ typedef struct {
         bool    atu;
         bool    ant;
         bool    pwr;
+        bool    mic;
+        bool    hmic;
+        bool    imic;
         
         bool    spectrum_factor;
         bool    spectrum_beta;

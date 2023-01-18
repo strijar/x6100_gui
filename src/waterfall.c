@@ -140,7 +140,7 @@ static void do_scroll_cb(lv_event_t * event) {
         scroll_hor -= px;
     } else {
         scroll_left(px);
-        scroll_hor =+= px;
+        scroll_hor += px;
     }
     
     event_send(img, LV_EVENT_REFRESH, NULL);
