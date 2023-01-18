@@ -33,6 +33,7 @@ static int              grid_max = -40;
 static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
 static int16_t          scroll_hor = 0;
+static int16_t          scroll_hor_surplus = 0;
 
 static void calc_palette() {
     lv_grad_dsc_t grad;
@@ -132,24 +133,16 @@ static void do_scroll_cb(lv_event_t * event) {
         return;
     }
 
-    int16_t px = abs(scroll_hor);
+    int16_t px = (abs(scroll_hor) / 10) + 1;
 
-    if (px > 16) {
-        px = 3;
-    } else if (px > 8) {
-        px = 2;
-    } else {
-        px = 1;
-    }
-    
     if (scroll_hor > 0) {
         scroll_right(px);
+        scroll_hor -= px;
     } else {
         scroll_left(px);
-        px = -px;
+        scroll_hor =+= px;
     }
     
-    scroll_hor -= px;
     event_send(img, LV_EVENT_REFRESH, NULL);
 }
 
@@ -182,6 +175,7 @@ void waterfall_set_height(lv_coord_t h) {
 void waterfall_clear() {
     memset(frame->data,0, frame->data_size);
     scroll_hor = 0;
+    scroll_hor_surplus = 0;
 }
 
 void waterfall_band_set() {
@@ -198,9 +192,23 @@ void waterfall_set_min(int db) {
 }
 
 void waterfall_change_freq(int16_t df) {
-    int32_t px = width * df / width_hz;
+    uint16_t    div = width_hz / width;
+    int16_t     surplus = df % div;
 
-    scroll_hor += px;
+    scroll_hor += df / div;
     
-    lv_obj_invalidate(img);
+    if (surplus) {
+        scroll_hor_surplus += surplus;
+    } else {
+        scroll_hor_surplus = 0;
+    }
+    
+    if (abs(scroll_hor_surplus) > div) {
+        scroll_hor += scroll_hor_surplus / div;
+        scroll_hor_surplus = scroll_hor_surplus % div;
+    }
+
+    if (scroll_hor) {
+        lv_obj_invalidate(img);
+    }
 }
