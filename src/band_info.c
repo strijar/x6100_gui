@@ -153,7 +153,7 @@ void band_info_update(uint64_t f) {
     bands = bands_find_all(f, width_hz / 2);
     freq = f;
 
-    event_send(obj, LV_EVENT_REFRESH, NULL);
+    lv_obj_invalidate(obj);
 
     if (!fade_run) {
         fade_run = true;

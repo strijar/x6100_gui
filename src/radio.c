@@ -172,6 +172,8 @@ void radio_band_set() {
     x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
     x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
     radio_unlock();
+
+    params.freq_band = bands_find(vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
 }
 
 void radio_mode_set() {
