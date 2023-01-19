@@ -21,8 +21,17 @@ typedef enum {
     RADIO_MODE_SSB
 } radio_mode_t;
 
+typedef enum {
+    RADIO_RX = 0,
+    RADIO_TX,
+    RADIO_ATU_START,
+    RADIO_ATU_WAIT,
+    RADIO_ATU_RUN,
+} radio_state_t;
+
 void radio_init(lv_obj_t *obj);
 bool radio_tick();
+radio_state_t radio_get_state();
 
 uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
 uint16_t radio_change_vol(int16_t df);
@@ -34,7 +43,9 @@ bool radio_change_att();
 void radio_change_mode(radio_mode_t select);
 void radio_change_agc();
 void radio_change_atu();
+void radio_change_split();
 float radio_change_pwr(int16_t d);
+x6100_vfo_t radio_change_vfo();
 
 uint16_t radio_change_key_speed(int16_t d);
 x6100_key_mode_t radio_change_key_mode(int16_t d);
@@ -52,7 +63,7 @@ uint8_t radio_change_imic(int16_t d);
 void radio_start_atu();
 void radio_load_atu();
 
-void radio_band_set();
+void radio_vfo_set();
 void radio_mode_set();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);

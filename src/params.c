@@ -47,18 +47,23 @@ params_t params = {
 params_band_t params_band = {
     .vfo                = X6100_VFO_A,
 
-    .vfoa_freq          = 14000000,
-    .vfoa_att           = x6100_att_off,
-    .vfoa_pre           = x6100_pre_off,
-    .vfoa_mode          = x6100_mode_usb,
-    .vfoa_agc           = x6100_agc_fast,
+    .vfo_x[X6100_VFO_A] = {
+        .freq           = 14000000,
+        .att            = x6100_att_off,
+        .pre            = x6100_pre_off,
+        .mode           = x6100_mode_usb,
+        .agc            = x6100_agc_fast
+    },
 
-    .vfob_freq          = 14100000,
-    .vfob_att           = x6100_att_off,
-    .vfob_pre           = x6100_pre_off,
-    .vfob_mode          = x6100_mode_usb,
-    .vfob_agc           = x6100_agc_fast,
+    .vfo_x[X6100_VFO_B] = {
+        .freq           = 14100000,
+        .att            = x6100_att_off,
+        .pre            = x6100_pre_off,
+        .mode           = x6100_mode_usb,
+        .agc            = x6100_agc_fast
+    },
 
+    .split              = false,
     .grid_min           = -121,
     .grid_max           = -73,
 };
@@ -94,8 +99,7 @@ void params_mode_load() {
         return;
     }
 
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
 
     sqlite3_bind_int(stmt, 1, mode);
 
@@ -115,8 +119,7 @@ void params_mode_load() {
 }
 
 static void params_mode_write_int(const char *name, int data, bool *durty) {
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
 
     sqlite3_bind_int(write_mode_stmt, 1, mode);
     sqlite3_bind_text(write_mode_stmt, 2, name, strlen(name), 0);
@@ -159,37 +162,54 @@ void params_band_load() {
 
     sqlite3_bind_int(stmt, 1, params.band);
 
+    bool copy_freq = true;
+    bool copy_att = true;
+    bool copy_pre = true;
+    bool copy_mode = true;
+    bool copy_agc = true;
+
     while (sqlite3_step(stmt) != SQLITE_DONE) {
         const char *name = sqlite3_column_text(stmt, 0);
 
         if (strcmp(name, "vfo") == 0) {
             params_band.vfo = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_freq") == 0) {
-            params_band.vfoa_freq = sqlite3_column_int64(stmt, 1);
+            params_band.vfo_x[X6100_VFO_A].freq = sqlite3_column_int64(stmt, 1);
         } else if (strcmp(name, "vfoa_att") == 0) {
-            params_band.vfoa_att = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_A].att = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_pre") == 0) {
-            params_band.vfoa_pre = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_A].pre = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_mode") == 0) {
-            params_band.vfoa_mode = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_A].mode = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_agc") == 0) {
-            params_band.vfoa_agc = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_A].agc = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfob_freq") == 0) {
-            params_band.vfob_freq = sqlite3_column_int64(stmt, 1);
+            params_band.vfo_x[X6100_VFO_B].freq = sqlite3_column_int64(stmt, 1);
+            copy_freq = false;
         } else if (strcmp(name, "vfob_att") == 0) {
-            params_band.vfob_att = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_B].att = sqlite3_column_int(stmt, 1);
+            copy_att = false;
         } else if (strcmp(name, "vfob_pre") == 0) {
-            params_band.vfob_pre = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_B].pre = sqlite3_column_int(stmt, 1);
+            copy_pre = false;
         } else if (strcmp(name, "vfob_mode") == 0) {
-            params_band.vfob_mode = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_B].mode = sqlite3_column_int(stmt, 1);
+            copy_mode = false;
         } else if (strcmp(name, "vfob_agc") == 0) {
-            params_band.vfob_agc = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[X6100_VFO_B].agc = sqlite3_column_int(stmt, 1);
+            copy_agc = false;
         } else if (strcmp(name, "grid_min") == 0) {
             params_band.grid_min = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "grid_max") == 0) {
             params_band.grid_max = sqlite3_column_int(stmt, 1);
         }
     }
+
+    if (copy_freq)  params_band.vfo_x[X6100_VFO_B].freq = params_band.vfo_x[X6100_VFO_A].freq;
+    if (copy_att)   params_band.vfo_x[X6100_VFO_B].att = params_band.vfo_x[X6100_VFO_A].att;
+    if (copy_pre)   params_band.vfo_x[X6100_VFO_B].pre = params_band.vfo_x[X6100_VFO_A].pre;
+    if (copy_mode)  params_band.vfo_x[X6100_VFO_B].mode = params_band.vfo_x[X6100_VFO_A].mode;
+    if (copy_agc)   params_band.vfo_x[X6100_VFO_B].agc = params_band.vfo_x[X6100_VFO_A].agc;
 
     sqlite3_finalize(stmt);
     params_mode_load();
@@ -226,21 +246,44 @@ bool params_band_save() {
         return false;
     }
 
-    if (params_band.durty.vfo)          params_band_write_int("vfo", params_band.vfo, &params_band.durty.vfo);
-    if (params_band.durty.vfoa_freq)    params_band_write_int64("vfoa_freq", params_band.vfoa_freq, &params_band.durty.vfoa_freq);
-    if (params_band.durty.vfoa_att)     params_band_write_int("vfoa_att", params_band.vfoa_att, &params_band.durty.vfoa_att);
-    if (params_band.durty.vfoa_pre)     params_band_write_int("vfoa_pre", params_band.vfoa_pre, &params_band.durty.vfoa_pre);
-    if (params_band.durty.vfoa_mode)    params_band_write_int("vfoa_mode", params_band.vfoa_mode, &params_band.durty.vfoa_mode);
-    if (params_band.durty.vfoa_agc)     params_band_write_int("vfoa_agc", params_band.vfoa_agc, &params_band.durty.vfoa_agc);
+    if (params_band.durty.vfo)
+        params_band_write_int("vfo", params_band.vfo, &params_band.durty.vfo);
+    
+    if (params_band.vfo_x[X6100_VFO_A].durty.freq)
+        params_band_write_int64("vfoa_freq", params_band.vfo_x[X6100_VFO_A].freq, &params_band.vfo_x[X6100_VFO_A].durty.freq);
+        
+    if (params_band.vfo_x[X6100_VFO_A].durty.att)
+        params_band_write_int("vfoa_att", params_band.vfo_x[X6100_VFO_A].att, &params_band.vfo_x[X6100_VFO_A].durty.att);
+        
+    if (params_band.vfo_x[X6100_VFO_A].durty.pre)
+        params_band_write_int("vfoa_pre", params_band.vfo_x[X6100_VFO_A].pre, &params_band.vfo_x[X6100_VFO_A].durty.pre);
+        
+    if (params_band.vfo_x[X6100_VFO_A].durty.mode)
+        params_band_write_int("vfoa_mode", params_band.vfo_x[X6100_VFO_A].mode, &params_band.vfo_x[X6100_VFO_A].durty.mode);
+        
+    if (params_band.vfo_x[X6100_VFO_A].durty.agc)
+        params_band_write_int("vfoa_agc", params_band.vfo_x[X6100_VFO_A].agc, &params_band.vfo_x[X6100_VFO_A].durty.agc);
 
-    if (params_band.durty.vfob_freq)    params_band_write_int64("vfob_freq", params_band.vfob_freq, &params_band.durty.vfob_freq);
-    if (params_band.durty.vfob_att)     params_band_write_int("vfob_att", params_band.vfob_att, &params_band.durty.vfob_att);
-    if (params_band.durty.vfob_pre)     params_band_write_int("vfob_pre", params_band.vfob_pre, &params_band.durty.vfob_pre);
-    if (params_band.durty.vfob_mode)    params_band_write_int("vfob_mode", params_band.vfob_mode, &params_band.durty.vfob_mode);
-    if (params_band.durty.vfob_agc)     params_band_write_int("vfob_agc", params_band.vfob_agc, &params_band.durty.vfob_agc);
+    if (params_band.vfo_x[X6100_VFO_B].durty.freq)
+        params_band_write_int64("vfob_freq", params_band.vfo_x[X6100_VFO_B].freq, &params_band.vfo_x[X6100_VFO_B].durty.freq);
+        
+    if (params_band.vfo_x[X6100_VFO_B].durty.att)
+        params_band_write_int("vfob_att", params_band.vfo_x[X6100_VFO_B].att, &params_band.vfo_x[X6100_VFO_B].durty.att);
+        
+    if (params_band.vfo_x[X6100_VFO_B].durty.pre)
+        params_band_write_int("vfob_pre", params_band.vfo_x[X6100_VFO_B].pre, &params_band.vfo_x[X6100_VFO_B].durty.pre);
+        
+    if (params_band.vfo_x[X6100_VFO_B].durty.mode)
+        params_band_write_int("vfob_mode", params_band.vfo_x[X6100_VFO_B].mode, &params_band.vfo_x[X6100_VFO_B].durty.mode);
+        
+    if (params_band.vfo_x[X6100_VFO_B].durty.agc)
+        params_band_write_int("vfob_agc", params_band.vfo_x[X6100_VFO_B].agc, &params_band.vfo_x[X6100_VFO_B].durty.agc);
 
-    if (params_band.durty.grid_min)     params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
-    if (params_band.durty.grid_max)     params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
+    if (params_band.durty.grid_min)
+        params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
+        
+    if (params_band.durty.grid_max)
+        params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
 
     if (!params_exec("COMMIT")) {
         return false;
@@ -507,22 +550,14 @@ void params_unlock(bool *durty) {
 }
 
 void params_band_freq_set(uint64_t freq) {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-
     params_lock();
 
-    if (vfoa) {
-        params_band.vfoa_freq = freq;
-        params_unlock(&params_band.durty.vfoa_freq);
-    } else {
-        params_band.vfob_freq = freq;
-        params_unlock(&params_band.durty.vfob_freq);
-   }
+    params_band.vfo_x[params_band.vfo].freq = freq;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
 }
 
 void params_atu_save(uint32_t val) {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-    uint64_t freq = vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
+    uint64_t freq = params_band.vfo_x[params_band.vfo].freq;
 
     params_lock();
 
@@ -539,8 +574,7 @@ void params_atu_save(uint32_t val) {
 
 uint32_t params_atu_load() {
     uint32_t    res = 0;
-    bool        vfoa = (params_band.vfo == X6100_VFO_A);
-    uint64_t    freq = vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
+    uint64_t    freq = params_band.vfo_x[params_band.vfo].freq;
 
     params_lock();
 
@@ -557,4 +591,27 @@ uint32_t params_atu_load() {
     params_unlock(NULL);
     
     return res;
+}
+
+void params_band_vfo_clone() {
+    params_vfo_t *a = &params_band.vfo_x[X6100_VFO_A];
+    params_vfo_t *b = &params_band.vfo_x[X6100_VFO_B];
+
+    if (params_band.vfo == X6100_VFO_A) {
+        *b = *a;
+        
+        b->durty.freq = true;
+        b->durty.att = true;
+        b->durty.pre = true;
+        b->durty.mode = true;
+        b->durty.agc = true;
+    } else {
+        *a = *b;
+
+        a->durty.freq = true;
+        a->durty.att = true;
+        a->durty.pre = true;
+        a->durty.mode = true;
+        a->durty.agc = true;
+    }
 }

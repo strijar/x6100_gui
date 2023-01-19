@@ -55,15 +55,18 @@ lv_obj_t * info_init(lv_obj_t * parent) {
 }
 
 void info_params_set() {
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
-    x6100_agc_t     agc = vfoa ? params_band.vfoa_agc : params_band.vfob_agc;
-    x6100_att_t     att = vfoa ? params_band.vfoa_att : params_band.vfob_att;
-    x6100_pre_t     pre = vfoa ? params_band.vfoa_pre : params_band.vfob_pre;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
+    x6100_att_t     att = params_band.vfo_x[params_band.vfo].att;
+    x6100_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
 
     char            *str;
 
-    lv_label_set_text(items[INFO_VFO], vfoa ? "VFO-A" : "VFO-B");
+    if (params_band.split) {
+        lv_label_set_text(items[INFO_VFO], params_band.vfo == X6100_VFO_A ? "SPL-A" : "SPL-B");
+    } else {
+        lv_label_set_text(items[INFO_VFO], params_band.vfo == X6100_VFO_A ? "VFO-A" : "VFO-B");
+    }
 
     switch (mode) {
         case x6100_mode_lsb:

@@ -314,7 +314,16 @@ static void button_key_ratio_cb(lv_event_t * e) {
 
 /* * */
 
-void main_screen_set_freq(uint64_t f) {
+void main_screen_set_freq() {
+    uint64_t    f;
+    x6100_vfo_t vfo = params_band.vfo;
+
+    if (params_band.split && radio_get_state() == RADIO_TX) {
+        vfo = (vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A;
+    }
+    
+    f = params_band.vfo_x[vfo].freq;
+
     uint16_t    mhz, khz, hz;
 
     split_freq(f - 50000, &mhz, &khz, &hz);
@@ -458,7 +467,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
             freq = radio_change_freq(-rotary->diff * params_mode.freq_step, &prev_freq);
             waterfall_change_freq(freq - prev_freq);
             spectrum_change_freq(freq - prev_freq);
-            main_screen_set_freq(freq);
+            main_screen_set_freq();
             check_cross_band(freq, prev_freq);
             break;
             
@@ -546,6 +555,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_agc();
                 info_params_set();
+            } else if (keypad->state == KEYPAD_LONG) {
+                radio_change_split();
+                info_params_set();
             }
             break;
 
@@ -605,7 +617,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
 
         case KEYPAD_GEN:
-            if (keypad->state == KEYPAD_PRESS) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 mfk_set_mode(MFK_MIN_LEVEL);
                 buttons_unload_page();
                 buttons_page = PAGE_VOL_1;
@@ -614,10 +626,24 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
 
         case KEYPAD_KEY:
-            if (keypad->state == KEYPAD_PRESS) {
+            if (keypad->state == KEYPAD_RELEASE) {
                 buttons_unload_page();
                 buttons_page = PAGE_KEY_1;
                 buttons_load_page();
+            }
+            break;
+
+        case KEYPAD_AB:
+            if (keypad->state == KEYPAD_RELEASE) {
+                radio_change_vfo();
+                info_params_set();
+                waterfall_clear();
+                spectrum_clear();
+                main_screen_band_set();
+            } else if (keypad->state == KEYPAD_LONG) {
+                params_band_vfo_clone();
+                radio_vfo_set();
+                msg_set_text_fmt("Clone VFO %s", params_band.vfo == X6100_VFO_A ? "A->B" : "B->A");
             }
             break;
 
@@ -650,6 +676,10 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 
 static void main_screen_radio_cb(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
+
+    if (params_band.split) {
+        main_screen_set_freq();
+    }
     
     lv_event_send(meter, code, NULL);
     lv_event_send(tx_info, code, NULL);
@@ -755,7 +785,5 @@ lv_obj_t * main_screen() {
 }
 
 void main_screen_band_set() {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-
-    main_screen_set_freq(vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+    main_screen_set_freq();
 }

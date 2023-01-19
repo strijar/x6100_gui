@@ -9,5 +9,4 @@
 #pragma once
 
 lv_obj_t * main_screen();
-void main_screen_set_freq(uint64_t freq);
 void main_screen_band_set();

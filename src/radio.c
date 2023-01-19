@@ -28,14 +28,6 @@
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (5 * 1000)
 
-typedef enum {
-    RADIO_RX = 0,
-    RADIO_TX,
-    RADIO_ATU_START,
-    RADIO_ATU_WAIT,
-    RADIO_ATU_RUN,
-} radio_state_t;
-
 static lv_obj_t         *main_obj;
 
 static pthread_mutex_t  control_mux;
@@ -162,18 +154,22 @@ static void * radio_thread(void *arg) {
     }
 }
 
-void radio_band_set() {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-
+void radio_vfo_set() {
     radio_lock();
-    x6100_control_vfo_mode_set(params_band.vfo, vfoa ? params_band.vfoa_mode : params_band.vfob_mode);
-    x6100_control_vfo_agc_set(params_band.vfo, vfoa ? params_band.vfoa_agc : params_band.vfob_agc);
-    x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
-    x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
-    x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+
+    for (int i = 0; i < 2; i++) {
+        x6100_control_vfo_mode_set(i, params_band.vfo_x[i].mode);
+        x6100_control_vfo_agc_set(i, params_band.vfo_x[i].agc);
+        x6100_control_vfo_pre_set(i, params_band.vfo_x[i].pre);
+        x6100_control_vfo_att_set(i, params_band.vfo_x[i].att);
+        x6100_control_vfo_freq_set(i, params_band.vfo_x[i].freq);
+    }
+
+    x6100_control_vfo_set(params_band.vfo);
+    x6100_control_split_set(params_band.split);
     radio_unlock();
 
-    params.freq_band = bands_find(vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+    params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
 }
 
 void radio_mode_set() {
@@ -200,7 +196,7 @@ void radio_init(lv_obj_t *obj) {
 
     pack = malloc(sizeof(x6100_flow_t));
 
-    radio_band_set();
+    radio_vfo_set();
     radio_mode_set();
     radio_load_atu();
 
@@ -231,28 +227,23 @@ void radio_init(lv_obj_t *obj) {
     pthread_detach(thread);
 }
 
-uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
+radio_state_t radio_get_state() {
+    return state;
+}
 
+uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
     params_lock();
 
-    if (vfoa) {
-        *prev_freq = params_band.vfoa_freq;
+    *prev_freq = params_band.vfo_x[params_band.vfo].freq;
         
-        params_band.vfoa_freq = align_long(params_band.vfoa_freq + df, abs(df));
-        params_unlock(&params_band.durty.vfoa_freq);
-    } else {
-        *prev_freq = params_band.vfob_freq;
-        
-        params_band.vfob_freq = align_long(params_band.vfob_freq + df, abs(df));
-        params_unlock(&params_band.durty.vfob_freq);
-    }
+    params_band.vfo_x[params_band.vfo].freq = align_long(params_band.vfo_x[params_band.vfo].freq + df, abs(df));
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
     
     radio_lock();
-    x6100_control_vfo_freq_set(params_band.vfo, vfoa ? params_band.vfoa_freq : params_band.vfob_freq);
+    x6100_control_vfo_freq_set(params_band.vfo, params_band.vfo_x[params_band.vfo].freq);
     radio_unlock();
 
-    return vfoa ? params_band.vfoa_freq : params_band.vfob_freq;
+    return params_band.vfo_x[params_band.vfo].freq;
 }
 
 uint16_t radio_change_vol(int16_t df) {
@@ -271,8 +262,6 @@ uint16_t radio_change_vol(int16_t df) {
 
     params_unlock(&params.durty.vol);
 
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-    
     radio_lock();
     x6100_control_rxvol_set(params.vol);
     radio_unlock();
@@ -307,44 +296,31 @@ bool radio_change_pre() {
 
     params_lock();
     
-    if (vfoa) {
-        params_band.vfoa_pre = !params_band.vfoa_pre;
-        params_unlock(&params_band.durty.vfoa_pre);
-    } else {
-        params_band.vfob_pre = !params_band.vfob_pre;
-        params_unlock(&params_band.durty.vfob_pre);
-    }
+    params_band.vfo_x[params_band.vfo].pre = !params_band.vfo_x[params_band.vfo].pre;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.pre);
 
     radio_lock();
-    x6100_control_vfo_pre_set(params_band.vfo, vfoa ? params_band.vfoa_pre : params_band.vfob_pre);
+    x6100_control_vfo_pre_set(params_band.vfo, params_band.vfo_x[params_band.vfo].pre);
     radio_unlock();
 
-    return vfoa ? params_band.vfoa_pre : params_band.vfoa_pre;
+    return params_band.vfo_x[params_band.vfo].pre;
 }
 
 bool radio_change_att() {
-    bool vfoa = (params_band.vfo == X6100_VFO_A);
-
     params_lock();
     
-    if (vfoa) {
-        params_band.vfoa_att = !params_band.vfoa_att;
-        params_unlock(&params_band.durty.vfoa_att);
-    } else {
-        params_band.vfob_att = !params_band.vfob_att;
-        params_unlock(&params_band.durty.vfob_att);
-    }
+    params_band.vfo_x[params_band.vfo].att = !params_band.vfo_x[params_band.vfo].att;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.att);
 
     radio_lock();
-    x6100_control_vfo_att_set(params_band.vfo, vfoa ? params_band.vfoa_att : params_band.vfob_att);
+    x6100_control_vfo_att_set(params_band.vfo, params_band.vfo_x[params_band.vfo].att);
     radio_unlock();
 
-    return vfoa ? params_band.vfoa_att : params_band.vfoa_att;
+    return params_band.vfo_x[params_band.vfo].att;
 }
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
 
     switch (mode) {
         case x6100_mode_lsb:
@@ -384,8 +360,7 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 void radio_change_mode(radio_mode_t select) {
     params_lock();
 
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_mode_t    mode = vfoa ? params_band.vfoa_mode : params_band.vfob_mode;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
 
     switch (select) {
         case RADIO_MODE_AM:
@@ -450,13 +425,8 @@ void radio_change_mode(radio_mode_t select) {
 
     params_mode_save();
 
-    if (vfoa) {
-        params_band.vfoa_mode = mode;
-        params_unlock(&params_band.durty.vfoa_mode);
-    } else {
-        params_band.vfob_mode = mode;
-        params_unlock(&params_band.durty.vfob_mode);
-    }
+    params_band.vfo_x[params_band.vfo].mode = mode;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.mode);
 
     radio_lock();
     x6100_control_vfo_mode_set(params_band.vfo, mode);
@@ -509,8 +479,7 @@ uint32_t radio_change_filter_high(int32_t df) {
 void radio_change_agc() {
     params_lock();
 
-    bool            vfoa = (params_band.vfo == X6100_VFO_A);
-    x6100_agc_t     agc = vfoa ? params_band.vfoa_agc : params_band.vfob_agc;
+    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
     
     switch (agc) {
         case x6100_agc_off:
@@ -530,13 +499,8 @@ void radio_change_agc() {
             break;
     }
 
-    if (vfoa) {
-        params_band.vfoa_agc = agc;
-        params_unlock(&params_band.durty.vfoa_agc);
-    } else {
-        params_band.vfob_agc = agc;
-        params_unlock(&params_band.durty.vfob_agc);
-    }
+    params_band.vfo_x[params_band.vfo].agc = agc;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.agc);
 
     radio_lock();
     x6100_control_vfo_agc_set(params_band.vfo, agc);
@@ -864,4 +828,26 @@ uint8_t radio_change_imic(int16_t d) {
     radio_unlock();
     
     return params.imic;
+}
+
+x6100_vfo_t radio_change_vfo() {
+    params_lock();
+    params_band.vfo = (params_band.vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A;
+    params_unlock(&params_band.durty.vfo);
+    
+    radio_lock();
+    x6100_control_vfo_set(params_band.vfo);
+    radio_unlock();
+    
+    return params_band.vfo;
+}
+
+void radio_change_split() {
+    params_lock();
+    params_band.split = !params_band.split;
+    params_unlock(&params_band.durty.split);
+    
+    radio_lock();
+    x6100_control_split_set(params_band.split);
+    radio_unlock();
 }

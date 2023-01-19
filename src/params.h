@@ -31,20 +31,27 @@ typedef struct {
 } params_mode_t;
 
 typedef struct {
-    uint8_t         vfo;
+    uint64_t        freq;
+    x6100_att_t     att;
+    x6100_pre_t     pre;
+    x6100_mode_t    mode;
+    x6100_agc_t     agc;
     
-    uint64_t        vfoa_freq;
-    x6100_att_t     vfoa_att;
-    x6100_pre_t     vfoa_pre;
-    x6100_mode_t    vfoa_mode;
-    x6100_agc_t     vfoa_agc;
+    struct {
+        bool    freq;
+        bool    att;
+        bool    pre;
+        bool    mode;
+        bool    agc;
+    } durty;
+} params_vfo_t;
 
-    uint64_t        vfob_freq;
-    x6100_att_t     vfob_att;
-    x6100_pre_t     vfob_pre;
-    x6100_mode_t    vfob_mode;
-    x6100_agc_t     vfob_agc;
+typedef struct {
+    x6100_vfo_t     vfo;
 
+    params_vfo_t    vfo_x[2];
+
+    bool            split;
     int16_t         grid_min;
     int16_t         grid_max;
 
@@ -52,19 +59,7 @@ typedef struct {
     
     struct {
         bool    vfo;
-    
-        bool    vfoa_freq;
-        bool    vfoa_att;
-        bool    vfoa_pre;
-        bool    vfoa_mode;
-        bool    vfoa_agc;
-
-        bool    vfob_freq;
-        bool    vfob_att;
-        bool    vfob_pre;
-        bool    vfob_mode;
-        bool    vfob_agc;
-
+        bool    split;
         bool    grid_min;
         bool    grid_max;
     } durty;
@@ -157,3 +152,5 @@ void params_band_freq_set(uint64_t freq);
 
 void params_atu_save(uint32_t val);
 uint32_t params_atu_load();
+
+void params_band_vfo_clone();
