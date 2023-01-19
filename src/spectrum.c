@@ -188,10 +188,10 @@ void spectrum_data(float *data_buf, uint16_t size) {
             peak_t  *peak = &spectrum_peak[i];
 
             if (v > peak->val) {
-                peak->time = now + params.spectrum_peak_hold;
+                peak->time = now;
                 peak->val = v;
             } else {
-                if (now > peak->time) {
+                if (now - peak->time > params.spectrum_peak_hold) {
                     peak->val -= params.spectrum_peak_speed;
                 }
             }
@@ -227,7 +227,7 @@ void spectrum_clear() {
 void spectrum_change_freq(int16_t df) {
     int32_t     delta = spectrum_size * df / width_hz / params.spectrum_factor;
     peak_t      *from, *to;
-    uint64_t    time = get_time() + params.spectrum_peak_hold;
+    uint64_t    time = get_time();
 
     if (delta > 0) {
         for (int16_t i = 0; i < spectrum_size; i++) {
