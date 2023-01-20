@@ -23,7 +23,8 @@ typedef enum {
     
     KEYPAD_ROTARY_VOL,
     KEYPAD_ROTARY_MFK,
-    
+
+    KEYPAD_POWER,    
     KEYPAD_GEN,
     KEYPAD_APP,
     KEYPAD_KEY,

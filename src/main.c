@@ -80,6 +80,7 @@ int main(void) {
     mouse_init();
 
     keypad_t *keypad = keypad_init("/dev/input/event0");
+    keypad_t *power = keypad_init("/dev/input/event4");
 
     rotary_t *main = rotary_init("/dev/input/event1", 0);
     rotary_t *vol = rotary_init("/dev/input/event2", 1);

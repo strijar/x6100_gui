@@ -42,6 +42,10 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     break;
                 
                 /* Front side */
+
+                case KEY_POWER:
+                    event.key = KEYPAD_POWER;
+                    break;
                     
                 case BTN_TRIGGER_HAPPY1:
                     event.key = KEYPAD_GEN;

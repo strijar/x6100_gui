@@ -33,6 +33,7 @@ params_t params = {
     .mic                    = x6100_mic_auto,
     .hmic                   = 30,
     .imic                   = 20,
+    .charger                = true,
 
     .key_speed              = 15,
     .key_mode               = x6100_key_manual,
@@ -354,6 +355,8 @@ static bool params_load() {
             params.hmic = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "imic") == 0) {
             params.imic = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "charger") == 0) {
+            params.charger = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -415,6 +418,8 @@ static bool params_save() {
     if (params.durty.mic)                   params_write_int("mic", params.mic, &params.durty.mic);
     if (params.durty.hmic)                  params_write_int("hmic", params.hmic, &params.durty.hmic);
     if (params.durty.imic)                  params_write_int("imic", params.imic, &params.durty.imic);
+
+    if (params.durty.charger)               params_write_int("charger", params.charger, &params.durty.charger);
 
     if (!params_exec("COMMIT")) {
         return false;

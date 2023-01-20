@@ -21,6 +21,7 @@ typedef enum {
 
     MFK_SPECTRUM_FILL,
     MFK_SPECTRUM_PEAK,
+    MFK_CHARGER,
     
     MFK_KEY_SPEED,
     MFK_KEY_MODE,

@@ -198,6 +198,11 @@ void mfk_update(int16_t diff) {
             i = radio_change_key_ratio(diff);
             msg_set_text_fmt("Key ratio: %.1f", i * 0.1f);
             break;
+
+        case MFK_CHARGER:
+            b = radio_change_charger(diff);
+            msg_set_text_fmt("Charger: %s", b ? "On" : "Off");
+            break;
     }
 }
 

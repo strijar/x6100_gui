@@ -84,6 +84,7 @@ static void button_spectrum_fill_cb(lv_event_t * e);
 static void button_spectrum_peak_cb(lv_event_t * e);
 static void button_peak_hold_cb(lv_event_t * e);
 static void button_peak_speed_cb(lv_event_t * e);
+static void button_charger_cb(lv_event_t * e);
 
 static void button_key_speed_cb(lv_event_t * e);
 static void button_key_mode_cb(lv_event_t * e);
@@ -97,8 +98,11 @@ static void button_key_ratio_cb(lv_event_t * e);
 typedef enum {
     PAGE_VOL_1 = 0,
     PAGE_VOL_2,
+
     PAGE_MFK_1,
     PAGE_MFK_2,
+    PAGE_MFK_3,
+
     PAGE_KEY_1,
     PAGE_KEY_2
 } button_page_t;
@@ -118,17 +122,23 @@ static button_item_t    buttons[] = {
     { .label = "I-MIC\nGain",       .callback = button_imic_cb },
     { .label = "",                  .callback = NULL },
     
-    { .label = "(MFK 1:2)",         .callback = button_next_page_cb },
+    { .label = "(MFK 1:3)",         .callback = button_next_page_cb },
     { .label = "Min\nLevel",        .callback = button_min_level_cb },
     { .label = "Max\nLevel",        .callback = button_max_level_cb },
     { .label = "Spectrum\nZoom",    .callback = button_spectrum_factor_cb },
     { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb },
 
-    { .label = "(MFK 2:2)",         .callback = button_next_page_cb },
+    { .label = "(MFK 2:3)",         .callback = button_next_page_cb },
     { .label = "Spectrum\nFill",    .callback = button_spectrum_fill_cb },
     { .label = "Spectrum\nPeak",    .callback = button_spectrum_peak_cb },
     { .label = "Peaks\nhold",       .callback = button_peak_hold_cb },
     { .label = "Peaks\nspeed",      .callback = button_peak_speed_cb },
+
+    { .label = "(MFK 3:3)",         .callback = button_next_page_cb },
+    { .label = "Charger",           .callback = button_charger_cb },
+    { .label = "",                  .callback = NULL },
+    { .label = "",                  .callback = NULL },
+    { .label = "",                  .callback = NULL },
 
     /* CW */
     
@@ -182,6 +192,10 @@ static void button_next_page_cb(lv_event_t * e) {
             break;
 
         case PAGE_MFK_2:
+            buttons_page = PAGE_MFK_3;
+            break;
+
+        case PAGE_MFK_3:
             buttons_page = PAGE_VOL_1;
             break;
             
@@ -269,6 +283,11 @@ static void button_peak_hold_cb(lv_event_t * e) {
 
 static void button_peak_speed_cb(lv_event_t * e) {
     mfk_set_mode(MFK_PEAK_SPEED);
+    mfk_update(0);
+}
+
+static void button_charger_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_CHARGER);
     mfk_update(0);
 }
 
@@ -644,6 +663,13 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 params_band_vfo_clone();
                 radio_vfo_set();
                 msg_set_text_fmt("Clone VFO %s", params_band.vfo == X6100_VFO_A ? "A->B" : "B->A");
+            }
+            break;
+
+        case KEYPAD_POWER:
+            if (keypad->state == KEYPAD_LONG) {
+                msg_set_text_fmt("Power off");
+                radio_poweroff();
             }
             break;
 

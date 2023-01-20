@@ -119,6 +119,14 @@ bool radio_tick() {
                     tx_info_update(pack->tx_power * 0.1f, pack->vswr * 0.1f, pack->alc_level * 0.1f);
                 }
                 break;
+                
+            case RADIO_POWEROFF:
+                x6100_control_poweroff();
+                state = RADIO_OFF;
+                break;
+                
+            case RADIO_OFF:
+                break;
         }
         
         hkey_put(pack->hkey);
@@ -215,6 +223,7 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_mic_set(params.mic);
     x6100_control_hmic_set(params.hmic);
     x6100_control_imic_set(params.imic);
+    x6100_control_charger_set(params.charger);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -850,4 +859,24 @@ void radio_change_split() {
     radio_lock();
     x6100_control_split_set(params_band.split);
     radio_unlock();
+}
+
+void radio_poweroff() {
+    state = RADIO_POWEROFF;
+}
+
+bool radio_change_charger(int16_t d) {
+    if (d == 0) {
+        return params.charger;
+    }
+
+    params_lock();
+    params.charger = !params.charger;
+    params_unlock(&params.durty.charger);
+    
+    radio_lock();
+    x6100_control_charger_set(params.charger);
+    radio_unlock();
+    
+    return params.charger;
 }
