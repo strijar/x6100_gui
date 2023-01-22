@@ -35,6 +35,15 @@ params_t params = {
     .imic                   = 20,
     .charger                = true,
 
+    .dnf                    = false,
+    .dnf_center             = 1000,
+    .dnf_width              = 50,
+    .nb                     = false,
+    .nb_level               = 10,
+    .nb_width               = 10,
+    .nr                     = false,
+    .nr_level               = 0,
+
     .key_speed              = 15,
     .key_mode               = x6100_key_manual,
     .iambic_mode            = x6100_iambic_a,
@@ -357,6 +366,22 @@ static bool params_load() {
             params.imic = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "charger") == 0) {
             params.charger = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "dnf") == 0) {
+            params.dnf = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "dnf_center") == 0) {
+            params.dnf_center = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "dnf_width") == 0) {
+            params.dnf_width = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "nb") == 0) {
+            params.nb = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "nb_level") == 0) {
+            params.nb_level = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "nb_width") == 0) {
+            params.nb_width = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "nr") == 0) {
+            params.nr = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "nr_level") == 0) {
+            params.nr_level = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -420,6 +445,15 @@ static bool params_save() {
     if (params.durty.imic)                  params_write_int("imic", params.imic, &params.durty.imic);
 
     if (params.durty.charger)               params_write_int("charger", params.charger, &params.durty.charger);
+
+    if (params.durty.dnf)                   params_write_int("dnf", params.dnf, &params.durty.dnf);
+    if (params.durty.dnf_center)            params_write_int("dnf_center", params.dnf_center, &params.durty.dnf_center);
+    if (params.durty.dnf_width)             params_write_int("dnf_width", params.dnf_width, &params.durty.dnf_width);
+    if (params.durty.nb)                    params_write_int("nb", params.nb, &params.durty.nb);
+    if (params.durty.nb_level)              params_write_int("nb_level", params.nb_level, &params.durty.nb_level);
+    if (params.durty.nb_width)              params_write_int("nb_width", params.nb_width, &params.durty.nb_width);
+    if (params.durty.nr)                    params_write_int("nr", params.nr, &params.durty.nr);
+    if (params.durty.nr_level)              params_write_int("nr_level", params.nr_level, &params.durty.nr_level);
 
     if (!params_exec("COMMIT")) {
         return false;

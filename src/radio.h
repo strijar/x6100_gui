@@ -64,6 +64,15 @@ x6100_mic_sel_t radio_change_mic(int16_t d);
 uint8_t radio_change_hmic(int16_t d);
 uint8_t radio_change_imic(int16_t d);
 
+bool radio_change_dnf(int16_t d);
+uint16_t radio_change_dnf_center(int16_t d);
+uint16_t radio_change_dnf_width(int16_t d);
+bool radio_change_nb(int16_t d);
+uint8_t radio_change_nb_level(int16_t d);
+uint8_t radio_change_nb_width(int16_t d);
+bool radio_change_nr(int16_t d);
+uint8_t radio_change_nr_level(int16_t d);
+
 void radio_start_atu();
 void radio_load_atu();
 

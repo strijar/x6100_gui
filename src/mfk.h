@@ -22,7 +22,7 @@ typedef enum {
     MFK_SPECTRUM_FILL,
     MFK_SPECTRUM_PEAK,
     MFK_CHARGER,
-    
+
     MFK_KEY_SPEED,
     MFK_KEY_MODE,
     MFK_IAMBIC_MODE,
@@ -30,7 +30,16 @@ typedef enum {
     MFK_KEY_VOL,
     MFK_KEY_TRAIN,
     MFK_QSK_TIME,
-    MFK_KEY_RATIO
+    MFK_KEY_RATIO,
+
+    MFK_DNF,
+    MFK_DNF_CENTER,
+    MFK_DNF_WIDTH,
+    MFK_NB,
+    MFK_NB_LEVEL,
+    MFK_NB_WIDTH,
+    MFK_NR,
+    MFK_NR_LEVEL
 } mfk_mode_t;
 
 void mfk_update(int16_t diff);

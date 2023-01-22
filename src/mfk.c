@@ -203,6 +203,46 @@ void mfk_update(int16_t diff) {
             b = radio_change_charger(diff);
             msg_set_text_fmt("Charger: %s", b ? "On" : "Off");
             break;
+            
+        case MFK_DNF:
+            b = radio_change_dnf(diff);
+            msg_set_text_fmt("DNF: %s", b ? "On" : "Off");
+            break;
+
+        case MFK_DNF_CENTER:
+            i = radio_change_dnf_center(diff);
+            msg_set_text_fmt("DNF center: %i Hz", i);
+            break;
+            
+        case MFK_DNF_WIDTH:
+            i = radio_change_dnf_width(diff);
+            msg_set_text_fmt("DNF width: %i Hz", i);
+            break;
+
+        case MFK_NB:
+            b = radio_change_nb(diff);
+            msg_set_text_fmt("NB: %s", b ? "On" : "Off");
+            break;
+
+        case MFK_NB_LEVEL:
+            i = radio_change_nb_level(diff);
+            msg_set_text_fmt("NB level: %i", i);
+            break;
+
+        case MFK_NB_WIDTH:
+            i = radio_change_nb_width(diff);
+            msg_set_text_fmt("NB width: %i Hz", i);
+            break;
+
+        case MFK_NR:
+            b = radio_change_nr(diff);
+            msg_set_text_fmt("NR: %s", b ? "On" : "Off");
+            break;
+
+        case MFK_NR_LEVEL:
+            i = radio_change_nr_level(diff);
+            msg_set_text_fmt("NR level: %i", i);
+            break;
     }
 }
 

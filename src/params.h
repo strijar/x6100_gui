@@ -83,6 +83,19 @@ typedef struct {
     uint8_t             imic;
     bool                charger;
     
+    /* DSP */
+    
+    bool                dnf;
+    uint16_t            dnf_center;
+    uint16_t            dnf_width;
+    
+    bool                nb;
+    uint8_t             nb_level;
+    uint8_t             nb_width;
+    
+    bool                nr;
+    uint8_t             nr_level;
+    
     /* main screen */
     
     int16_t             spectrum_factor;
@@ -116,6 +129,15 @@ typedef struct {
         bool    hmic;
         bool    imic;
         bool    charger;
+
+        bool    dnf;
+        bool    dnf_center;
+        bool    dnf_width;
+        bool    nb;
+        bool    nb_level;
+        bool    nb_width;
+        bool    nr;
+        bool    nr_level;
         
         bool    spectrum_factor;
         bool    spectrum_beta;

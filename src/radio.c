@@ -212,6 +212,8 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_rfg_set(params.rfg);
     x6100_control_atu_set(params.atu);
     x6100_control_txpwr_set(params.pwr);
+    x6100_control_charger_set(params.charger);
+
     x6100_control_key_speed_set(params.key_speed);
     x6100_control_key_mode_set(params.key_mode);
     x6100_control_iambic_mode_set(params.iambic_mode);
@@ -220,10 +222,19 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_key_train_set(params.key_train);
     x6100_control_qsk_time_set(params.qsk_time);
     x6100_control_key_ratio_set(params.key_ratio * 0.1f);
+
     x6100_control_mic_set(params.mic);
     x6100_control_hmic_set(params.hmic);
     x6100_control_imic_set(params.imic);
-    x6100_control_charger_set(params.charger);
+
+    x6100_control_dnf_set(params.dnf);
+    x6100_control_dnf_center_set(params.dnf_center);
+    x6100_control_dnf_width_set(params.dnf_width);
+    x6100_control_nb_set(params.nb);
+    x6100_control_nb_level_set(params.nb_level);
+    x6100_control_nb_width_set(params.nb_width);
+    x6100_control_nr_set(params.nr);
+    x6100_control_nr_level_set(params.nr_level);
     
     prev_time = get_time();
     idle_time = prev_time;
@@ -879,4 +890,172 @@ bool radio_change_charger(int16_t d) {
     radio_unlock();
     
     return params.charger;
+}
+
+bool radio_change_dnf(int16_t d) {
+    if (d == 0) {
+        return params.dnf;
+    }
+
+    params_lock();
+    params.dnf = !params.dnf;
+    params_unlock(&params.durty.dnf);
+    
+    radio_lock();
+    x6100_control_dnf_set(params.dnf);
+    radio_unlock();
+
+    return params.dnf;
+}
+
+uint16_t radio_change_dnf_center(int16_t d) {
+    if (d == 0) {
+        return params.dnf_center;
+    }
+
+    int16_t x = params.dnf_center + d * 50;
+    
+    if (x < 100) {
+        x = 100;
+    } else if (x > 3000) {
+        x = 3000;
+    }
+    
+    params_lock();
+    params.dnf_center = x;
+    params_unlock(&params.durty.dnf_center);
+    
+    radio_lock();
+    x6100_control_dnf_center_set(params.dnf_center);
+    radio_unlock();
+
+    return params.dnf_center;
+}
+
+uint16_t radio_change_dnf_width(int16_t d) {
+    if (d == 0) {
+        return params.dnf_width;
+    }
+
+    int16_t x = params.dnf_width + d * 5;
+    
+    if (x < 10) {
+        x = 10;
+    } else if (x > 100) {
+        x = 100;
+    }
+    
+    params_lock();
+    params.dnf_width = x;
+    params_unlock(&params.durty.dnf_width);
+    
+    radio_lock();
+    x6100_control_dnf_width_set(params.dnf_width);
+    radio_unlock();
+
+    return params.dnf_width;
+}
+
+bool radio_change_nb(int16_t d) {
+    if (d == 0) {
+        return params.nb;
+    }
+
+    params_lock();
+    params.nb = !params.nb;
+    params_unlock(&params.durty.nb);
+    
+    radio_lock();
+    x6100_control_nb_set(params.nb);
+    radio_unlock();
+
+    return params.nb;
+}
+
+uint8_t radio_change_nb_level(int16_t d) {
+    if (d == 0) {
+        return params.nb_level;
+    }
+
+    int16_t x = params.nb_level + d * 5;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 100) {
+        x = 100;
+    }
+    
+    params_lock();
+    params.nb_level = x;
+    params_unlock(&params.durty.nb_level);
+    
+    radio_lock();
+    x6100_control_nb_level_set(params.nb_level);
+    radio_unlock();
+
+    return params.nb_level;
+}
+
+uint8_t radio_change_nb_width(int16_t d) {
+    if (d == 0) {
+        return params.nb_width;
+    }
+
+    int16_t x = params.nb_width + d * 5;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 100) {
+        x = 100;
+    }
+    
+    params_lock();
+    params.nb_width = x;
+    params_unlock(&params.durty.nb_width);
+    
+    radio_lock();
+    x6100_control_nb_width_set(params.nb_width);
+    radio_unlock();
+
+    return params.nb_width;
+}
+
+bool radio_change_nr(int16_t d) {
+    if (d == 0) {
+        return params.nr;
+    }
+
+    params_lock();
+    params.nr = !params.nr;
+    params_unlock(&params.durty.nr);
+    
+    radio_lock();
+    x6100_control_nr_set(params.nr);
+    radio_unlock();
+
+    return params.nr;
+}
+
+uint8_t radio_change_nr_level(int16_t d) {
+    if (d == 0) {
+        return params.nr_level;
+    }
+
+    int16_t x = params.nr_level + d * 5;
+    
+    if (x < 0) {
+        x = 0;
+    } else if (x > 60) {
+        x = 60;
+    }
+    
+    params_lock();
+    params.nr_level = x;
+    params_unlock(&params.durty.nr_level);
+    
+    radio_lock();
+    x6100_control_nr_level_set(params.nr_level);
+    radio_unlock();
+
+    return params.nr_level;
 }

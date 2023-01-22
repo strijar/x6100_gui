@@ -95,6 +95,15 @@ static void button_key_train_cb(lv_event_t * e);
 static void button_qsk_time_cb(lv_event_t * e);
 static void button_key_ratio_cb(lv_event_t * e);
 
+static void button_dnf_cb(lv_event_t * e);
+static void button_dnf_center_cb(lv_event_t * e);
+static void button_dnf_width_cb(lv_event_t * e);
+static void button_nb_cb(lv_event_t * e);
+static void button_nb_level_cb(lv_event_t * e);
+static void button_nb_width_cb(lv_event_t * e);
+static void button_nr_cb(lv_event_t * e);
+static void button_nr_level_cb(lv_event_t * e);
+
 typedef enum {
     PAGE_VOL_1 = 0,
     PAGE_VOL_2,
@@ -104,7 +113,11 @@ typedef enum {
     PAGE_MFK_3,
 
     PAGE_KEY_1,
-    PAGE_KEY_2
+    PAGE_KEY_2,
+
+    PAGE_DFN_1,
+    PAGE_DFN_2,
+    PAGE_DFN_3
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -153,6 +166,26 @@ static button_item_t    buttons[] = {
     { .label = "Iambic\nMode",      .callback = button_iambic_mode_cb },
     { .label = "QSK\nTime",         .callback = button_qsk_time_cb },
     { .label = "Ratio",             .callback = button_key_ratio_cb },
+    
+    /* DSP */
+
+    { .label = "(DFN 1:3)",         .callback = button_next_page_cb },
+    { .label = "DNF",               .callback = button_dnf_cb },
+    { .label = "DNF\nCenter",       .callback = button_dnf_center_cb },
+    { .label = "DNF\nWidth",        .callback = button_dnf_width_cb },
+    { .label = "",                  .callback = NULL },
+
+    { .label = "(DFN 2:3)",         .callback = button_next_page_cb },
+    { .label = "NB",                .callback = button_nb_cb },
+    { .label = "NB\nLevel",         .callback = button_nb_level_cb },
+    { .label = "NB\nWidth",         .callback = button_nb_width_cb },
+    { .label = "",                  .callback = NULL },
+
+    { .label = "(DFN 3:3)",         .callback = button_next_page_cb },
+    { .label = "NR",                .callback = button_nr_cb },
+    { .label = "NR\nLevel",         .callback = button_nr_level_cb },
+    { .label = "",                  .callback = NULL },
+    { .label = "",                  .callback = NULL },
 };
 
 /* Buttons */
@@ -205,6 +238,18 @@ static void button_next_page_cb(lv_event_t * e) {
             
         case PAGE_KEY_2:
             buttons_page = PAGE_KEY_1;
+            break;
+
+        case PAGE_DFN_1:
+            buttons_page = PAGE_DFN_2;
+            break;
+
+        case PAGE_DFN_2:
+            buttons_page = PAGE_DFN_3;
+            break;
+
+        case PAGE_DFN_3:
+            buttons_page = PAGE_DFN_1;
             break;
     }
     
@@ -328,6 +373,46 @@ static void button_qsk_time_cb(lv_event_t * e) {
 
 static void button_key_ratio_cb(lv_event_t * e) {
     mfk_set_mode(MFK_KEY_RATIO);
+    mfk_update(0);
+}
+
+static void button_dnf_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_DNF);
+    mfk_update(0);
+}
+
+static void button_dnf_center_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_DNF_CENTER);
+    mfk_update(0);
+}
+
+static void button_dnf_width_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_DNF_WIDTH);
+    mfk_update(0);
+}
+
+static void button_nb_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_NB);
+    mfk_update(0);
+}
+
+static void button_nb_level_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_NB_LEVEL);
+    mfk_update(0);
+}
+
+static void button_nb_width_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_NB_WIDTH);
+    mfk_update(0);
+}
+
+static void button_nr_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_NR);
+    mfk_update(0);
+}
+
+static void button_nr_level_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_NR_LEVEL);
     mfk_update(0);
 }
 
@@ -648,6 +733,14 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 buttons_unload_page();
                 buttons_page = PAGE_KEY_1;
+                buttons_load_page();
+            }
+            break;
+
+        case KEYPAD_DFN:
+            if (keypad->state == KEYPAD_RELEASE) {
+                buttons_unload_page();
+                buttons_page = PAGE_DFN_1;
                 buttons_load_page();
             }
             break;
