@@ -90,13 +90,11 @@ void styles_init() {
 
     lv_style_init(&clock_style);
     lv_style_set_text_color(&clock_style, lv_color_white());
-    lv_style_set_text_font(&clock_style, &sony_38);
     lv_style_set_radius(&clock_style, 0);
     lv_style_set_size(&clock_style, 206, 61);
     lv_style_set_x(&clock_style, 800 - 206);
     lv_style_set_bg_img_src(&clock_style, &img_top_short);
     lv_style_set_bg_img_opa(&clock_style, LV_OPA_COVER);
-    lv_style_set_pad_ver(&clock_style, 18);
 
     lv_style_init(&info_style);
     lv_style_set_radius(&info_style, 0);

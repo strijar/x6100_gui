@@ -12,3 +12,4 @@
 #include "lvgl/lvgl.h"
 
 lv_obj_t * clock_init(lv_obj_t * parent);
+void clock_update_power(float ext, float bat, uint8_t cap);

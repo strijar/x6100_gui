@@ -24,6 +24,7 @@
 #include "tx_info.h"
 #include "meter.h"
 #include "events.h"
+#include "clock.h"
 
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (5 * 1000)
@@ -57,17 +58,14 @@ bool radio_tick() {
 
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
-#if 0
+
         static uint8_t delay = 0;
 
         if (delay++ > 10) {
             delay = 0;
-            printf("tx=%d "
-                   "txpwr=%.1f swr=%.1f alc=%.1f vext=%.1f vbat=%.1f bat=%d hkey=%02X CRC=%08X\n",
-                   pack->flag.tx, pack->tx_power * 0.1, pack->vswr * 0.1f, pack->alc_level * 0.1,
-                   pack->vext * 0.1f, pack->vbat * 0.1f, pack->batcap, pack->hkey, pack->crc);
+            clock_update_power(pack->vext * 0.1f, pack->vbat*0.1f, pack->batcap);
         }
-#endif  
+
         dsp_samples(pack->samples, RADIO_SAMPLES);
 
         switch (state) {
