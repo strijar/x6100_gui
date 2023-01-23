@@ -34,6 +34,8 @@ params_t params = {
     .hmic                   = 30,
     .imic                   = 20,
     .charger                = true,
+    .bias_drive             = 450,
+    .bias_final             = 650,
 
     .dnf                    = false,
     .dnf_center             = 1000,

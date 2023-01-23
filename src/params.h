@@ -82,6 +82,8 @@ typedef struct {
     uint8_t             hmic;
     uint8_t             imic;
     bool                charger;
+    uint16_t            bias_drive;
+    uint16_t            bias_final;
     
     /* DSP */
     

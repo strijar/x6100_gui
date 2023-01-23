@@ -211,6 +211,8 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_atu_set(params.atu);
     x6100_control_txpwr_set(params.pwr);
     x6100_control_charger_set(params.charger);
+    x6100_control_bias_drive_set(params.bias_drive);
+    x6100_control_bias_final_set(params.bias_final);
 
     x6100_control_key_speed_set(params.key_speed);
     x6100_control_key_mode_set(params.key_mode);

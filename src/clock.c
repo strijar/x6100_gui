@@ -45,11 +45,17 @@ static void show_time() {
         if (ms > timeout) {
             switch (state) {
                 case CLOCK_TIME:
+                    lv_obj_set_style_text_font(obj, &sony_30, 0);
+                    lv_obj_set_style_pad_ver(obj, 8, 0);
+
                     state = CLOCK_POWER;
                     timeout = ms + POWER_TIMEOUT;
                     break;
                     
                 case CLOCK_POWER:
+                    lv_obj_set_style_text_font(obj, &sony_38, 0);
+                    lv_obj_set_style_pad_ver(obj, 18, 0);
+
                     state = CLOCK_TIME;
                     timeout = ms + TIME_TIMEOUT;
                     break;
@@ -62,9 +68,6 @@ static void show_time() {
     
     switch (state) {
         case CLOCK_TIME:
-            lv_obj_set_style_text_font(obj, &sony_38, 0);
-            lv_obj_set_style_pad_ver(obj, 18, 0);
-            
             now = time(NULL);
             t = localtime(&now);
             
@@ -72,9 +75,6 @@ static void show_time() {
             break;
             
         case CLOCK_POWER:
-            lv_obj_set_style_text_font(obj, &sony_30, 0);
-            lv_obj_set_style_pad_ver(obj, 8, 0);
-
             pthread_mutex_lock(&power_mux);
 
             if (v_ext < 3.0f) {
