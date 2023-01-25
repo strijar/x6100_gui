@@ -14,7 +14,7 @@ CREATE TABLE bands(
 CREATE TABLE band_params(
     bands_id    INTEGER,
     name        TEXT,
-    val         TEXT,
+    val         INTEGER,
     UNIQUE      (bands_id, name) ON CONFLICT REPLACE
 );
 
@@ -22,7 +22,7 @@ CREATE TABLE band_params(
 
 CREATE TABLE params(
     name        TEXT PRIMARY KEY ON CONFLICT REPLACE,
-    val         TEXT
+    val         INTEGER
 );
 
 .import params.csv params
@@ -30,7 +30,7 @@ CREATE TABLE params(
 CREATE TABLE mode_params(
     mode        INTEGER,
     name        TEXT,
-    val         TEXT,
+    val         INTEGER,
     UNIQUE      (mode, name) ON CONFLICT REPLACE
 );
 

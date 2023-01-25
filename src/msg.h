@@ -15,3 +15,4 @@
 
 lv_obj_t * msg_init(lv_obj_t *parent);
 void msg_set_text_fmt(const char * fmt, ...);
+void msg_set_timeout(uint16_t x);

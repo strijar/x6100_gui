@@ -36,6 +36,22 @@ static uint8_t          cap_bat;
 
 static char             str[32];
 
+static void set_state(clock_state_t new_state) {
+    state = new_state;
+    
+    switch (state) {
+        case CLOCK_TIME:
+            lv_obj_set_style_text_font(obj, &sony_38, 0);
+            lv_obj_set_style_pad_ver(obj, 18, 0);
+            break;
+
+        case CLOCK_POWER:        
+            lv_obj_set_style_text_font(obj, &sony_30, 0);
+            lv_obj_set_style_pad_ver(obj, 8, 0);
+            break;
+    }
+}
+
 static void show_time() {
     time_t      now;
     struct tm   *t;
@@ -45,24 +61,18 @@ static void show_time() {
         if (ms > timeout) {
             switch (state) {
                 case CLOCK_TIME:
-                    lv_obj_set_style_text_font(obj, &sony_30, 0);
-                    lv_obj_set_style_pad_ver(obj, 8, 0);
-
-                    state = CLOCK_POWER;
+                    set_state(CLOCK_POWER);
                     timeout = ms + POWER_TIMEOUT;
                     break;
                     
                 case CLOCK_POWER:
-                    lv_obj_set_style_text_font(obj, &sony_38, 0);
-                    lv_obj_set_style_pad_ver(obj, 18, 0);
-
-                    state = CLOCK_TIME;
+                    set_state(CLOCK_TIME);
                     timeout = ms + TIME_TIMEOUT;
                     break;
             }
         }
     } else {
-        state = CLOCK_POWER;
+        set_state(CLOCK_POWER);
         timeout = ms + TX_TIMEOUT;
     }
     
@@ -98,7 +108,7 @@ lv_obj_t * clock_init(lv_obj_t * parent) {
     lv_obj_add_style(obj, &clock_style, 0);
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
 
-    state = CLOCK_TIME;
+    set_state(CLOCK_TIME);
     timeout = get_time() + TIME_TIMEOUT;
 
     show_time();

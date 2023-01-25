@@ -14,8 +14,10 @@
 static lv_indev_drv_t       indev_drv_1;
 
 void mouse_init() {
-    evdev_init();
- 
+    if (!evdev_set_file("/dev/input/event6")) {
+        return;
+    }
+
     lv_indev_drv_init(&indev_drv_1);
 
     indev_drv_1.type = LV_INDEV_TYPE_POINTER;

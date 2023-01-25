@@ -28,6 +28,7 @@
 #include "band_info.h"
 #include "tx_info.h"
 #include "mfk.h"
+#include "main.h"
 
 #define BUTTONS         5
 
@@ -765,6 +766,12 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_poweroff();
             }
             break;
+            
+        case KEYPAD_LOCK:
+            if (keypad->state == KEYPAD_LONG) {
+                exit(1);
+            }
+            break;
 
         default:
             LV_LOG_WARN("Unsuported key");
@@ -885,7 +892,8 @@ lv_obj_t * main_screen() {
         
         lv_obj_center(label);
         lv_obj_set_user_data(f, label);
-    
+        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+
         btn[i] = f;
     }
 
@@ -899,6 +907,9 @@ lv_obj_t * main_screen() {
     tx_info = tx_info_init(obj);
     
     main_screen_band_set();
+
+    msg_set_text_fmt("X600 de R1CBU " VERSION);
+    msg_set_timeout(2000);
     
     return obj;
 }

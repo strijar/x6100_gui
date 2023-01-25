@@ -16,6 +16,7 @@ static char         buf[512];
 static lv_timer_t   *timer = NULL;
 static lv_anim_t    fade;
 static bool         fade_run = false;
+static uint16_t     timeout = 5000;
 
 static void msg_timer(lv_timer_t *t) {
     lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_TRANSP);
@@ -66,7 +67,11 @@ void msg_set_text_fmt(const char * fmt, ...) {
     if (timer) {
         lv_timer_reset(timer);
     } else {
-        timer = lv_timer_create(msg_timer, 2000, NULL);
+        timer = lv_timer_create(msg_timer, timeout, NULL);
         lv_timer_set_repeat_count(timer, 1);
     }
+}
+
+void msg_set_timeout(uint16_t x) {
+    timeout = x;
 }
