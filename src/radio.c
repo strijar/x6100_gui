@@ -276,8 +276,8 @@ uint16_t radio_change_vol(int16_t df) {
     
     if (params.vol < 0 ) {
         params.vol = 0;
-    } else if (params.vol > 50) {
-        params.vol = 50;
+    } else if (params.vol > 55) {
+        params.vol = 55;
     }
 
     params_unlock(&params.durty.vol);
