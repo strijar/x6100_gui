@@ -166,6 +166,9 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                 if (event.state == KEYPAD_PRESS) {
                     event.state = KEYPAD_RELEASE;
                     lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+                } else if (event.state == KEYPAD_LONG) {
+                    event.state = KEYPAD_LONG_RELEASE;
+                    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
                 }
             }
         }

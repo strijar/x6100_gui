@@ -773,6 +773,19 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
+        case KEYPAD_PTT:
+            switch (keypad->state) {
+                case KEYPAD_PRESS:
+                    x6100_control_ptt_set(true);
+                    break;
+                    
+                case KEYPAD_RELEASE:
+                case KEYPAD_LONG_RELEASE:
+                    x6100_control_ptt_set(false);
+                    break;
+            }
+            break;
+
         default:
             LV_LOG_WARN("Unsuported key");
             break;

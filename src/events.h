@@ -57,7 +57,8 @@ typedef enum {
 typedef enum {
     KEYPAD_PRESS = 0,
     KEYPAD_RELEASE,
-    KEYPAD_LONG
+    KEYPAD_LONG,
+    KEYPAD_LONG_RELEASE
 } keypad_state_t;
 
 typedef struct {
