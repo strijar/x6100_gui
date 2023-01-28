@@ -919,7 +919,7 @@ lv_obj_t * main_screen() {
     
     main_screen_band_set();
 
-    msg_set_text_fmt("X600 de R1CBU " VERSION);
+    msg_set_text_fmt("X6100 de R1CBU " VERSION);
     msg_set_timeout(2000);
     
     return obj;
