@@ -12,11 +12,11 @@
 
 #define NUM_ITEMS   7
 
-static int16_t          min_db = -121;
-static int16_t          max_db = -73 + 42;
+static int16_t          min_db = S1;
+static int16_t          max_db = S9_40;
 
 static uint8_t          meter_height = 62;
-static int16_t          meter_db = -121;
+static int16_t          meter_db = S1;
 
 static lv_obj_t         *obj;
 
@@ -26,13 +26,13 @@ typedef struct {
 } s_item_t;
 
 static s_item_t s_items[NUM_ITEMS] = {
-    { .label = "S1",    .db = -121 },
-    { .label = "3",     .db = -109 },
-    { .label = "5",     .db = -97 },
-    { .label = "7",     .db = -85 },
-    { .label = "9",     .db = -73 },
-    { .label = "+20",   .db = -53 },
-    { .label = "+40",   .db = -33 }
+    { .label = "S1",    .db = S1 },
+    { .label = "3",     .db = S3 },
+    { .label = "5",     .db = S5 },
+    { .label = "7",     .db = S7 },
+    { .label = "9",     .db = S9 },
+    { .label = "+20",   .db = S9_20 },
+    { .label = "+40",   .db = S9_40 }
 };
 
 static void meter_draw_cb(lv_event_t * e) {

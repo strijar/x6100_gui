@@ -56,6 +56,7 @@ int main(void) {
     
     lv_init();
     fbdev_init();
+    audio_init();
     event_init();
     
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
@@ -98,7 +99,6 @@ int main(void) {
 
     dsp_init();
     radio_init(main_obj);
-    audio_init();
 
     uint64_t prev_time = get_time();
 

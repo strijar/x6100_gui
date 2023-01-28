@@ -15,6 +15,7 @@
 #include "params.h"
 #include "bands.h"
 #include "band_info.h"
+#include "meter.h"
 
 #define PX_BYTES    4
 
@@ -179,16 +180,40 @@ void waterfall_clear() {
 }
 
 void waterfall_band_set() {
-    waterfall_set_min(params_band.grid_min);
-    waterfall_set_max(params_band.grid_max);
+    grid_min = params_band.grid_min;
+    grid_max = params_band.grid_max;
 }
 
-void waterfall_set_max(int db) {
-    grid_max = db;
+void waterfall_change_max(int16_t d) {
+    int16_t x = params_band.grid_max + d;
+
+    if (x > S9_40) {
+        x = S9_40;
+    } else if (x < S8) {
+        x = S8;
+    }
+
+    params_lock();
+    params_band.grid_max = x;
+    params_unlock(&params_band.durty.grid_max);
+
+    grid_max = x;
 }
 
-void waterfall_set_min(int db) {
-    grid_min = db;
+void waterfall_change_min(int16_t d) {
+    int16_t x = params_band.grid_min + d;
+
+    if (x > S7) {
+        x = S7;
+    } else if (x < S1) {
+        x = S1;
+    }
+
+    params_lock();
+    params_band.grid_min = x;
+    params_unlock(&params_band.durty.grid_min);
+
+    grid_min = x;
 }
 
 void waterfall_change_freq(int16_t df) {

@@ -828,8 +828,7 @@ lv_obj_t * main_screen() {
     
     spectrum = spectrum_init(obj);
     
-    spectrum_set_min(params_band.grid_min);
-    spectrum_set_max(params_band.grid_max);
+    spectrum_band_set();
 
     lv_obj_set_y(spectrum, y);
     lv_obj_set_height(spectrum, spectrum_height);
@@ -866,8 +865,7 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    waterfall_set_min(params_band.grid_min);
-    waterfall_set_max(params_band.grid_max);
+    waterfall_band_set();
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
