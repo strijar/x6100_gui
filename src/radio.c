@@ -179,12 +179,21 @@ void radio_vfo_set() {
 }
 
 void radio_mode_set() {
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+
     radio_lock();
-    x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
-    x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
+    
+    if (mode == x6100_mode_am || mode == x6100_mode_nfm) {
+        x6100_control_cmd(x6100_filter1_low, -params_mode.filter_high);
+        x6100_control_cmd(x6100_filter2_low, -params_mode.filter_high);
+    } else {
+        x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
+        x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
+    }
 
     x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
     x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
+
     radio_unlock();
 }
 
@@ -458,6 +467,12 @@ void radio_change_mode(radio_mode_t select) {
 }
 
 uint32_t radio_change_filter_low(int32_t df) {
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    
+    if (mode == x6100_mode_am || mode == x6100_mode_nfm) {
+        return 0;
+    }
+
     params_lock();
 
     params_mode.filter_low = align_int(params_mode.filter_low + df * 50, 50);
@@ -480,6 +495,8 @@ uint32_t radio_change_filter_low(int32_t df) {
 }
 
 uint32_t radio_change_filter_high(int32_t df) {
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+
     params_lock();
     params_mode.filter_high = align_int(params_mode.filter_high + df * 50, 50);
 
@@ -493,10 +510,16 @@ uint32_t radio_change_filter_high(int32_t df) {
     params_unlock(&params_mode.durty.filter_high);
 
     radio_lock();
+    
+    if (mode == x6100_mode_am || mode == x6100_mode_nfm) {
+        x6100_control_cmd(x6100_filter1_low, -params_mode.filter_high);
+        x6100_control_cmd(x6100_filter2_low, -params_mode.filter_high);
+    }
+
     x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
     x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
-    radio_unlock();
     
+    radio_unlock();
     return params_mode.filter_high;
 }
 
