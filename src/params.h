@@ -98,6 +98,12 @@ typedef struct {
     bool                nr;
     uint8_t             nr_level;
     
+    /* AGC */
+    
+    bool                agc_hang;
+    int8_t              agc_knee;
+    uint8_t             agc_slope;
+    
     /* main screen */
     
     int16_t             spectrum_factor;

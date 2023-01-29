@@ -46,6 +46,10 @@ params_t params = {
     .nr                     = false,
     .nr_level               = 0,
 
+    .agc_hang               = false,
+    .agc_knee               = -60,
+    .agc_slope              = 6,
+
     .key_speed              = 15,
     .key_mode               = x6100_key_manual,
     .iambic_mode            = x6100_iambic_a,

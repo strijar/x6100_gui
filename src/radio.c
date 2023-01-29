@@ -235,7 +235,11 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_nb_width_set(params.nb_width);
     x6100_control_nr_set(params.nr);
     x6100_control_nr_level_set(params.nr_level);
-    
+
+    x6100_control_agc_hang_set(params.agc_hang);
+    x6100_control_agc_knee_set(params.agc_knee);
+    x6100_control_agc_slope_set(params.agc_slope);
+
     prev_time = get_time();
     idle_time = prev_time;
 
@@ -500,6 +504,8 @@ void radio_change_agc() {
     params_lock();
 
     x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    uint16_t        agc_time = 500;
     
     switch (agc) {
         case x6100_agc_off:
@@ -519,11 +525,47 @@ void radio_change_agc() {
             break;
     }
 
+    switch (agc) {
+        case x6100_agc_off:
+            agc_time = 1000;
+            break;
+            
+        case x6100_agc_slow:
+            agc_time = 1000;
+            break;
+            
+        case x6100_agc_fast:
+            agc_time = 100;
+            break;
+            
+        case x6100_agc_auto:
+            switch (mode) {
+                case x6100_mode_lsb:
+                case x6100_mode_lsb_dig:
+                case x6100_mode_usb:
+                case x6100_mode_usb_dig:
+                    agc_time = 500;
+                    break;
+                    
+                case x6100_mode_cw:
+                case x6100_mode_cwr:
+                    agc_time = 100;
+                    break;
+                    
+                case x6100_mode_am:
+                case x6100_mode_nfm:
+                    agc_time = 1000;
+                    break;
+            }
+            break;
+    }
+
     params_band.vfo_x[params_band.vfo].agc = agc;
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.agc);
 
     radio_lock();
     x6100_control_vfo_agc_set(params_band.vfo, agc);
+    x6100_control_agc_time_set(agc_time);
     radio_unlock();
 }
 
