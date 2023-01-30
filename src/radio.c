@@ -40,6 +40,8 @@ static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
 
+static update_agc_time();
+
 static void radio_lock() {
     pthread_mutex_lock(&control_mux);
 }
@@ -195,6 +197,7 @@ void radio_mode_set() {
     x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
 
     radio_unlock();
+    update_agc_time();
 }
 
 void radio_init(lv_obj_t *obj) {
@@ -523,30 +526,10 @@ uint32_t radio_change_filter_high(int32_t df) {
     return params_mode.filter_high;
 }
 
-void radio_change_agc() {
-    params_lock();
-
+static update_agc_time() {
     x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
     uint16_t        agc_time = 500;
-    
-    switch (agc) {
-        case x6100_agc_off:
-            agc = x6100_agc_slow;
-            break;
-            
-        case x6100_agc_slow:
-            agc = x6100_agc_fast;
-            break;
-            
-        case x6100_agc_fast:
-            agc = x6100_agc_auto;
-            break;
-            
-        case x6100_agc_auto:
-            agc = x6100_agc_off;
-            break;
-    }
 
     switch (agc) {
         case x6100_agc_off:
@@ -583,12 +566,41 @@ void radio_change_agc() {
             break;
     }
 
+    radio_lock();
+    x6100_control_agc_time_set(agc_time);
+    radio_unlock();
+}
+
+void radio_change_agc() {
+    params_lock();
+
+    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
+    
+    switch (agc) {
+        case x6100_agc_off:
+            agc = x6100_agc_slow;
+            break;
+            
+        case x6100_agc_slow:
+            agc = x6100_agc_fast;
+            break;
+            
+        case x6100_agc_fast:
+            agc = x6100_agc_auto;
+            break;
+            
+        case x6100_agc_auto:
+            agc = x6100_agc_off;
+            break;
+    }
+
+    update_agc_time();
+
     params_band.vfo_x[params_band.vfo].agc = agc;
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.agc);
 
     radio_lock();
     x6100_control_vfo_agc_set(params_band.vfo, agc);
-    x6100_control_agc_time_set(agc_time);
     radio_unlock();
 }
 
