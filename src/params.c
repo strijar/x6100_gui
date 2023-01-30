@@ -388,6 +388,12 @@ static bool params_load() {
             params.nr = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "nr_level") == 0) {
             params.nr_level = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "agc_hang") == 0) {
+            params.agc_hang = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "agc_knee") == 0) {
+            params.agc_knee = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "agc_slope") == 0) {
+            params.agc_slope = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -460,6 +466,10 @@ static bool params_save() {
     if (params.durty.nb_width)              params_write_int("nb_width", params.nb_width, &params.durty.nb_width);
     if (params.durty.nr)                    params_write_int("nr", params.nr, &params.durty.nr);
     if (params.durty.nr_level)              params_write_int("nr_level", params.nr_level, &params.durty.nr_level);
+
+    if (params.durty.agc_hang)              params_write_int("agc_hang", params.agc_hang, &params.durty.agc_hang);
+    if (params.durty.agc_knee)              params_write_int("agc_knee", params.agc_knee, &params.durty.agc_knee);
+    if (params.durty.agc_slope)             params_write_int("agc_slope", params.agc_slope, &params.durty.agc_slope);
 
     if (!params_exec("COMMIT")) {
         return false;

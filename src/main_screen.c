@@ -105,6 +105,10 @@ static void button_nb_width_cb(lv_event_t * e);
 static void button_nr_cb(lv_event_t * e);
 static void button_nr_level_cb(lv_event_t * e);
 
+static void button_agc_hang_cb(lv_event_t * e);
+static void button_agc_knee_cb(lv_event_t * e);
+static void button_agc_slope_cb(lv_event_t * e);
+
 typedef enum {
     PAGE_VOL_1 = 0,
     PAGE_VOL_2,
@@ -150,9 +154,9 @@ static button_item_t    buttons[] = {
 
     { .label = "(MFK 3:3)",         .callback = button_next_page_cb },
     { .label = "Charger",           .callback = button_charger_cb },
-    { .label = "",                  .callback = NULL },
-    { .label = "",                  .callback = NULL },
-    { .label = "",                  .callback = NULL },
+    { .label = "AGC\nHang",         .callback = button_agc_hang_cb },
+    { .label = "AGC\nKnee",         .callback = button_agc_knee_cb },
+    { .label = "AGC\nSlope",        .callback = button_agc_slope_cb },
 
     /* CW */
     
@@ -414,6 +418,21 @@ static void button_nr_cb(lv_event_t * e) {
 
 static void button_nr_level_cb(lv_event_t * e) {
     mfk_set_mode(MFK_NR_LEVEL);
+    mfk_update(0);
+}
+
+static void button_agc_hang_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_AGC_HANG);
+    mfk_update(0);
+}
+
+static void button_agc_knee_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_AGC_KNEE);
+    mfk_update(0);
+}
+
+static void button_agc_slope_cb(lv_event_t * e) {
+    mfk_set_mode(MFK_AGC_SLOPE);
     mfk_update(0);
 }
 

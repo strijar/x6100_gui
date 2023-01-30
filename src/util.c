@@ -39,3 +39,13 @@ uint64_t align_long(uint64_t x, uint16_t step) {
 
     return x - (x % step);
 }
+
+int32_t limit(int32_t x, int32_t min, int32_t max) {
+    if (x < min) {
+        return min;
+    } else if (x > max) {
+        return max;
+    }
+    
+    return x;
+}

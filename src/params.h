@@ -146,6 +146,10 @@ typedef struct {
         bool    nb_width;
         bool    nr;
         bool    nr_level;
+
+        bool    agc_hang;
+        bool    agc_knee;
+        bool    agc_slope;
         
         bool    spectrum_factor;
         bool    spectrum_beta;

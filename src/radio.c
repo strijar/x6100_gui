@@ -288,14 +288,7 @@ uint16_t radio_change_vol(int16_t df) {
     }
     
     params_lock();
-    params.vol += df;
-    
-    if (params.vol < 0 ) {
-        params.vol = 0;
-    } else if (params.vol > 55) {
-        params.vol = 55;
-    }
-
+    params.vol = limit(params.vol + df, 0, 55);
     params_unlock(&params.durty.vol);
 
     radio_lock();
@@ -311,13 +304,7 @@ uint16_t radio_change_rfg(int16_t df) {
     }
     
     params_lock();
-    params.rfg += df;
-    
-    if (params.rfg < 0) {
-        params.rfg = 0;
-    } else if (params.rfg > 100) {
-        params.rfg = 100;
-    }
+    params.rfg = limit(params.rfg + df, 0, 100);
     params_unlock(&params.durty.rfg);
 
     radio_lock();
@@ -653,14 +640,7 @@ float radio_change_pwr(int16_t d) {
 
 uint16_t radio_change_key_speed(int16_t d) {
     params_lock();
-    params.key_speed += d;
-    
-    if (params.key_speed < 5) {
-        params.key_speed = 5;
-    } else if (params.key_speed > 50) {
-        params.key_speed = 50;
-    }
-
+    params.key_speed = limit(params.key_speed, 5, 50);
     params_unlock(&params.durty.key_speed);
 
     radio_lock();
@@ -726,7 +706,7 @@ uint16_t radio_change_key_tone(int16_t d) {
     params_lock();
 
     params.key_tone += (d > 0) ? 10 : -10;
-    
+
     if (params.key_tone < 400) {
         params.key_tone = 400;
     } else if (params.key_tone > 1200) {
@@ -749,15 +729,7 @@ uint16_t radio_change_key_vol(int16_t d) {
 
     params_lock();
 
-    int16_t x = params.key_vol + d;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 32) {
-        x = 32;
-    }
-
-    params.key_vol = x;
+    params.key_vol = limit(params.key_vol + d, 0, 32);
     params_unlock(&params.durty.key_vol);
 
     radio_lock();
@@ -794,19 +766,11 @@ uint16_t radio_change_qsk_time(int16_t d) {
     
     if (d > 0) {
         x += 10;
-        
-        if (x > 1000) {
-            x = 1000;
-        }
     } else {
         x -= 10;
-        
-        if (x < 0) {
-            x = 0;
-        }
     }
     
-    params.qsk_time = x;
+    params.qsk_time = limit(x, 0, 1000);
     params_unlock(&params.durty.qsk_time);
 
     radio_lock();
@@ -827,19 +791,11 @@ uint8_t radio_change_key_ratio(int16_t d) {
 
     if (d > 0) {
         x += 5;
-        
-        if (x > 45) {
-            x = 45;
-        }
     } else {
         x -= 5;
-        
-        if (x < 25) {
-            x = 25;
-        }
     }
 
-    params.key_ratio = x;
+    params.key_ratio = limit(x, 25, 45);
     params_unlock(&params.durty.key_ratio);
 
     radio_lock();
@@ -884,16 +840,8 @@ uint8_t radio_change_hmic(int16_t d) {
         return params.hmic;
     }
 
-    int16_t x = params.hmic + d;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 50) {
-        x = 50;
-    }
-    
     params_lock();
-    params.hmic = x;
+    params.hmic = limit(params.hmic + d, 0, 50);
     params_unlock(&params.durty.hmic);
     
     radio_lock();
@@ -908,16 +856,8 @@ uint8_t radio_change_imic(int16_t d) {
         return params.imic;
     }
 
-    int16_t x = params.imic + d;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 50) {
-        x = 50;
-    }
-    
     params_lock();
-    params.imic = x;
+    params.imic = limit(params.imic + d, 0, 50);
     params_unlock(&params.durty.imic);
     
     radio_lock();
@@ -990,16 +930,8 @@ uint16_t radio_change_dnf_center(int16_t d) {
         return params.dnf_center;
     }
 
-    int16_t x = params.dnf_center + d * 50;
-    
-    if (x < 100) {
-        x = 100;
-    } else if (x > 3000) {
-        x = 3000;
-    }
-    
     params_lock();
-    params.dnf_center = x;
+    params.dnf_center = limit(params.dnf_center + d * 50, 100, 3000);
     params_unlock(&params.durty.dnf_center);
     
     radio_lock();
@@ -1014,16 +946,8 @@ uint16_t radio_change_dnf_width(int16_t d) {
         return params.dnf_width;
     }
 
-    int16_t x = params.dnf_width + d * 5;
-    
-    if (x < 10) {
-        x = 10;
-    } else if (x > 100) {
-        x = 100;
-    }
-    
     params_lock();
-    params.dnf_width = x;
+    params.dnf_width = limit(params.dnf_width + d * 5, 10, 100);
     params_unlock(&params.durty.dnf_width);
     
     radio_lock();
@@ -1054,16 +978,8 @@ uint8_t radio_change_nb_level(int16_t d) {
         return params.nb_level;
     }
 
-    int16_t x = params.nb_level + d * 5;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 100) {
-        x = 100;
-    }
-    
     params_lock();
-    params.nb_level = x;
+    params.nb_level = limit(params.nb_level + d * 5, 0, 100);
     params_unlock(&params.durty.nb_level);
     
     radio_lock();
@@ -1078,16 +994,8 @@ uint8_t radio_change_nb_width(int16_t d) {
         return params.nb_width;
     }
 
-    int16_t x = params.nb_width + d * 5;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 100) {
-        x = 100;
-    }
-    
     params_lock();
-    params.nb_width = x;
+    params.nb_width = limit(params.nb_width + d * 5, 0, 100);
     params_unlock(&params.durty.nb_width);
     
     radio_lock();
@@ -1118,16 +1026,8 @@ uint8_t radio_change_nr_level(int16_t d) {
         return params.nr_level;
     }
 
-    int16_t x = params.nr_level + d * 5;
-    
-    if (x < 0) {
-        x = 0;
-    } else if (x > 60) {
-        x = 60;
-    }
-    
     params_lock();
-    params.nr_level = x;
+    params.nr_level = limit(params.nr_level + d * 5, 0, 60);
     params_unlock(&params.durty.nr_level);
     
     radio_lock();
@@ -1135,4 +1035,52 @@ uint8_t radio_change_nr_level(int16_t d) {
     radio_unlock();
 
     return params.nr_level;
+}
+
+bool radio_change_agc_hang(int16_t d) {
+    if (d == 0) {
+        return params.agc_hang;
+    }
+
+    params_lock();
+    params.agc_hang = !params.agc_hang;
+    params_unlock(&params.durty.agc_hang);
+
+    radio_lock();
+    x6100_control_agc_hang_set(params.agc_hang);
+    radio_unlock();
+
+    return params.agc_hang;
+}
+
+int8_t radio_change_agc_knee(int16_t d) {
+    if (d == 0) {
+        return params.agc_knee;
+    }
+
+    params_lock();
+    params.agc_knee = limit(params.agc_knee + d, -100, 0);
+    params_unlock(&params.durty.agc_knee);
+
+    radio_lock();
+    x6100_control_agc_knee_set(params.agc_knee);
+    radio_unlock();
+
+    return params.agc_knee;
+}
+
+uint8_t radio_change_agc_slope(int16_t d) {
+    if (d == 0) {
+        return params.agc_slope;
+    }
+
+    params_lock();
+    params.agc_slope = limit(params.agc_slope + d, 0, 10);
+    params_unlock(&params.durty.agc_slope);
+
+    radio_lock();
+    x6100_control_agc_slope_set(params.agc_slope);
+    radio_unlock();
+
+    return params.agc_slope;
 }

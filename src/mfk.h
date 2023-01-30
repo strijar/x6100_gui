@@ -39,7 +39,11 @@ typedef enum {
     MFK_NB_LEVEL,
     MFK_NB_WIDTH,
     MFK_NR,
-    MFK_NR_LEVEL
+    MFK_NR_LEVEL,
+    
+    MFK_AGC_HANG,
+    MFK_AGC_KNEE,
+    MFK_AGC_SLOPE
 } mfk_mode_t;
 
 void mfk_update(int16_t diff);

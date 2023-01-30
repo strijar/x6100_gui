@@ -29,7 +29,7 @@ void mfk_update(int16_t diff) {
                 waterfall_change_min(diff);
                 spectrum_set_min(params_band.grid_min);
             }
-            msg_set_text_fmt("Min level: %idb", params_band.grid_min);
+            msg_set_text_fmt("Min level: %i dB", params_band.grid_min);
             break;
             
         case MFK_MAX_LEVEL:
@@ -37,7 +37,7 @@ void mfk_update(int16_t diff) {
                 waterfall_change_max(diff);
                 spectrum_set_max(params_band.grid_max);
             }
-            msg_set_text_fmt("Max level: %idb", params_band.grid_max);
+            msg_set_text_fmt("Max level: %i dB", params_band.grid_max);
             break;
 
         case MFK_SPECTRUM_FACTOR:
@@ -124,7 +124,7 @@ void mfk_update(int16_t diff) {
                 params.spectrum_peak_speed = f;
                 params_unlock(&params.durty.spectrum_peak_speed);
             }
-            msg_set_text_fmt("Peak speed: %.1f db", params.spectrum_peak_speed);
+            msg_set_text_fmt("Peak speed: %.1f dB", params.spectrum_peak_speed);
             break;
             
         case MFK_KEY_SPEED:
@@ -234,6 +234,21 @@ void mfk_update(int16_t diff) {
         case MFK_NR_LEVEL:
             i = radio_change_nr_level(diff);
             msg_set_text_fmt("NR level: %i", i);
+            break;
+
+        case MFK_AGC_HANG:
+            b = radio_change_agc_hang(diff);
+            msg_set_text_fmt("AGC hang: %s", b ? "On" : "Off");
+            break;
+
+        case MFK_AGC_KNEE:
+            i = radio_change_agc_knee(diff);
+            msg_set_text_fmt("AGC knee: %i dB", i);
+            break;
+
+        case MFK_AGC_SLOPE:
+            i = radio_change_agc_slope(diff);
+            msg_set_text_fmt("AGC slope: %i dB", i);
             break;
     }
 }
