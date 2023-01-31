@@ -859,11 +859,11 @@ uint8_t radio_change_imic(int16_t d) {
     }
 
     params_lock();
-    params.imic = limit(params.imic + d, 0, 50);
+    params.imic = limit(params.imic + d, 0, 35);
     params_unlock(&params.durty.imic);
     
     radio_lock();
-    x6100_control_hmic_set(params.imic);
+    x6100_control_imic_set(params.imic);
     radio_unlock();
     
     return params.imic;
