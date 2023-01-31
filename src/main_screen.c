@@ -63,51 +63,14 @@ static lv_obj_t     *tx_info;
 typedef struct {
     char            *label;
     lv_event_cb_t   callback;
+    uint16_t        data;
 } button_item_t;
 
 static void vol_update(int16_t diff);
 
 static void button_next_page_cb(lv_event_t * e);
-static void button_vol_cb(lv_event_t * e);
-static void button_filter_low_cb(lv_event_t * e);
-static void button_filter_high_cb(lv_event_t * e);
-static void button_tx_power_cb(lv_event_t * e);
-
-static void button_mic_cb(lv_event_t * e);
-static void button_imic_cb(lv_event_t * e);
-static void button_hmic_cb(lv_event_t * e);
-
-static void button_min_level_cb(lv_event_t * e);
-static void button_max_level_cb(lv_event_t * e);
-static void button_spectrum_factor_cb(lv_event_t * e);
-static void button_spectrum_beta_cb(lv_event_t * e);
-static void button_spectrum_fill_cb(lv_event_t * e);
-static void button_spectrum_peak_cb(lv_event_t * e);
-static void button_peak_hold_cb(lv_event_t * e);
-static void button_peak_speed_cb(lv_event_t * e);
-static void button_charger_cb(lv_event_t * e);
-
-static void button_key_speed_cb(lv_event_t * e);
-static void button_key_mode_cb(lv_event_t * e);
-static void button_iambic_mode_cb(lv_event_t * e);
-static void button_key_tone_cb(lv_event_t * e);
-static void button_key_vol_cb(lv_event_t * e);
-static void button_key_train_cb(lv_event_t * e);
-static void button_qsk_time_cb(lv_event_t * e);
-static void button_key_ratio_cb(lv_event_t * e);
-
-static void button_dnf_cb(lv_event_t * e);
-static void button_dnf_center_cb(lv_event_t * e);
-static void button_dnf_width_cb(lv_event_t * e);
-static void button_nb_cb(lv_event_t * e);
-static void button_nb_level_cb(lv_event_t * e);
-static void button_nb_width_cb(lv_event_t * e);
-static void button_nr_cb(lv_event_t * e);
-static void button_nr_level_cb(lv_event_t * e);
-
-static void button_agc_hang_cb(lv_event_t * e);
-static void button_agc_knee_cb(lv_event_t * e);
-static void button_agc_slope_cb(lv_event_t * e);
+static void button_vol_update_cb(lv_event_t * e);
+static void button_mfk_update_cb(lv_event_t * e);
 
 typedef enum {
     PAGE_VOL_1 = 0,
@@ -128,67 +91,67 @@ typedef enum {
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL 1:2)",         .callback = button_next_page_cb },
-    { .label = "Audio\nVol",        .callback = button_vol_cb },
-    { .label = "Filter\nLow",       .callback = button_filter_low_cb },
-    { .label = "Filter\nHigh",      .callback = button_filter_high_cb },
-    { .label = "TX\nPower",         .callback = button_tx_power_cb },
+    { .label = "(VOL 1:2)",         .callback = button_next_page_cb,        .data = PAGE_VOL_2 },
+    { .label = "Audio\nVol",        .callback = button_vol_update_cb,       .data = VOL_VOL },
+    { .label = "Filter\nLow",       .callback = button_vol_update_cb,       .data = VOL_FILTER_LOW },
+    { .label = "Filter\nHigh",      .callback = button_vol_update_cb,       .data = VOL_FILTER_HIGH },
+    { .label = "TX\nPower",         .callback = button_vol_update_cb,       .data = VOL_PWR },
 
-    { .label = "(VOL 2:2)",         .callback = button_next_page_cb },
-    { .label = "MIC\nSelect",       .callback = button_mic_cb },
-    { .label = "H-MIC\nGain",       .callback = button_hmic_cb },
-    { .label = "I-MIC\nGain",       .callback = button_imic_cb },
+    { .label = "(VOL 2:2)",         .callback = button_next_page_cb,        .data = PAGE_MFK_1 },
+    { .label = "MIC\nSelect",       .callback = button_vol_update_cb,       .data = VOL_MIC },
+    { .label = "H-MIC\nGain",       .callback = button_vol_update_cb,       .data = VOL_HMIC },
+    { .label = "I-MIC\nGain",       .callback = button_vol_update_cb,       .data = VOL_IMIC },
     { .label = "",                  .callback = NULL },
     
-    { .label = "(MFK 1:3)",         .callback = button_next_page_cb },
-    { .label = "Min\nLevel",        .callback = button_min_level_cb },
-    { .label = "Max\nLevel",        .callback = button_max_level_cb },
-    { .label = "Spectrum\nZoom",    .callback = button_spectrum_factor_cb },
-    { .label = "Spectrum\nBeta",    .callback = button_spectrum_beta_cb },
+    { .label = "(MFK 1:3)",         .callback = button_next_page_cb,        .data = PAGE_MFK_2 },
+    { .label = "Min\nLevel",        .callback = button_mfk_update_cb,       .data = MFK_MIN_LEVEL },
+    { .label = "Max\nLevel",        .callback = button_mfk_update_cb,       .data = MFK_MAX_LEVEL },
+    { .label = "Spectrum\nZoom",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_FACTOR },
+    { .label = "Spectrum\nBeta",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_BETA },
 
-    { .label = "(MFK 2:3)",         .callback = button_next_page_cb },
-    { .label = "Spectrum\nFill",    .callback = button_spectrum_fill_cb },
-    { .label = "Spectrum\nPeak",    .callback = button_spectrum_peak_cb },
-    { .label = "Peaks\nhold",       .callback = button_peak_hold_cb },
-    { .label = "Peaks\nspeed",      .callback = button_peak_speed_cb },
+    { .label = "(MFK 2:3)",         .callback = button_next_page_cb,        .data = PAGE_MFK_3 },
+    { .label = "Spectrum\nFill",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_FILL },
+    { .label = "Spectrum\nPeak",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_PEAK },
+    { .label = "Peaks\nHold",       .callback = button_mfk_update_cb,       .data = MFK_PEAK_HOLD },
+    { .label = "Peaks\nSpeed",      .callback = button_mfk_update_cb,       .data = MFK_PEAK_SPEED },
 
-    { .label = "(MFK 3:3)",         .callback = button_next_page_cb },
-    { .label = "Charger",           .callback = button_charger_cb },
-    { .label = "AGC\nHang",         .callback = button_agc_hang_cb },
-    { .label = "AGC\nKnee",         .callback = button_agc_knee_cb },
-    { .label = "AGC\nSlope",        .callback = button_agc_slope_cb },
+    { .label = "(MFK 3:3)",         .callback = button_next_page_cb,        .data = PAGE_VOL_1 },
+    { .label = "Charger",           .callback = button_mfk_update_cb,       .data = MFK_CHARGER },
+    { .label = "AGC\nHang",         .callback = button_mfk_update_cb,       .data = MFK_AGC_HANG },
+    { .label = "AGC\nKnee",         .callback = button_mfk_update_cb,       .data = MFK_AGC_KNEE },
+    { .label = "AGC\nSlope",        .callback = button_mfk_update_cb,       .data = MFK_AGC_SLOPE },
 
     /* CW */
     
-    { .label = "(KEY 1:2)",         .callback = button_next_page_cb },
-    { .label = "Speed",             .callback = button_key_speed_cb },
-    { .label = "Volume",            .callback = button_key_vol_cb },
-    { .label = "Train",             .callback = button_key_train_cb },
-    { .label = "Tone",              .callback = button_key_tone_cb },
+    { .label = "(KEY 1:2)",         .callback = button_next_page_cb,        .data = PAGE_KEY_2 },
+    { .label = "Speed",             .callback = button_mfk_update_cb,       .data = MFK_KEY_SPEED },
+    { .label = "Volume",            .callback = button_mfk_update_cb,       .data = MFK_KEY_VOL },
+    { .label = "Train",             .callback = button_mfk_update_cb,       .data = MFK_KEY_TRAIN },
+    { .label = "Tone",              .callback = button_mfk_update_cb,       .data = MFK_KEY_TONE },
     
-    { .label = "(KEY 2:2)",         .callback = button_next_page_cb },
-    { .label = "Key\nMode",         .callback = button_key_mode_cb },
-    { .label = "Iambic\nMode",      .callback = button_iambic_mode_cb },
-    { .label = "QSK\nTime",         .callback = button_qsk_time_cb },
-    { .label = "Ratio",             .callback = button_key_ratio_cb },
+    { .label = "(KEY 2:2)",         .callback = button_next_page_cb,        .data = PAGE_KEY_1 },
+    { .label = "Key\nMode",         .callback = button_mfk_update_cb,       .data = MFK_KEY_MODE },
+    { .label = "Iambic\nMode",      .callback = button_mfk_update_cb,       .data = MFK_IAMBIC_MODE },
+    { .label = "QSK\nTime",         .callback = button_mfk_update_cb,       .data = MFK_QSK_TIME },
+    { .label = "Ratio",             .callback = button_mfk_update_cb,       .data = MFK_KEY_RATIO },
     
     /* DSP */
 
-    { .label = "(DFN 1:3)",         .callback = button_next_page_cb },
-    { .label = "DNF",               .callback = button_dnf_cb },
-    { .label = "DNF\nCenter",       .callback = button_dnf_center_cb },
-    { .label = "DNF\nWidth",        .callback = button_dnf_width_cb },
+    { .label = "(DFN 1:3)",         .callback = button_next_page_cb,        .data = PAGE_DFN_2 },
+    { .label = "DNF",               .callback = button_mfk_update_cb,       .data = MFK_DNF },
+    { .label = "DNF\nCenter",       .callback = button_mfk_update_cb,       .data = MFK_DNF_CENTER },
+    { .label = "DNF\nWidth",        .callback = button_mfk_update_cb,       .data = MFK_DNF_WIDTH },
     { .label = "",                  .callback = NULL },
 
-    { .label = "(DFN 2:3)",         .callback = button_next_page_cb },
-    { .label = "NB",                .callback = button_nb_cb },
-    { .label = "NB\nLevel",         .callback = button_nb_level_cb },
-    { .label = "NB\nWidth",         .callback = button_nb_width_cb },
+    { .label = "(DFN 2:3)",         .callback = button_next_page_cb,        .data = PAGE_DFN_3 },
+    { .label = "NB",                .callback = button_mfk_update_cb,       .data = MFK_NB },
+    { .label = "NB\nLevel",         .callback = button_mfk_update_cb,       .data = MFK_NB_LEVEL },
+    { .label = "NB\nWidth",         .callback = button_mfk_update_cb,       .data = MFK_NB_WIDTH },
     { .label = "",                  .callback = NULL },
 
-    { .label = "(DFN 3:3)",         .callback = button_next_page_cb },
-    { .label = "NR",                .callback = button_nr_cb },
-    { .label = "NR\nLevel",         .callback = button_nr_level_cb },
+    { .label = "(DFN 3:3)",         .callback = button_next_page_cb,        .data = PAGE_DFN_1 },
+    { .label = "NR",                .callback = button_mfk_update_cb,       .data = MFK_NR },
+    { .label = "NR\nLevel",         .callback = button_mfk_update_cb,       .data = MFK_NR_LEVEL },
     { .label = "",                  .callback = NULL },
     { .label = "",                  .callback = NULL },
 };
@@ -200,7 +163,7 @@ static void buttons_load_page() {
         button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
         lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
 
-        lv_obj_add_event_cb(btn[i], item->callback, LV_EVENT_PRESSED, NULL);
+        lv_obj_add_event_cb(btn[i], item->callback, LV_EVENT_PRESSED, item);
         lv_label_set_text(label, item->label);
     }
 }
@@ -209,230 +172,29 @@ static void buttons_unload_page() {
     for (uint8_t i = 0; i < BUTTONS; i++) {
         button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
 
-        lv_obj_remove_event_cb(btn[i], item->callback);
+        lv_obj_remove_event_cb_with_user_data(btn[i], NULL, item);
     }
 }
 
 static void button_next_page_cb(lv_event_t * e) {
-    buttons_unload_page();
-
-    switch (buttons_page) {
-        case PAGE_VOL_1:
-            buttons_page = PAGE_VOL_2;
-            break;
-
-        case PAGE_VOL_2:
-            buttons_page = PAGE_MFK_1;
-            break;
-            
-        case PAGE_MFK_1:
-            buttons_page = PAGE_MFK_2;
-            break;
-
-        case PAGE_MFK_2:
-            buttons_page = PAGE_MFK_3;
-            break;
-
-        case PAGE_MFK_3:
-            buttons_page = PAGE_VOL_1;
-            break;
-            
-        case PAGE_KEY_1:
-            buttons_page = PAGE_KEY_2;
-            break;
-            
-        case PAGE_KEY_2:
-            buttons_page = PAGE_KEY_1;
-            break;
-
-        case PAGE_DFN_1:
-            buttons_page = PAGE_DFN_2;
-            break;
-
-        case PAGE_DFN_2:
-            buttons_page = PAGE_DFN_3;
-            break;
-
-        case PAGE_DFN_3:
-            buttons_page = PAGE_DFN_1;
-            break;
-    }
+    button_item_t *item = lv_event_get_user_data(e);
     
+    buttons_unload_page();
+    buttons_page = item->data;
     buttons_load_page();
 }
 
-static void button_vol_cb(lv_event_t * e) {
-    vol_mode = VOL_VOL;
+static void button_vol_update_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    vol_mode = item->data;
     vol_update(0);
 }
 
-static void button_filter_low_cb(lv_event_t * e) {
-    vol_mode = VOL_FILTER_LOW;
-    vol_update(0);
-}
+static void button_mfk_update_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
 
-static void button_filter_high_cb(lv_event_t * e) {
-    vol_mode = VOL_FILTER_HIGH;
-    vol_update(0);
-}
-
-static void button_tx_power_cb(lv_event_t * e) {
-    vol_mode = VOL_PWR;
-    vol_update(0);
-}
-
-static void button_mic_cb(lv_event_t * e) {
-    vol_mode = VOL_MIC;
-    vol_update(0);
-}
-
-static void button_imic_cb(lv_event_t * e) {
-    vol_mode = VOL_IMIC;
-    vol_update(0);
-}
-
-static void button_hmic_cb(lv_event_t * e) {
-    vol_mode = VOL_HMIC;
-    vol_update(0);
-}
-
-static void button_min_level_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_MIN_LEVEL);
-    mfk_update(0);
-}
-
-static void button_max_level_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_MAX_LEVEL);
-    mfk_update(0);
-}
-
-static void button_spectrum_factor_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_SPECTRUM_FACTOR);
-    mfk_update(0);
-}
-
-static void button_spectrum_beta_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_SPECTRUM_BETA);
-    mfk_update(0);
-}
-
-static void button_spectrum_fill_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_SPECTRUM_FILL);
-    mfk_update(0);
-}
-
-static void button_spectrum_peak_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_SPECTRUM_PEAK);
-    mfk_update(0);
-}
-
-static void button_peak_hold_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_PEAK_HOLD);
-    mfk_update(0);
-}
-
-static void button_peak_speed_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_PEAK_SPEED);
-    mfk_update(0);
-}
-
-static void button_charger_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_CHARGER);
-    mfk_update(0);
-}
-
-static void button_key_speed_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_SPEED);
-    mfk_update(0);
-}
-
-static void button_key_mode_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_MODE);
-    mfk_update(0);
-}
-
-static void button_iambic_mode_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_IAMBIC_MODE);
-    mfk_update(0);
-}
-
-static void button_key_tone_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_TONE);
-    mfk_update(0);
-}
-
-static void button_key_vol_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_VOL);
-    mfk_update(0);
-}
-
-static void button_key_train_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_TRAIN);
-    mfk_update(0);
-}
-
-static void button_qsk_time_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_QSK_TIME);
-    mfk_update(0);
-}
-
-static void button_key_ratio_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_KEY_RATIO);
-    mfk_update(0);
-}
-
-static void button_dnf_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_DNF);
-    mfk_update(0);
-}
-
-static void button_dnf_center_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_DNF_CENTER);
-    mfk_update(0);
-}
-
-static void button_dnf_width_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_DNF_WIDTH);
-    mfk_update(0);
-}
-
-static void button_nb_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_NB);
-    mfk_update(0);
-}
-
-static void button_nb_level_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_NB_LEVEL);
-    mfk_update(0);
-}
-
-static void button_nb_width_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_NB_WIDTH);
-    mfk_update(0);
-}
-
-static void button_nr_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_NR);
-    mfk_update(0);
-}
-
-static void button_nr_level_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_NR_LEVEL);
-    mfk_update(0);
-}
-
-static void button_agc_hang_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_AGC_HANG);
-    mfk_update(0);
-}
-
-static void button_agc_knee_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_AGC_KNEE);
-    mfk_update(0);
-}
-
-static void button_agc_slope_cb(lv_event_t * e) {
-    mfk_set_mode(MFK_AGC_SLOPE);
+    mfk_set_mode(item->data);
     mfk_update(0);
 }
 
