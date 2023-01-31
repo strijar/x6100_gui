@@ -459,6 +459,10 @@ void radio_change_mode(radio_mode_t select) {
 }
 
 uint32_t radio_change_filter_low(int32_t df) {
+    if (df == 0) {
+        return params_mode.filter_low;
+    }
+
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
     
     if (mode == x6100_mode_am || mode == x6100_mode_nfm) {
@@ -487,6 +491,10 @@ uint32_t radio_change_filter_low(int32_t df) {
 }
 
 uint32_t radio_change_filter_high(int32_t df) {
+    if (df == 0) {
+        return params_mode.filter_high;
+    }
+
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
 
     params_lock();
@@ -622,6 +630,10 @@ void radio_load_atu() {
 }
 
 float radio_change_pwr(int16_t d) {
+    if (d == 0) {
+        return params.pwr;
+    }
+    
     params_lock();
     params.pwr += d * 0.1f;
     
@@ -641,8 +653,12 @@ float radio_change_pwr(int16_t d) {
 }
 
 uint16_t radio_change_key_speed(int16_t d) {
+    if (d == 0) {
+        return params.key_speed;
+    }
+    
     params_lock();
-    params.key_speed = limit(params.key_speed, 5, 50);
+    params.key_speed = limit(params.key_speed + d, 5, 50);
     params_unlock(&params.durty.key_speed);
 
     radio_lock();
