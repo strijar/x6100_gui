@@ -210,6 +210,8 @@ void radio_init(lv_obj_t *obj) {
     if (!x6100_flow_init())
         return;
 
+    x6100_gpio_set(x6100_pin_wifi, 1); /* WiFi off */
+    
     main_obj = obj;
 
     pack = malloc(sizeof(x6100_flow_t));
