@@ -27,36 +27,14 @@ static pa_mainloop_api      *mlapi;
 static pa_context           *ctx;
 
 static pa_stream            *play_stm;
-static char                 *play_device_id;
+static char                 *play_device = "alsa_output.platform-sound.stereo-fallback";
 
 static pa_stream            *capture_stm;
-static char                 *capture_device_id;
+static char                 *capture_device = "alsa_input.platform-sound.stereo-fallback";
 
 static void on_state_change(pa_context *c, void *userdata) {
     pa_threaded_mainloop_signal(mloop, 0);
 }
-
-static void on_dev_sink(pa_context *c, const pa_sink_info *info, int eol, void *udata) {
-    if (eol != 0) {
-        pa_threaded_mainloop_signal(mloop, 0);
-        return;
-    }
-
-    play_device_id = info->name;
-    LV_LOG_INFO("Sink %s", info->name);
-}
-
-static void on_dev_source(pa_context *c, const pa_source_info *info, int eol, void *udata) {
-    if (eol != 0) {
-        pa_threaded_mainloop_signal(mloop, 0);
-        return;
-    }
-
-    capture_device_id = info->name;
-    LV_LOG_INFO("Source %s", info->name);
-}
-
-static float phase = 0;
 
 static void write_callback(pa_stream *s, size_t nbytes, void *udata) {
     int16_t *buf = NULL;
@@ -71,11 +49,11 @@ static void write_callback(pa_stream *s, size_t nbytes, void *udata) {
 }
 
 static void read_callback(pa_stream *s, size_t nbytes, void *udata) {
-   int16_t *buf = NULL;
+    int16_t *buf = NULL;
         
-   pa_stream_peek(capture_stm, &buf, &nbytes);
-
-   pa_stream_drop(capture_stm);
+    pa_stream_peek(capture_stm, &buf, &nbytes);
+    dsp_put_audio_samples(nbytes / 2, buf);
+    pa_stream_drop(capture_stm);
 }
 
 void audio_init() {
@@ -103,32 +81,32 @@ void audio_init() {
 
     pa_sample_spec  spec = {
         .format = PA_SAMPLE_S16NE,
-        .rate = 11025,
         .channels = 1
     };
 
     memset(&attr, 0xff, sizeof(attr));
-    attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
 
     /* Play */
-    
-    op = pa_context_get_sink_info_list(ctx, on_dev_sink, NULL);
-    
+
+    spec.rate = AUDIO_PLAY_RATE,
+    attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
+
     play_stm = pa_stream_new(ctx, "X6100 GUI Play", &spec, NULL);
 
     pa_threaded_mainloop_lock(mloop);
     pa_stream_set_write_callback(play_stm, write_callback, NULL);
-    pa_stream_connect_playback(play_stm, play_device_id, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
+    pa_stream_connect_playback(play_stm, play_device, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
     pa_threaded_mainloop_unlock(mloop);
-
-    /* Capture */
     
-    op = pa_context_get_source_info_list(ctx, on_dev_source, NULL);
+    /* Capture */
+
+    spec.rate = AUDIO_CAPTURE_RATE,
+    attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
 
     capture_stm = pa_stream_new(ctx, "X6100 GUI Capture", &spec, NULL);
     
     pa_threaded_mainloop_lock(mloop);
     pa_stream_set_read_callback(capture_stm, read_callback, NULL);
-    pa_stream_connect_record(capture_stm, capture_device_id, &attr, PA_STREAM_ADJUST_LATENCY);
+    pa_stream_connect_record(capture_stm, capture_device, &attr, PA_STREAM_ADJUST_LATENCY);
     pa_threaded_mainloop_unlock(mloop);
 }

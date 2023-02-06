@@ -49,3 +49,7 @@ int32_t limit(int32_t x, int32_t min, int32_t max) {
     
     return x;
 }
+
+float sqr(float x) {
+    return x * x;
+}

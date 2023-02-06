@@ -123,6 +123,10 @@ typedef struct {
     bool                key_train;
     uint16_t            qsk_time;
     uint8_t             key_ratio;
+
+    /* decoders */
+
+    bool                cw_decoder;
     
     /* durty flags */
     
@@ -167,6 +171,8 @@ typedef struct {
         bool    key_train;
         bool    qsk_time;
         bool    key_ratio;
+
+        bool    cw_decoder;
     } durty;
 } params_t;
 

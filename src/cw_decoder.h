@@ -8,7 +8,7 @@
 
 #pragma once
 
-#define AUDIO_PLAY_RATE     (11025)
-#define AUDIO_CAPTURE_RATE  (44100)
+#include <stdbool.h>
 
-void audio_init();
+void cw_decoder_init();
+void cw_decoder_signal(bool on, float ms);

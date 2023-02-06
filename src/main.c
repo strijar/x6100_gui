@@ -28,6 +28,7 @@
 #include "params.h"
 #include "bands.h"
 #include "audio.h"
+#include "cw.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -97,6 +98,7 @@ int main(void) {
     
     lv_obj_t *main_obj = main_screen();
 
+    cw_init();
     dsp_init();
     radio_init(main_obj);
 

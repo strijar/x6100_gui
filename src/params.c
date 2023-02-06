@@ -57,7 +57,9 @@ params_t params = {
     .key_vol                = 10,
     .key_train              = false,
     .qsk_time               = 100,
-    .key_ratio              = 30
+    .key_ratio              = 30,
+    
+    .cw_decoder             = true,
 };
 
 params_band_t params_band = {

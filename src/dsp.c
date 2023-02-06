@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <math.h>
 
 #include "dsp.h"
 #include "spectrum.h"
@@ -16,6 +17,8 @@
 #include "radio.h"
 #include "params.h"
 #include "meter.h"
+#include "audio.h"
+#include "cw.h"
 
 static int32_t          nfft = 400;
 static iirfilt_cccf     dc_block;
@@ -43,6 +46,13 @@ static float complex    *buf_filtered;
 
 static uint8_t          delay;
 
+static firhilbf         audio_hilb;
+static float complex    *audio;
+
+static bool             ready = false;
+
+/* * */
+
 void dsp_init() {
     pthread_mutex_init(&spectrum_mux, NULL);
 
@@ -67,6 +77,11 @@ void dsp_init() {
     waterfall_time = get_time();
     
     delay = 4;
+    
+    audio = (float complex *) malloc(AUDIO_CAPTURE_RATE * sizeof(float complex));
+    audio_hilb = firhilbf_create(7, 60.0f);
+    
+    ready = true;
 }
 
 void dsp_reset() {
@@ -130,7 +145,6 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     for (uint16_t i = 0; i < nfft; i++)
         waterfall_psd[i] -= 30.0f;
-
     
     if (now - waterfall_time > waterfall_fps_ms) {
         if (!delay) {
@@ -204,4 +218,19 @@ float dsp_get_spectrum_beta() {
 
 void dsp_set_spectrum_beta(float x) {
     spectrum_beta = x;
+}
+
+void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
+    if (!ready) {
+        return;
+    }
+
+    for (uint16_t i = 0; i < nsamples; i++)
+        firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
+
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+
+    if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
+        cw_put_audio_samples(nsamples, audio);
+    }
 }
