@@ -13,7 +13,6 @@
 #include "cw_decoder.h"
 
 #define HIST_SIZE       10
-#define WPM_HIST_SIZE   20
 
 static uint32_t debounce_factor = 15;
 static uint32_t thr_geom_mean = 139;
@@ -21,22 +20,24 @@ static uint32_t thr_arth_mean = 160;
 
 static uint32_t time_track = 0;
 
-static int32_t  key_line_prior_event = 0;
-static int32_t  key_line_new_event = 0;
+static int32_t  key_line_event_prev = 0;
+static int32_t  key_line_event_new = 0;
+static uint32_t key_line_duration = 0;
 
-static uint32_t event_hist_track = 0;
+static uint32_t event_hist_index = 0;
 static uint32_t short_event_hist[HIST_SIZE];
 static uint32_t long_event_hist[HIST_SIZE];
 static uint32_t space_event_hist[HIST_SIZE];
 
-static uint32_t wpm_hist_track = 0;
-static uint16_t wpm_hist[WPM_HIST_SIZE];
-static uint16_t old_wpm;
+static uint64_t long_event_avr = 0;
+static uint64_t short_event_avr = 0;
+static uint64_t space_event_avr = 0;
+
+static uint16_t wpm_old;
 static uint32_t wpm;
 
-static uint32_t key_line_duration = 0;
 static uint32_t space_duration = 0;
-static uint32_t old_space_duration = 0;
+static uint32_t space_duration_prev = 0;
 static uint32_t space_duration_ref;
 
 static uint32_t word_space_duration = 0;
@@ -131,23 +132,126 @@ static characters_t characters[] = {
 void cw_decoder_init() {
 }
 
-static void morse_decode() {
+static void cw_decoder_ans(char *ans) {
+    LV_LOG_INFO("[ %s ]", ans);
+}
+
+static void cw_decoder_wpm(uint16_t wpm) {
+}
+
+static void cw_decoder_dict() {
     characters_t *character = &characters[0];
 
     while (character->morse) {
         if (strcmp(elements, character->morse) == 0) {
-            LV_LOG_INFO("[ %s ]", character->character);
+            cw_decoder_ans(character->character);
             return;
         }
         
         character++;
     }
-    
-    LV_LOG_INFO("[ ? %s ]", elements);
+
+    cw_decoder_ans("<?>");
 }
 
-static void morse_word() {
-    LV_LOG_INFO("[ ]", elements);
+void cw_decoder_dot_dash() {
+    /* Find out which one is the Dot and which is the Dash and roll them into a moving average of each */
+
+    if (key_line_event_new >= key_line_event_prev) {
+        long_event_hist[event_hist_index] = key_line_event_new;
+        short_event_hist[event_hist_index] = key_line_event_prev;
+    } else {
+        long_event_hist[event_hist_index] = key_line_event_prev;
+        short_event_hist[event_hist_index] = key_line_event_new;
+    }
+
+    /* Keep a moving average of the intra-element space duration */
+    
+    space_event_hist[event_hist_index] = space_duration_prev;
+    
+    /* Keep a moving averages */
+
+    long_event_avr = 0;
+    short_event_avr = 0;
+    space_event_avr = 0;
+    
+    for (uint8_t i = 0; i < HIST_SIZE; i++) {
+        long_event_avr += long_event_hist[i];
+        short_event_avr += short_event_hist[i];
+        space_event_avr += space_event_hist[i];
+    }
+        
+    long_event_avr /= HIST_SIZE;
+    short_event_avr /= HIST_SIZE;
+    space_event_avr /= HIST_SIZE;
+
+    /* Find threshold means */
+    
+    thr_geom_mean = sqrt(short_event_avr * long_event_avr);
+    thr_arth_mean = (short_event_avr + long_event_avr) / 2;
+    
+    /* Bootstrap threshold values - - - If any are below or above known Dot/Dash pair ranges then move them instantly */
+    
+    if (thr_geom_mean < short_event_hist[event_hist_index] || thr_geom_mean > long_event_hist[event_hist_index]) {
+        thr_geom_mean = sqrt(short_event_hist[event_hist_index] * long_event_hist[event_hist_index]);
+
+        long_event_avr = long_event_hist[event_hist_index];
+        short_event_avr = short_event_hist[event_hist_index];
+        
+        for (uint8_t i = 0; i < HIST_SIZE; i++) {
+            long_event_hist[i] = long_event_avr;
+            short_event_hist[i] = short_event_avr;
+        }
+    }
+
+    event_hist_index++;
+    
+    if (event_hist_index > HIST_SIZE)
+        event_hist_index = 0;
+}
+
+static void cw_decoder_calc_wpm() {
+    wpm_old = wpm;
+    wpm = (6000 * 1.06) / (long_event_avr + short_event_avr + space_event_avr);
+    
+    if (wpm != wpm_old) {
+        cw_decoder_wpm(wpm);
+    }
+}
+
+static void cw_decoder_inner_space() {
+    space_duration_prev = space_duration;
+    space_duration = time_track - space_duration_ref;
+
+    /* DECODE collected string of elements */
+
+    /* check to see if inter-element space duration threshold has been exceeded - then decode   */
+    /* it is assumed that the intra-space is longer than a Dot but shorter than a Dash          */
+
+    if (space_duration >= thr_geom_mean) {  /* Using thr_arth_mean seems more stable, instead accurate */
+        space_duration_ref = time_track;
+        
+        if (character_step) {
+            cw_decoder_dict();
+            strcpy(elements, "");
+        }
+        
+        character_step = false;
+    }
+}
+
+static void cw_decoder_word_space() {
+    word_space_duration = time_track - word_space_duration_ref;
+    
+    if (word_space_duration >= thr_geom_mean * word_space_timing) {
+        word_space_duration_ref = time_track;
+        
+        if (word_step) {
+            cw_decoder_ans(" ");
+        }
+        
+        word_step = false;
+    }
 }
 
 void cw_decoder_signal(bool on, float ms) {
@@ -169,142 +273,36 @@ void cw_decoder_signal(bool on, float ms) {
     if (!on) { 
         if (time_track >= (key_line_duration + debounce_factor) && key_line) {
             key_line = false;
-            key_line_prior_event = key_line_new_event;
-            key_line_new_event = time_track - key_line_duration;
+            key_line_event_prev = key_line_event_new;
+            key_line_event_new = time_track - key_line_duration;
 
-            /* IF the Current Duration Event Compared to the Previous Event appears to be a Dot / Dash pair [ roughly (>2):1 ] */
+            /* If the Current Duration Event Compared to the Previous Event appears to be a Dot / Dash pair [ roughly (>2):1 ] */
 
-            if ((key_line_new_event >= key_line_prior_event * compare_factor && old_space_duration <= key_line_prior_event * compare_factor) ||
-                (key_line_prior_event >= key_line_new_event * compare_factor && old_space_duration <= key_line_new_event * compare_factor)) {
-                
-                /* Find out which one is the Dot and which is the Dash and roll them into a moving average of each */
-
-                if (key_line_new_event >= key_line_prior_event) {
-                    long_event_hist[event_hist_track] = key_line_new_event;
-                    short_event_hist[event_hist_track] = key_line_prior_event;
-                } else {
-                    long_event_hist[event_hist_track] = key_line_prior_event;
-                    short_event_hist[event_hist_track] = key_line_new_event;
-                }
-
-                /* Keep a moving average of the intra-element space duration */
-                
-                space_event_hist[event_hist_track] = old_space_duration;
-                
-                /* Keep a moving averages */
-
-                uint64_t long_event_avr = 0;
-                uint64_t short_event_avr = 0;
-                uint64_t space_event_avr = 0;
-                
-                for (uint8_t i = 0; i < HIST_SIZE; i++) {
-                    long_event_avr += long_event_hist[i];
-                    short_event_avr += short_event_hist[i];
-                    space_event_avr += space_event_hist[i];
-                }
-                    
-                long_event_avr /= HIST_SIZE;
-                short_event_avr /= HIST_SIZE;
-                space_event_avr /= HIST_SIZE;
-
-                /* Find threshold means */
-                
-                thr_geom_mean = sqrt(short_event_avr * long_event_avr);
-                thr_arth_mean = (short_event_avr + long_event_avr) / 2;
-                
-                /* Bootstrap threshold values - - - If any are below or above known Dot/Dash pair ranges then move them instantly */
-                
-                if (thr_geom_mean < short_event_hist[event_hist_track] || thr_geom_mean < long_event_hist[event_hist_track]) {
-                    thr_geom_mean = sqrt(short_event_hist[event_hist_track] * long_event_hist[event_hist_track]);
-
-                    long_event_avr = long_event_hist[event_hist_track];
-                    short_event_avr = short_event_hist[event_hist_track];
-                    
-                    for (uint8_t i = 0; i < HIST_SIZE; i++) {
-                        long_event_hist[i] = long_event_avr;
-                        short_event_hist[i] = short_event_avr;
-                    }
-                    
-                    wpm_hist[wpm_hist_track] = (6000 / (long_event_avr + short_event_avr + old_space_duration));
-                    
-                    for (uint8_t i = 0; i < WPM_HIST_SIZE; i++)
-                        wpm_hist[i] = wpm_hist[wpm_hist_track];
-                }
-
-                /* we will now calculate the WPM... */
-                
-                old_wpm = wpm;
-                
-                wpm_hist[wpm_hist_track] = (6000 / (long_event_avr + short_event_avr + space_event_avr));
-                
-                wpm = (6000 * 1.06) / (long_event_avr + short_event_avr + space_event_avr);
-                
-                if (wpm != old_wpm) {
-//                    LV_LOG_INFO("WPM %i", wpm);
-                }
-                
-                event_hist_track++;
-                
-                if (event_hist_track > HIST_SIZE)
-                    event_hist_track = 0;
-                    
-                wpm_hist_track++;
-                
-                if (wpm_hist_track > WPM_HIST_SIZE)
-                    wpm_hist_track = 0;
+            if ((key_line_event_new >= key_line_event_prev * compare_factor && space_duration_prev <= key_line_event_prev * compare_factor) ||
+                (key_line_event_prev >= key_line_event_new * compare_factor && space_duration_prev <= key_line_event_new * compare_factor)) {
+            
+                cw_decoder_dot_dash();
+                cw_decoder_calc_wpm();
             }
             
-            /* Reset space durations - in Key-Up state */
+            /* Reset space durations */
             
             space_duration_ref = time_track;
             word_space_duration_ref = time_track;
 
             /* Classify and add most likely Dots or Dashes to a string for eventual character decoding */
             
-            if (key_line_new_event <= thr_geom_mean) {
+            if (key_line_event_new <= thr_geom_mean) {
                 strcat(elements, ".");
-                character_step = true;
-                word_step = true;
             } else {
                 strcat(elements, "-");
-                character_step = true;
-                word_step = true;
-            }
-        }
-        
-        /* Keep track of Key-Up space timing */
-        
-        old_space_duration = space_duration;
-        space_duration = time_track - space_duration_ref;
-
-        /* DECODE collected string of elements */
-
-        /* check to see if inter-element space duration threshold has been exceeded - then decode   */
-        /* it is assumed that the intra-space is longer than a Dot but shorter than a Dash          */
-
-        if (space_duration >= thr_geom_mean) {  /* Using thr_arth_mean seems more stable, instead accurate */
-            space_duration_ref = time_track;
-            
-            if (character_step) {
-                morse_decode();
-                elements[0] = '\0';
             }
             
-            character_step = false;
+            character_step = true;
+            word_step = true;
         }
         
-        /* Keep track of Key-Up timing and see if a word space is required */
-
-        word_space_duration = time_track - word_space_duration_ref;
-        
-        if (word_space_duration >= thr_geom_mean * word_space_timing) {
-            word_space_duration_ref = time_track;
-            
-            if (word_step) {
-                morse_word();
-            }
-            
-            word_step = false;
-        }
+        cw_decoder_inner_space();
+        cw_decoder_word_space();
     }
 }
