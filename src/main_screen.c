@@ -312,28 +312,28 @@ static void vol_press(int16_t dir) {
     vol_update(0);
 }
 
-static void next_freq_step() {
+static void next_freq_step(bool up) {
     params_lock();
     
     switch (params_mode.freq_step) {
         case 10:
-            params_mode.freq_step = 100;
+            params_mode.freq_step = up ? 100 : 5000;
             break;
             
         case 100:
-            params_mode.freq_step = 500;
+            params_mode.freq_step = up ? 500 : 10;
             break;
             
         case 500:
-            params_mode.freq_step = 1000;
+            params_mode.freq_step = up ? 1000 : 100;
             break;
             
         case 1000:
-            params_mode.freq_step = 5000;
+            params_mode.freq_step = up ? 5000 : 500;
             break;
             
         case 5000:
-            params_mode.freq_step = 10;
+            params_mode.freq_step = up ? 10 : 1000;
             break;
             
         default:
@@ -452,7 +452,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_FST:
             if (keypad->state == KEYPAD_RELEASE) {
-                next_freq_step();
+                next_freq_step(true);
+            } else if (keypad->state == KEYPAD_LONG) {
+                next_freq_step(false);
             }
             break;
 
