@@ -29,6 +29,7 @@
 #include "tx_info.h"
 #include "mfk.h"
 #include "main.h"
+#include "pannel.h"
 
 #define BUTTONS         5
 
@@ -695,6 +696,7 @@ lv_obj_t * main_screen() {
     }
 
     buttons_load_page();
+    pannel_init(obj);
     msg = msg_init(obj);
 
     clock_init(obj);

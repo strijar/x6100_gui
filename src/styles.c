@@ -24,6 +24,7 @@ lv_style_t  tx_info_style;
 lv_style_t  panel_top_style;
 lv_style_t  panel_mid_style;
 lv_style_t  panel_bottom_style;
+lv_style_t  pannel_style;
 
 lv_color_t  bg_color;
 
@@ -32,6 +33,7 @@ extern const lv_img_dsc_t img_btn;
 extern const lv_img_dsc_t img_top_short;
 extern const lv_img_dsc_t img_top_long;
 extern const lv_img_dsc_t img_top_big;
+extern const lv_img_dsc_t img_pannel;
 
 void styles_init() {
     bg_color = lv_color_hex(0x0040A0);
@@ -87,6 +89,18 @@ void styles_init() {
     lv_style_set_bg_img_src(&msg_style, &img_msg);
     lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&msg_style, 20);
+
+    lv_style_init(&pannel_style);
+    lv_style_set_text_color(&pannel_style, lv_color_white());
+    lv_style_set_text_font(&pannel_style, &sony_38);
+    lv_style_set_size(&pannel_style, 795, 196);
+    lv_style_set_x(&pannel_style, 800 / 2 - (795 / 2));
+    lv_style_set_y(&pannel_style, 210);
+    lv_style_set_radius(&pannel_style, 0);
+    lv_style_set_bg_img_src(&pannel_style, &img_pannel);
+    lv_style_set_bg_img_opa(&pannel_style, LV_OPA_COVER);
+    lv_style_set_pad_ver(&pannel_style, 10);
+    lv_style_set_pad_hor(&pannel_style, 10);
 
     lv_style_init(&clock_style);
     lv_style_set_text_color(&clock_style, lv_color_white());
