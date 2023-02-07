@@ -62,7 +62,7 @@ void dsp_init() {
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
     spectrum_psd_filtered = (float *) malloc(nfft * sizeof(float));
 
-    dsp_set_spectrum_factor(params.spectrum_factor);
+    dsp_set_spectrum_factor(params_mode.spectrum_factor);
 
     for (uint16_t i = 0; i < nfft; i++)
         spectrum_psd_filtered[i] = -130.0f;
@@ -177,10 +177,6 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     meter_update(peak_db);
 }
 
-uint8_t dsp_get_spectrum_factor() {
-    return spectrum_factor;
-}
-
 void dsp_set_spectrum_factor(uint8_t x) {
     if (x == spectrum_factor)
         return;
@@ -210,6 +206,7 @@ void dsp_set_spectrum_factor(uint8_t x) {
         spectrum_psd_filtered[i] = -130.0f;
 
     pthread_mutex_unlock(&spectrum_mux);
+    spectrum_clear();
 }
 
 float dsp_get_spectrum_beta() {

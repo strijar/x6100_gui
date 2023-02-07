@@ -19,7 +19,6 @@
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .spectrum_factor        = 1,
     .spectrum_beta          = 70,
     .spectrum_filled        = true,
     .spectrum_peak          = true,
@@ -90,7 +89,8 @@ params_mode_t params_mode = {
     .filter_low         = 50,
     .filter_high        = 2950,
 
-    .freq_step          = 500
+    .freq_step          = 500,
+    .spectrum_factor    = 1,
 };
 
 static pthread_mutex_t  params_mux;
@@ -130,6 +130,8 @@ void params_mode_load() {
             params_mode.filter_high = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "freq_step") == 0) {
             params_mode.freq_step = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "spectrum_factor") == 0) {
+            params_mode.spectrum_factor = sqlite3_column_int(stmt, 1);
         }
     }
 
@@ -154,9 +156,10 @@ bool params_mode_save() {
         return false;
     }
 
-    if (params_mode.durty.filter_low)   params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
-    if (params_mode.durty.filter_high)  params_mode_write_int("filter_high", params_mode.filter_high, &params_mode.durty.filter_high);
-    if (params_mode.durty.freq_step)    params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
+    if (params_mode.durty.filter_low)       params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
+    if (params_mode.durty.filter_high)      params_mode_write_int("filter_high", params_mode.filter_high, &params_mode.durty.filter_high);
+    if (params_mode.durty.freq_step)        params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
+    if (params_mode.durty.spectrum_factor)  params_mode_write_int("spectrum_factor", params_mode.spectrum_factor, &params_mode.durty.spectrum_factor);
 
     if (!params_exec("COMMIT")) {
         return false;
@@ -338,8 +341,6 @@ static bool params_load() {
             params.atu = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "pwr") == 0) {
             params.pwr = sqlite3_column_int(stmt, 1) * 0.1f;
-        } else if (strcmp(name, "spectrum_factor") == 0) {
-            params.spectrum_factor = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_beta") == 0) {
             params.spectrum_beta = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_filled") == 0) {
@@ -438,7 +439,6 @@ static bool params_save() {
     if (params.durty.atu)                   params_write_int("atu", params.atu, &params.durty.atu);
     if (params.durty.pwr)                   params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
 
-    if (params.durty.spectrum_factor)       params_write_int("spectrum_factor", params.spectrum_factor, &params.durty.spectrum_factor);
     if (params.durty.spectrum_beta)         params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
     if (params.durty.spectrum_filled)       params_write_int("spectrum_filled", params.spectrum_filled, &params.durty.spectrum_filled);
     if (params.durty.spectrum_peak)         params_write_int("spectrum_peak", params.spectrum_peak, &params.durty.spectrum_peak);

@@ -68,6 +68,7 @@ void bands_activate(band_t *band, uint64_t *freq) {
 
     radio_vfo_set();
     radio_mode_set();
+    spectrum_mode_set();
     spectrum_band_set();
     waterfall_band_set();
     info_params_set();

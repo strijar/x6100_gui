@@ -43,19 +43,18 @@ void mfk_update(int16_t diff) {
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
                 params_lock();
-                params.spectrum_factor += diff;
+                params_mode.spectrum_factor += diff;
                 
-                if (params.spectrum_factor < 1) {
-                    params.spectrum_factor = 1;
-                } else if (params.spectrum_factor > 4) {
-                    params.spectrum_factor = 4;
+                if (params_mode.spectrum_factor < 1) {
+                    params_mode.spectrum_factor = 1;
+                } else if (params_mode.spectrum_factor > 4) {
+                    params_mode.spectrum_factor = 4;
                 }
-                params_unlock(&params.durty.spectrum_factor);
+                params_unlock(&params_mode.durty.spectrum_factor);
             
-                dsp_set_spectrum_factor(params.spectrum_factor);
-                spectrum_clear();
+                spectrum_mode_set();
             }
-            msg_set_text_fmt("Spectrum zoom: x%i", params.spectrum_factor);
+            msg_set_text_fmt("Spectrum zoom: x%i", params_mode.spectrum_factor);
             break;
 
         case MFK_SPECTRUM_BETA:

@@ -19,6 +19,7 @@ typedef struct {
     int32_t         filter_high;
 
     uint16_t        freq_step;
+    int16_t         spectrum_factor;
 
     /* durty flags */
     
@@ -27,6 +28,7 @@ typedef struct {
         bool    filter_high;
 
         bool    freq_step;
+        bool    spectrum_factor;
     } durty;
 } params_mode_t;
 
@@ -106,7 +108,6 @@ typedef struct {
     
     /* main screen */
     
-    int16_t             spectrum_factor;
     int16_t             spectrum_beta;
     bool                spectrum_peak;
     uint16_t            spectrum_peak_hold;
@@ -155,7 +156,6 @@ typedef struct {
         bool    agc_knee;
         bool    agc_slope;
         
-        bool    spectrum_factor;
         bool    spectrum_beta;
         bool    spectrum_peak;
         bool    spectrum_peak_hold;

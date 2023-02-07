@@ -415,6 +415,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_AM);
                 params_mode_load();
                 radio_mode_set();
+                spectrum_mode_set();
                 info_params_set();
             }
             break;
@@ -424,6 +425,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_CW);
                 params_mode_load();
                 radio_mode_set();
+                spectrum_mode_set();
                 info_params_set();
             }
             break;
@@ -433,6 +435,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_SSB);
                 params_mode_load();
                 radio_mode_set();
+                spectrum_mode_set();
                 info_params_set();
             }
             break;
