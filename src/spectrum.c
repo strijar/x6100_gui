@@ -28,6 +28,8 @@ static int16_t          visor_height = 100;
 static uint16_t         spectrum_size = 400;
 static float            *spectrum_buf = NULL;
 
+static int16_t          delta_surplus = 0;
+
 typedef struct {
     float       val;
     uint64_t    time;
@@ -257,9 +259,27 @@ void spectrum_clear() {
 }
 
 void spectrum_change_freq(int16_t df) {
-    int32_t     delta = spectrum_size * df / width_hz / params_mode.spectrum_factor;
     peak_t      *from, *to;
     uint64_t    time = get_time();
+
+    uint16_t    div = width_hz / spectrum_size / params_mode.spectrum_factor;
+    int16_t     surplus = df % div;
+    int32_t     delta = df / div;
+
+    if (surplus) {
+        delta_surplus += surplus;
+    } else {
+        delta_surplus = 0;
+    }
+
+    if (abs(delta_surplus) > div) {
+        delta += delta_surplus / div;
+        delta_surplus = delta_surplus % div;
+    }
+
+    if (delta == 0) {
+        return;
+    }
 
     if (delta > 0) {
         for (int16_t i = 0; i < spectrum_size; i++) {
