@@ -201,8 +201,8 @@ float cw_change_snr(int16_t df) {
     
     float x = params.cw_decoder_snr + df * 0.1f;
 
-    if (x < 10.0f) {
-        x = 10.0f;
+    if (x < 7.0f) {
+        x = 7.0f;
     } else if (x > 30.0f) {
         x = 30.0f;
     }
@@ -219,7 +219,7 @@ float cw_change_beta(int16_t df) {
         return params.cw_decoder_beta;
     }
 
-    float x = params.cw_decoder_beta + df * 0.05f;
+    float x = params.cw_decoder_beta + df * 0.01f;
 
     if (x < 0.1f) {
         x = 0.1f;
@@ -239,7 +239,7 @@ float cw_change_peak_beta(int16_t df) {
         return params.cw_decoder_peak_beta;
     }
 
-    float x = params.cw_decoder_peak_beta + df * 0.05f;
+    float x = params.cw_decoder_peak_beta + df * 0.01f;
 
     if (x < 0.1f) {
         x = 0.1f;
@@ -259,7 +259,7 @@ float cw_change_noise_beta(int16_t df) {
         return params.cw_decoder_noise_beta;
     }
 
-    float x = params.cw_decoder_noise_beta + df * 0.05f;
+    float x = params.cw_decoder_noise_beta + df * 0.01f;
 
     if (x < 0.1f) {
         x = 0.1f;

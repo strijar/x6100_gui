@@ -23,7 +23,7 @@ static uint32_t time_track = 0;
 
 static int32_t  key_line_event_prev = 0;
 static int32_t  key_line_event_new = 0;
-static uint32_t key_line_duration = 0;
+static uint32_t key_line_ref = 0;
 
 static uint32_t event_hist_index = 0;
 static uint32_t short_event_hist[HIST_SIZE];
@@ -262,20 +262,25 @@ void cw_decoder_signal(bool on, float ms) {
     
     if (on) {
         if (!key_line) {
-            key_line_duration = time_track;
+            key_line_ref = time_track;
             word_space_duration_ref = time_track;
+            
+            key_line = true;
         }
-        
-        key_line = true;
     }
     
     /* Key up */
     
-    if (!on) { 
-        if (time_track >= (key_line_duration + debounce_factor) && key_line) {
+    if (!on) {
+        if (time_track - key_line_ref < debounce_factor) {
+            key_line = false;
+            return;
+        }
+    
+        if (key_line) {
             key_line = false;
             key_line_event_prev = key_line_event_new;
-            key_line_event_new = time_track - key_line_duration;
+            key_line_event_new = time_track - key_line_ref;
 
             /* If the Current Duration Event Compared to the Previous Event appears to be a Dot / Dash pair [ roughly (>2):1 ] */
 

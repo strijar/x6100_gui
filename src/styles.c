@@ -93,9 +93,9 @@ void styles_init() {
     lv_style_init(&pannel_style);
     lv_style_set_text_color(&pannel_style, lv_color_white());
     lv_style_set_text_font(&pannel_style, &sony_38);
-    lv_style_set_size(&pannel_style, 795, 196);
+    lv_style_set_size(&pannel_style, 795, 182);
     lv_style_set_x(&pannel_style, 800 / 2 - (795 / 2));
-    lv_style_set_y(&pannel_style, 210);
+    lv_style_set_y(&pannel_style, 230);
     lv_style_set_radius(&pannel_style, 0);
     lv_style_set_bg_img_src(&pannel_style, &img_pannel);
     lv_style_set_bg_img_opa(&pannel_style, LV_OPA_COVER);

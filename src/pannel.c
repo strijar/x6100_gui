@@ -36,7 +36,7 @@ static void check_lines() {
         ptr++;
     }
     
-    if (count > 5) {
+    if (count > 4) {
         strcpy(tmp_buf, second_line);
         strcpy(buf, tmp_buf);
     }
