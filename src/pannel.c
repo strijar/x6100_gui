@@ -12,6 +12,8 @@
 #include "styles.h"
 #include "util.h"
 #include "events.h"
+#include "radio.h"
+#include "params.h"
 
 static lv_obj_t     *obj;
 static char         buf[512];
@@ -20,7 +22,7 @@ static char         *last_line;
 
 static void check_lines() {
     char        *second_line = NULL;
-    char        *ptr = &buf;
+    char        *ptr = (char *) &buf;
     uint16_t    count = 0;
     
     while (*ptr) {
@@ -39,7 +41,7 @@ static void check_lines() {
         strcpy(buf, tmp_buf);
     }
 
-    ptr = &buf;
+    ptr = (char *) &buf;
 
     while (*ptr) {
         if (*ptr == '\n') {
@@ -74,8 +76,8 @@ lv_obj_t * pannel_init(lv_obj_t *parent) {
 
     lv_obj_add_style(obj, &pannel_style, 0);
     lv_obj_add_event_cb(obj, pannel_update_cb, EVENT_PANNEL_UPDATE, NULL);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
 
-    pannel_show(true);
     return obj;
 }
 
@@ -83,10 +85,18 @@ void pannel_add_text(const char * text) {
     event_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
 }
 
-void pannel_show(bool on) {
+void pannel_visible() {
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    bool            on = false;
+
+    if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
+        on = params.cw_decoder;
+    }
+
     if (on) {
-        strcat(buf, "");
-        last_line = &buf;
+        strcpy(buf, "");
+        last_line = (char *) &buf;
+        lv_label_set_text_static(obj, buf);
         lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);

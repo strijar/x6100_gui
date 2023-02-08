@@ -14,6 +14,7 @@
 #include "msg.h"
 #include "dsp.h"
 #include "radio.h"
+#include "cw.h"
 
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
@@ -248,6 +249,31 @@ void mfk_update(int16_t diff) {
         case MFK_AGC_SLOPE:
             i = radio_change_agc_slope(diff);
             msg_set_text_fmt("AGC slope: %i dB", i);
+            break;
+
+        case MFK_CW_DECODER:
+            b = cw_change_decoder(diff);
+            msg_set_text_fmt("CW decoder: %s", b ? "On" : "Off");
+            break;
+            
+        case MFK_CW_DECODER_SNR:
+            f = cw_change_snr(diff);
+            msg_set_text_fmt("CW decoder SNR: %.1f dB", f);
+            break;
+            
+        case MFK_CW_DECODER_BETA:
+            f = cw_change_beta(diff);
+            msg_set_text_fmt("CW decoder beta: %.2f", f);
+            break;
+            
+        case MFK_CW_DECODER_PEAK_BETA:
+            f = cw_change_peak_beta(diff);
+            msg_set_text_fmt("CW decoder peak beta: %.2f", f);
+            break;
+            
+        case MFK_CW_DECODER_NOISE_BETA:
+            f = cw_change_noise_beta(diff);
+            msg_set_text_fmt("CW decoder noise beta: %.2f", f);
             break;
     }
 }

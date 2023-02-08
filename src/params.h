@@ -125,9 +125,13 @@ typedef struct {
     uint16_t            qsk_time;
     uint8_t             key_ratio;
 
-    /* decoders */
+    /* CW decoder */
 
     bool                cw_decoder;
+    float               cw_decoder_snr;
+    float               cw_decoder_beta;
+    float               cw_decoder_peak_beta;
+    float               cw_decoder_noise_beta;
     
     /* durty flags */
     
@@ -173,6 +177,10 @@ typedef struct {
         bool    key_ratio;
 
         bool    cw_decoder;
+        bool    cw_decoder_snr;
+        bool    cw_decoder_beta;
+        bool    cw_decoder_peak_beta;
+        bool    cw_decoder_noise_beta;
     } durty;
 } params_t;
 

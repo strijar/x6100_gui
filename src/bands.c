@@ -14,6 +14,7 @@
 #include "spectrum.h"
 #include "waterfall.h"
 #include "main_screen.h"
+#include "pannel.h"
 
 #define BANDS_MAX   32
 
@@ -72,6 +73,7 @@ void bands_activate(band_t *band, uint64_t *freq) {
     spectrum_band_set();
     waterfall_band_set();
     info_params_set();
+    pannel_visible();
 }
 
 void bands_change(bool up) {

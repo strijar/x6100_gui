@@ -128,7 +128,7 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
             for (uint16_t i = 0; i < nfft; i++) {
                 float psd = spectrum_psd[i];
                 
-                spectrum_psd_filtered[i] = spectrum_psd_filtered[i] * spectrum_beta + psd * (1.0f - spectrum_beta);
+                lpf(&spectrum_psd_filtered[i], psd, spectrum_beta);
             }
         
             spectrum_data(spectrum_psd_filtered, nfft);

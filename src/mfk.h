@@ -43,7 +43,13 @@ typedef enum {
     
     MFK_AGC_HANG,
     MFK_AGC_KNEE,
-    MFK_AGC_SLOPE
+    MFK_AGC_SLOPE,
+    
+    MFK_CW_DECODER,
+    MFK_CW_DECODER_SNR,
+    MFK_CW_DECODER_BETA,
+    MFK_CW_DECODER_PEAK_BETA,
+    MFK_CW_DECODER_NOISE_BETA
 } mfk_mode_t;
 
 void mfk_update(int16_t diff);

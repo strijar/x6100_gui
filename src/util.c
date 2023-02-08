@@ -53,3 +53,7 @@ int32_t limit(int32_t x, int32_t min, int32_t max) {
 float sqr(float x) {
     return x * x;
 }
+
+void lpf(float *x, float current, float beta) {
+    *x = *x * beta + current * (1.0f - beta);
+}

@@ -101,6 +101,7 @@ int main(void) {
     cw_init();
     dsp_init();
     radio_init(main_obj);
+    pannel_visible();
 
     uint64_t prev_time = get_time();
 

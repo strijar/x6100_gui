@@ -24,11 +24,6 @@ const static uint16_t   fft = 1024;
 const static uint16_t   fft_over = fft / 8;
 const static uint16_t   fft_all = fft + fft_over;
 
-static float            fft_beta = 0.5f;
-static float            peak_beta = 0.5f;
-static float            noise_beta = 0.9f;
-static float            snr_thr = 11.0f;
-
 static bool             ready = false;
 
 static fft_item_t       fft_items[512];
@@ -115,18 +110,18 @@ static bool cw_get_peak() {
     peak_db /= peak_width;
     noise_db /= num - peak_width;
 
-    peak_filtered = peak_filtered * peak_beta + peak_db * (1.0f - peak_beta);
-    noise_filtered = noise_filtered * noise_beta + noise_db * (1.0f - noise_beta);
+    lpf(&peak_filtered, peak_db, params.cw_decoder_peak_beta);
+    lpf(&noise_filtered, noise_db, params.cw_decoder_noise_beta);
 
     float snr = peak_filtered - noise_filtered;
 
-    if (snr > snr_thr) {
+    if (snr > params.cw_decoder_snr) {
         peak_n = fft_items[0].n;
     } else {
         peak_n = 0;
     }
 
-#if 0
+#if 1
     char    str[128];
     uint8_t i = 0;
     
@@ -176,11 +171,105 @@ void cw_put_audio_samples(unsigned int n, float complex *samples) {
         for (uint16_t i = 0; i < fft; i++) {
             float psd = audio_psd[i];
 
-            audio_psd_filtered[i] = audio_psd_filtered[i] * fft_beta + psd * (1.0f - fft_beta);
+            lpf(&audio_psd_filtered[i], psd, params.cw_decoder_beta);
         }
 
         if (params.cw_decoder) {
             cw_decoder_signal(cw_get_peak(), fft_over * 1000.0f / AUDIO_CAPTURE_RATE);
         }
     }
+}
+
+bool cw_change_decoder(int16_t df) {
+    if (df == 0) {
+        return params.cw_decoder;
+    }
+
+    params_lock();
+    params.cw_decoder = !params.cw_decoder;
+    params_unlock(&params.durty.cw_decoder);
+
+    pannel_visible();
+    
+    return params.cw_decoder;
+}
+
+float cw_change_snr(int16_t df) {
+    if (df == 0) {
+        return params.cw_decoder_snr;
+    }
+    
+    float x = params.cw_decoder_snr + df * 0.1f;
+
+    if (x < 10.0f) {
+        x = 10.0f;
+    } else if (x > 30.0f) {
+        x = 30.0f;
+    }
+
+    params_lock();
+    params.cw_decoder_snr = x;
+    params_unlock(&params.durty.cw_decoder_snr);
+
+    return params.cw_decoder_snr;
+}
+
+float cw_change_beta(int16_t df) {
+    if (df == 0) {
+        return params.cw_decoder_beta;
+    }
+
+    float x = params.cw_decoder_beta + df * 0.05f;
+
+    if (x < 0.1f) {
+        x = 0.1f;
+    } else if (x > 0.95f) {
+        x = 0.95f;
+    }
+
+    params_lock();
+    params.cw_decoder_beta = x;
+    params_unlock(&params.durty.cw_decoder_beta);
+    
+    return params.cw_decoder_beta;
+}
+
+float cw_change_peak_beta(int16_t df) {
+    if (df == 0) {
+        return params.cw_decoder_peak_beta;
+    }
+
+    float x = params.cw_decoder_peak_beta + df * 0.05f;
+
+    if (x < 0.1f) {
+        x = 0.1f;
+    } else if (x > 0.95f) {
+        x = 0.95f;
+    }
+
+    params_lock();
+    params.cw_decoder_peak_beta = x;
+    params_unlock(&params.durty.cw_decoder_peak_beta);
+    
+    return params.cw_decoder_peak_beta;
+}
+
+float cw_change_noise_beta(int16_t df) {
+    if (df == 0) {
+        return params.cw_decoder_noise_beta;
+    }
+
+    float x = params.cw_decoder_noise_beta + df * 0.05f;
+
+    if (x < 0.1f) {
+        x = 0.1f;
+    } else if (x > 0.95f) {
+        x = 0.95f;
+    }
+
+    params_lock();
+    params.cw_decoder_noise_beta = x;
+    params_unlock(&params.durty.cw_decoder_noise_beta);
+    
+    return params.cw_decoder_noise_beta;
 }
