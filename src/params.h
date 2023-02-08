@@ -129,6 +129,7 @@ typedef struct {
 
     bool                cw_decoder;
     float               cw_decoder_snr;
+    float               cw_decoder_snr_gist;
     float               cw_decoder_beta;
     float               cw_decoder_peak_beta;
     float               cw_decoder_noise_beta;

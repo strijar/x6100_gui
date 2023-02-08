@@ -37,6 +37,7 @@ static float            *audio_psd_filtered;
 
 static float            peak_filtered;
 static float            noise_filtered;
+static bool             peak_on = false;
 
 void cw_init() {
     audio_buf = cbuffercf_create(fft_all * 10);
@@ -115,13 +116,23 @@ static bool cw_get_peak() {
 
     float snr = peak_filtered - noise_filtered;
 
-    if (snr > params.cw_decoder_snr) {
+    if (peak_on) {
+        if (snr < params.cw_decoder_snr - params.cw_decoder_snr_gist) {
+            peak_on = false;
+        }
+    } else {
+        if (snr > params.cw_decoder_snr) {
+            peak_on = true;
+        }
+    }
+
+#if 0
+    if (peak_on) {
         peak_n = fft_items[0].n;
     } else {
         peak_n = 0;
     }
 
-#if 1
     char    str[128];
     uint8_t i = 0;
     
@@ -143,7 +154,7 @@ static bool cw_get_peak() {
     LV_LOG_INFO("%s [ %i %i ]", str, (int16_t) peak_db, (int16_t) snr);
 #endif
 
-    return (peak_n != 0);
+    return peak_on;
 }
 
 void cw_put_audio_samples(unsigned int n, float complex *samples) {

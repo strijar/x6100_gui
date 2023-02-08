@@ -282,7 +282,7 @@ void spectrum_change_freq(int16_t df) {
     }
 
     if (delta > 0) {
-        for (int16_t i = 0; i < spectrum_size; i++) {
+        for (int16_t i = 0; i < spectrum_size - 1; i++) {
             to = &spectrum_peak[i];
 
             if (i >= spectrum_size - delta) {
@@ -296,7 +296,7 @@ void spectrum_change_freq(int16_t df) {
     } else {
         delta = -delta;
 
-        for (int16_t i = spectrum_size; i > 0; i--) {
+        for (int16_t i = spectrum_size - 1; i > 0; i--) {
             to = &spectrum_peak[i];
         
             if (i <= delta) {

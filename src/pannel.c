@@ -16,8 +16,8 @@
 #include "params.h"
 
 static lv_obj_t     *obj;
-static char         buf[512];
-static char         tmp_buf[512];
+static char         buf[1024];
+static char         tmp_buf[1024];
 static char         *last_line;
 
 static void check_lines() {

@@ -19,8 +19,8 @@ find_package(Threads REQUIRED)
 target_compile_options(${PROJECT_NAME} PRIVATE -g -fno-omit-frame-pointer -fasynchronous-unwind-tables)
 target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
 
-# target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
-# target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+#target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined -fno-sanitize-recover)
+#target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -static-libasan -static-libubsan)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)

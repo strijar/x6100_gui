@@ -59,7 +59,8 @@ params_t params = {
     .key_ratio              = 30,
     
     .cw_decoder             = true,
-    .cw_decoder_snr         = 9.0f,
+    .cw_decoder_snr         = 8.0f,
+    .cw_decoder_snr_gist    = 3.0f,
     .cw_decoder_beta        = 0.80f,
     .cw_decoder_peak_beta   = 0.30f,
     .cw_decoder_noise_beta  = 0.90f,
@@ -404,7 +405,7 @@ static bool params_load() {
         } else if (strcmp(name, "cw_decoder") == 0) {
             params.cw_decoder = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "cw_decoder_snr") == 0) {
-            params.cw_decoder_beta = sqlite3_column_int(stmt, 1) * 0.1f;
+            params.cw_decoder_snr = sqlite3_column_int(stmt, 1) * 0.1f;
         } else if (strcmp(name, "cw_decoder_beta") == 0) {
             params.cw_decoder_beta = sqlite3_column_int(stmt, 1) * 0.01f;
         } else if (strcmp(name, "cw_decoder_peak_beta") == 0) {
