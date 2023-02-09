@@ -61,9 +61,9 @@ params_t params = {
     .cw_decoder             = true,
     .cw_decoder_snr         = 8.0f,
     .cw_decoder_snr_gist    = 3.0f,
-    .cw_decoder_beta        = 0.80f,
-    .cw_decoder_peak_beta   = 0.30f,
-    .cw_decoder_noise_beta  = 0.90f,
+    .cw_decoder_beta        = 0.60f,
+    .cw_decoder_peak_beta   = 0.10f,
+    .cw_decoder_noise_beta  = 0.80f,
 };
 
 params_band_t params_band = {

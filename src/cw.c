@@ -14,6 +14,7 @@
 #include "util.h"
 #include "params.h"
 #include "cw_decoder.h"
+#include "pannel.h"
 
 typedef struct {
     uint16_t    n;
@@ -110,6 +111,12 @@ static bool cw_get_peak() {
 
     peak_db /= peak_width;
     noise_db /= num - peak_width;
+
+    if (peak_db > -3.0f)
+        peak_db = -3.0f;
+
+    if (noise_db > -3.0f)
+        noise_db = -3.0f;
 
     lpf(&peak_filtered, peak_db, params.cw_decoder_peak_beta);
     lpf(&noise_filtered, noise_db, params.cw_decoder_noise_beta);
