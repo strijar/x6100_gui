@@ -86,7 +86,6 @@ typedef enum {
     PAGE_KEY_2,
     
     PAGE_CW_DECODER_1,
-    PAGE_CW_DECODER_2,
 
     PAGE_DFN_1,
     PAGE_DFN_2,
@@ -126,7 +125,7 @@ static button_item_t    buttons[] = {
     { .label = "AGC\nKnee",         .callback = button_mfk_update_cb,       .data = MFK_AGC_KNEE },
     { .label = "AGC\nSlope",        .callback = button_mfk_update_cb,       .data = MFK_AGC_SLOPE },
 
-    { .label = "(MFK 3:4)",         .callback = button_next_page_cb,        .data = PAGE_VOL_1 },
+    { .label = "(MFK 4:4)",         .callback = button_next_page_cb,        .data = PAGE_VOL_1 },
     { .label = "CW\nDecoder",       .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER },
     { .label = "",                  .callback = NULL },
     { .label = "",                  .callback = NULL },
