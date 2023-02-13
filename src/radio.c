@@ -27,7 +27,7 @@
 #include "clock.h"
 
 #define FLOW_RESTART_TIMOUT 300
-#define IDLE_TIMEOUT        (5 * 1000)
+#define IDLE_TIMEOUT        (3 * 1000)
 
 static lv_obj_t         *main_obj;
 
@@ -40,7 +40,7 @@ static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
 
-static update_agc_time();
+static void update_agc_time();
 
 static void radio_lock() {
     pthread_mutex_lock(&control_mux);
@@ -523,7 +523,7 @@ uint32_t radio_change_filter_high(int32_t df) {
     return params_mode.filter_high;
 }
 
-static update_agc_time() {
+static void update_agc_time() {
     x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
     uint16_t        agc_time = 500;
@@ -1101,4 +1101,10 @@ uint8_t radio_change_agc_slope(int16_t d) {
     radio_unlock();
 
     return params.agc_slope;
+}
+
+void radio_set_ptt(bool tx) {
+    radio_lock();
+    x6100_control_ptt_set(tx);
+    radio_unlock();
 }

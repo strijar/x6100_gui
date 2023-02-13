@@ -62,7 +62,7 @@ rotary_t * rotary_init(char *dev_name, uint8_t id) {
 
     lv_timer_t *timer = lv_indev_get_read_timer(rotary->indev);
     
-    lv_timer_set_period(timer, 100);
+    lv_timer_set_period(timer, 10);
     
     return rotary;
 }

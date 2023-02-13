@@ -85,3 +85,4 @@ void radio_mode_set();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();
+void radio_set_ptt(bool tx);

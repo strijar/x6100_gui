@@ -59,3 +59,21 @@ float sqr(float x) {
 void lpf(float *x, float current, float beta) {
     *x = *x * beta + current * (1.0f - beta);
 }
+
+void to_bcd(uint8_t bcd_data[], uint64_t data, uint8_t len) {
+    uint8_t i;
+    
+    for (i = 0; i < len / 2; i++) {
+        uint8_t a = data % 10;
+        
+        data /= 10;
+        a |= (data % 10) << 4;
+        data /= 10;
+        bcd_data[i] = a;
+    }
+
+    if (len & 1) {
+        bcd_data[i] &= 0x0f;
+        bcd_data[i] |= data % 10;
+    }
+}
