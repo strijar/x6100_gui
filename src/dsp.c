@@ -65,7 +65,7 @@ void dsp_init() {
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
 
     for (uint16_t i = 0; i < nfft; i++)
-        spectrum_psd_filtered[i] = -130.0f;
+        spectrum_psd_filtered[i] = S_MIN;
 
     waterfall_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     waterfall_psd = (float *) malloc(nfft * sizeof(float));
@@ -203,7 +203,7 @@ void dsp_set_spectrum_factor(uint8_t x) {
     spgramcf_reset(spectrum_sg);
 
     for (uint16_t i = 0; i < nfft; i++)
-        spectrum_psd_filtered[i] = -130.0f;
+        spectrum_psd_filtered[i] = S_MIN;
 
     pthread_mutex_unlock(&spectrum_mux);
     spectrum_clear();

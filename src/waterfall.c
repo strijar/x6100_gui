@@ -205,8 +205,8 @@ void waterfall_change_min(int16_t d) {
 
     if (x > S7) {
         x = S7;
-    } else if (x < S1) {
-        x = S1;
+    } else if (x < S_MIN) {
+        x = S_MIN;
     }
 
     params_lock();

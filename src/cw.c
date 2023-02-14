@@ -15,6 +15,7 @@
 #include "params.h"
 #include "cw_decoder.h"
 #include "pannel.h"
+#include "meter.h"
 
 typedef struct {
     uint16_t    n;
@@ -50,8 +51,8 @@ void cw_init() {
 
     audio_psd_sum = (float *) malloc(FFT * sizeof(float));
 
-    peak_filtered = -130.0f;
-    noise_filtered = -100.0f;
+    peak_filtered = S_MIN;
+    noise_filtered = S_MIN;
 
     ready = true;
 }

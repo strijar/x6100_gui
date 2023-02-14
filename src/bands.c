@@ -105,6 +105,7 @@ void bands_change(bool up) {
             band_t *band = bands[index];
 
             bands_activate(band, NULL);
+            radio_load_atu();
             info_params_set();
             pannel_visible();
 

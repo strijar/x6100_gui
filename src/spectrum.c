@@ -16,6 +16,7 @@
 #include "dsp.h"
 #include "params.h"
 #include "util.h"
+#include "meter.h"
 
 static lv_obj_t         *obj;
 
@@ -253,7 +254,7 @@ void spectrum_clear() {
     uint64_t now = get_time();
 
     for (uint16_t i = 0; i < spectrum_size; i++) {
-        spectrum_peak[i].val = -130;
+        spectrum_peak[i].val = S_MIN;
         spectrum_peak[i].time = now;
     }
 }
@@ -286,7 +287,7 @@ void spectrum_change_freq(int16_t df) {
             to = &spectrum_peak[i];
 
             if (i >= spectrum_size - delta) {
-                to->val = -130.0f;
+                to->val = S_MIN;
                 to->time = time;
             } else {
                 from = &spectrum_peak[i + delta];
@@ -300,7 +301,7 @@ void spectrum_change_freq(int16_t df) {
             to = &spectrum_peak[i];
         
             if (i <= delta) {
-                to->val = -130.0f;
+                to->val = S_MIN;
                 to->time = time;
             } else {
                 from = &spectrum_peak[i - delta];
