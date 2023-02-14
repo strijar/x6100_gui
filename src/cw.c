@@ -21,53 +21,37 @@ typedef struct {
     float       db;
 } fft_item_t;
 
-const static uint16_t   fft = 1024;
-const static uint16_t   fft_over = fft / 8;
-const static uint16_t   fft_all = fft + fft_over;
+#define FFT             1024
+#define OVER            8
+#define FFT_OVER        (FFT / OVER)
+#define FFT_ALL         (FFT + FFT_OVER)
 
 static bool             ready = false;
 
-static fft_item_t       fft_items[512];
-static float complex    *fft_window;
-static float complex    *window_buf;
+static fft_item_t       fft_items[FFT / 2];
 
 static cbuffercf        audio_buf;
 static spgramcf         audio_sg;
-static float            *audio_psd;
-static float            *audio_psd_filtered;
+static float            *audio_psd[OVER];
+static float            *audio_psd_sum;
+static uint8_t          audio_psd_index = 0;
 
 static float            peak_filtered;
 static float            noise_filtered;
 static bool             peak_on = false;
 
 void cw_init() {
-    audio_buf = cbuffercf_create(fft_all * 10);
+    audio_buf = cbuffercf_create(FFT_ALL * 10);
 
-    audio_sg = spgramcf_create(fft, LIQUID_WINDOW_HANN, fft, fft);
-    audio_psd = (float *) malloc(fft * sizeof(float));
-    audio_psd_filtered = (float *) malloc(fft * sizeof(float));
+    audio_sg = spgramcf_create(FFT, LIQUID_WINDOW_BLACKMANHARRIS, FFT, FFT);
 
-    for (uint16_t i = 0; i < fft; i++)
-        audio_psd_filtered[i] = -130.0f;
+    for (uint8_t i = 0; i < OVER; i++)
+        audio_psd[i] = (float *) malloc(FFT * sizeof(float));
+
+    audio_psd_sum = (float *) malloc(FFT * sizeof(float));
 
     peak_filtered = -130.0f;
     noise_filtered = -100.0f;
-
-    fft_window = malloc(fft * sizeof(float complex));
-    window_buf = malloc(fft * sizeof(float complex));
-
-    for (uint16_t i = 0; i < fft; i++)
-        fft_window[i] = liquid_hamming(i, fft);
-
-    float g = 0.0f;
-
-    for (uint16_t i = 0; i < fft; i++)
-        g += fft_window[i] * fft_window[i];
-
-    g = 1.0f / sqrtf(g);
-
-    for (uint16_t i = 0; i < fft; i++)
-        fft_window[i] = g * fft_window[i];
 
     ready = true;
 }
@@ -80,8 +64,8 @@ static int compare_fft_items(const void *p1, const void *p2) {
 }
 
 static bool cw_get_peak() {
-    uint32_t    start = fft / 2 + fft * params_mode.filter_low / AUDIO_CAPTURE_RATE;
-    uint32_t    stop = fft / 2 + fft * params_mode.filter_high / AUDIO_CAPTURE_RATE;
+    uint32_t    start = FFT / 2 + FFT * params_mode.filter_low / AUDIO_CAPTURE_RATE;
+    uint32_t    stop = FFT / 2 + FFT * params_mode.filter_high / AUDIO_CAPTURE_RATE;
     uint16_t    num = stop - start;
 
     float       peak_db = 0;
@@ -92,7 +76,7 @@ static bool cw_get_peak() {
 
     for (uint16_t n = start; n < stop; n++) {
         fft_items[item].n = n;
-        fft_items[item].db = audio_psd_filtered[n];
+        fft_items[item].db = audio_psd_sum[n];
         
         item++;
     }
@@ -122,13 +106,15 @@ static bool cw_get_peak() {
     lpf(&noise_filtered, noise_db, params.cw_decoder_noise_beta);
 
     float snr = peak_filtered - noise_filtered;
+    float snr_max = params.cw_decoder_snr * OVER;
+    float snr_min = (params.cw_decoder_snr - params.cw_decoder_snr_gist) * OVER;
 
     if (peak_on) {
-        if (snr < params.cw_decoder_snr - params.cw_decoder_snr_gist) {
+        if (snr < snr_min) {
             peak_on = false;
         }
     } else {
-        if (snr > params.cw_decoder_snr) {
+        if (snr > snr_max) {
             peak_on = true;
         }
     }
@@ -148,7 +134,7 @@ static bool cw_get_peak() {
         
         if (n == peak_n) {
             c = '#';
-        } else if (audio_psd_filtered[n] > noise_filtered) {
+        } else if (audio_psd_sum[n] > noise_filtered) {
             c = '.';
         } else {
             c = ' ';
@@ -158,7 +144,7 @@ static bool cw_get_peak() {
     }
     
     str[i] = '\0';
-    LV_LOG_INFO("%s [ %i %i ]", str, (int16_t) peak_db, (int16_t) snr);
+    LV_LOG_INFO("[ %s ]", str);
 #endif
 
     return peak_on;
@@ -171,29 +157,38 @@ void cw_put_audio_samples(unsigned int n, float complex *samples) {
 
     cbuffercf_write(audio_buf, samples, n);
     
-    while (cbuffercf_size(audio_buf) > fft_all) {
+    while (cbuffercf_size(audio_buf) > FFT_ALL) {
         unsigned int n;
         float complex *buf;
         
-        cbuffercf_read(audio_buf, fft, &buf, &n);
+        cbuffercf_read(audio_buf, FFT, &buf, &n);
         
-        for (uint16_t i = 0; i < fft; i++)
-            window_buf[i] = buf[i] * fft_window[i];
+        spgramcf_write(audio_sg, buf, n);
+        cbuffercf_release(audio_buf, FFT_OVER);
         
-        spgramcf_write(audio_sg, window_buf, n);
-        cbuffercf_release(audio_buf, fft_over);
-        
-        spgramcf_get_psd(audio_sg, audio_psd);
+        spgramcf_get_psd(audio_sg, audio_psd[audio_psd_index]);
         spgramcf_reset(audio_sg);
+        
+        audio_psd_index++;
+        
+        if (audio_psd_index >= OVER) {
+            audio_psd_index = 0;
+        }
 
-        for (uint16_t i = 0; i < fft; i++) {
-            float psd = audio_psd[i];
-
-            lpf(&audio_psd_filtered[i], psd, params.cw_decoder_beta);
+        for (uint16_t i = 0; i < FFT; i++) {
+            float sum = 0;
+            
+            for (uint8_t n = 0; n < OVER; n++) {
+                float *psd = audio_psd[n];
+                
+                sum += psd[i];
+            }
+            
+            audio_psd_sum[i] = sum;
         }
 
         if (params.cw_decoder) {
-            cw_decoder_signal(cw_get_peak(), fft_over * 1000.0f / AUDIO_CAPTURE_RATE);
+            cw_decoder_signal(cw_get_peak(), FFT_OVER * 1000.0f / AUDIO_CAPTURE_RATE);
         }
     }
 }
@@ -230,26 +225,6 @@ float cw_change_snr(int16_t df) {
     params_unlock(&params.durty.cw_decoder_snr);
 
     return params.cw_decoder_snr;
-}
-
-float cw_change_beta(int16_t df) {
-    if (df == 0) {
-        return params.cw_decoder_beta;
-    }
-
-    float x = params.cw_decoder_beta + df * 0.01f;
-
-    if (x < 0.1f) {
-        x = 0.1f;
-    } else if (x > 0.95f) {
-        x = 0.95f;
-    }
-
-    params_lock();
-    params.cw_decoder_beta = x;
-    params_unlock(&params.durty.cw_decoder_beta);
-    
-    return params.cw_decoder_beta;
 }
 
 float cw_change_peak_beta(int16_t df) {

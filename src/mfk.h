@@ -47,7 +47,6 @@ typedef enum {
     
     MFK_CW_DECODER,
     MFK_CW_DECODER_SNR,
-    MFK_CW_DECODER_BETA,
     MFK_CW_DECODER_PEAK_BETA,
     MFK_CW_DECODER_NOISE_BETA
 } mfk_mode_t;

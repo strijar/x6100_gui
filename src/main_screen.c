@@ -80,7 +80,6 @@ typedef enum {
     PAGE_MFK_1,
     PAGE_MFK_2,
     PAGE_MFK_3,
-    PAGE_MFK_4,
 
     PAGE_KEY_1,
     PAGE_KEY_2,
@@ -107,29 +106,23 @@ static button_item_t    buttons[] = {
     { .label = "I-MIC\nGain",       .callback = button_vol_update_cb,       .data = VOL_IMIC },
     { .label = "",                  .callback = NULL },
     
-    { .label = "(MFK 1:4)",         .callback = button_next_page_cb,        .data = PAGE_MFK_2 },
+    { .label = "(MFK 1:3)",         .callback = button_next_page_cb,        .data = PAGE_MFK_2 },
     { .label = "Min\nLevel",        .callback = button_mfk_update_cb,       .data = MFK_MIN_LEVEL },
     { .label = "Max\nLevel",        .callback = button_mfk_update_cb,       .data = MFK_MAX_LEVEL },
     { .label = "Spectrum\nZoom",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_FACTOR },
     { .label = "Spectrum\nBeta",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_BETA },
 
-    { .label = "(MFK 2:4)",         .callback = button_next_page_cb,        .data = PAGE_MFK_3 },
+    { .label = "(MFK 2:3)",         .callback = button_next_page_cb,        .data = PAGE_MFK_3 },
     { .label = "Spectrum\nFill",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_FILL },
     { .label = "Spectrum\nPeak",    .callback = button_mfk_update_cb,       .data = MFK_SPECTRUM_PEAK },
     { .label = "Peaks\nHold",       .callback = button_mfk_update_cb,       .data = MFK_PEAK_HOLD },
     { .label = "Peaks\nSpeed",      .callback = button_mfk_update_cb,       .data = MFK_PEAK_SPEED },
 
-    { .label = "(MFK 3:4)",         .callback = button_next_page_cb,        .data = PAGE_MFK_4 },
+    { .label = "(MFK 3:3)",         .callback = button_next_page_cb,        .data = PAGE_VOL_1 },
     { .label = "Charger",           .callback = button_mfk_update_cb,       .data = MFK_CHARGER },
     { .label = "AGC\nHang",         .callback = button_mfk_update_cb,       .data = MFK_AGC_HANG },
     { .label = "AGC\nKnee",         .callback = button_mfk_update_cb,       .data = MFK_AGC_KNEE },
     { .label = "AGC\nSlope",        .callback = button_mfk_update_cb,       .data = MFK_AGC_SLOPE },
-
-    { .label = "(MFK 4:4)",         .callback = button_next_page_cb,        .data = PAGE_VOL_1 },
-    { .label = "CW\nDecoder",       .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER },
-    { .label = "",                  .callback = NULL },
-    { .label = "",                  .callback = NULL },
-    { .label = "",                  .callback = NULL },
 
     /* CW */
     
@@ -146,8 +139,8 @@ static button_item_t    buttons[] = {
     { .label = "Ratio",             .callback = button_mfk_update_cb,       .data = MFK_KEY_RATIO },
 
     { .label = "(CW 1:1)",          .callback = button_next_page_cb,        .data = PAGE_KEY_1 },
+    { .label = "CW\nDecoder",       .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER },
     { .label = "CW\nSNR",           .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER_SNR },
-    { .label = "CW\nBeta",          .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER_BETA },
     { .label = "CW Peak\nBeta",     .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER_PEAK_BETA },
     { .label = "CW Noise\nBeta",    .callback = button_mfk_update_cb,       .data = MFK_CW_DECODER_NOISE_BETA },
     

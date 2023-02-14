@@ -59,9 +59,8 @@ params_t params = {
     .key_ratio              = 30,
     
     .cw_decoder             = true,
-    .cw_decoder_snr         = 8.0f,
+    .cw_decoder_snr         = 10.0f,
     .cw_decoder_snr_gist    = 3.0f,
-    .cw_decoder_beta        = 0.60f,
     .cw_decoder_peak_beta   = 0.10f,
     .cw_decoder_noise_beta  = 0.80f,
 };
@@ -406,8 +405,6 @@ static bool params_load() {
             params.cw_decoder = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "cw_decoder_snr") == 0) {
             params.cw_decoder_snr = sqlite3_column_int(stmt, 1) * 0.1f;
-        } else if (strcmp(name, "cw_decoder_beta") == 0) {
-            params.cw_decoder_beta = sqlite3_column_int(stmt, 1) * 0.01f;
         } else if (strcmp(name, "cw_decoder_peak_beta") == 0) {
             params.cw_decoder_peak_beta = sqlite3_column_int(stmt, 1) * 0.01f;
         } else if (strcmp(name, "cw_decoder_noise_beta") == 0) {
@@ -490,7 +487,6 @@ static bool params_save() {
 
     if (params.durty.cw_decoder)            params_write_int("cw_decoder", params.cw_decoder, &params.durty.cw_decoder);
     if (params.durty.cw_decoder_snr)        params_write_int("cw_decoder_snr", params.cw_decoder_snr * 10, &params.durty.cw_decoder_snr);
-    if (params.durty.cw_decoder_beta)       params_write_int("cw_decoder_beta", params.cw_decoder_beta * 100, &params.durty.cw_decoder_beta);
     if (params.durty.cw_decoder_peak_beta)  params_write_int("cw_decoder_peak_beta", params.cw_decoder_peak_beta * 100, &params.durty.cw_decoder_peak_beta);
     if (params.durty.cw_decoder_noise_beta) params_write_int("cw_decoder_noise_beta", params.cw_decoder_noise_beta * 100, &params.durty.cw_decoder_noise_beta);
 

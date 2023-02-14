@@ -261,11 +261,6 @@ void mfk_update(int16_t diff) {
             msg_set_text_fmt("CW decoder SNR: %.1f dB", f);
             break;
             
-        case MFK_CW_DECODER_BETA:
-            f = cw_change_beta(diff);
-            msg_set_text_fmt("CW decoder beta: %.2f", f);
-            break;
-            
         case MFK_CW_DECODER_PEAK_BETA:
             f = cw_change_peak_beta(diff);
             msg_set_text_fmt("CW decoder peak beta: %.2f", f);
