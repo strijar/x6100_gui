@@ -36,19 +36,25 @@ void radio_init(lv_obj_t *obj);
 bool radio_tick();
 radio_state_t radio_get_state();
 
+void radio_set_freq(uint64_t freq);
 uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
+
+void radio_set_mode(x6100_vfo_t vfo,  x6100_mode_t mode);
+void radio_change_mode(radio_mode_t select);
+
+x6100_vfo_t radio_set_vfo(x6100_vfo_t vfo);
+x6100_vfo_t radio_change_vfo();
+
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);
 uint32_t radio_change_filter_high(int32_t freq);
 bool radio_change_pre();
 bool radio_change_att();
-void radio_change_mode(radio_mode_t select);
 void radio_change_agc();
 void radio_change_atu();
 void radio_change_split();
 float radio_change_pwr(int16_t d);
-x6100_vfo_t radio_change_vfo();
 
 uint16_t radio_change_key_speed(int16_t d);
 x6100_key_mode_t radio_change_key_mode(int16_t d);

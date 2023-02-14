@@ -61,7 +61,7 @@ void lpf(float *x, float current, float beta) {
 }
 
 void to_bcd(uint8_t bcd_data[], uint64_t data, uint8_t len) {
-    uint8_t i;
+    int16_t i;
     
     for (i = 0; i < len / 2; i++) {
         uint8_t a = data % 10;
@@ -76,4 +76,22 @@ void to_bcd(uint8_t bcd_data[], uint64_t data, uint8_t len) {
         bcd_data[i] &= 0x0f;
         bcd_data[i] |= data % 10;
     }
+}
+
+uint64_t from_bcd(const uint8_t bcd_data[], uint8_t len) {
+    int16_t     i;
+    uint64_t    data = 0;
+    
+    if (len & 1) {
+        data = bcd_data[len / 2] & 0x0F;
+    }
+    
+    for (i = (len / 2) - 1; i >= 0; i--) {
+        data *= 10;
+        data += bcd_data[i] >> 4;
+        data *= 10;
+        data += bcd_data[i] & 0x0F;
+    }
+    
+    return data;
 }

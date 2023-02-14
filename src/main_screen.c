@@ -238,7 +238,6 @@ void main_screen_set_freq() {
     lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
     
     band_info_update(f);
-    radio_load_atu();
 }
 
 static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
@@ -249,6 +248,8 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
             if (params.freq_band->id != params.band) {
                 params_band_freq_set(prev_freq);
                 bands_activate(params.freq_band, &freq);
+                info_params_set();
+                pannel_visible();
             }
         } else {
             params.freq_band = NULL;
@@ -630,6 +631,14 @@ static void main_screen_radio_cb(lv_event_t * e) {
     lv_event_send(spectrum, code, NULL);
 }
 
+static void main_screen_update_cb(lv_event_t * e) {
+    main_screen_set_freq();
+    info_params_set();
+
+    waterfall_clear();
+    spectrum_clear();
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = 0;
 
@@ -640,6 +649,7 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_hkey_cb, EVENT_HKEY, NULL);
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
+    lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);

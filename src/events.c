@@ -18,6 +18,7 @@ uint32_t        EVENT_HKEY;
 uint32_t        EVENT_RADIO_TX;
 uint32_t        EVENT_RADIO_RX;
 uint32_t        EVENT_PANNEL_UPDATE;
+uint32_t        EVENT_SCREEN_UPDATE;
 
 typedef struct {
     lv_obj_t        *obj;
@@ -37,6 +38,7 @@ void event_init() {
     EVENT_RADIO_TX = lv_event_register_id();
     EVENT_RADIO_RX = lv_event_register_id();
     EVENT_PANNEL_UPDATE = lv_event_register_id();
+    EVENT_SCREEN_UPDATE = lv_event_register_id();
     
     for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         queue[i] = NULL;

@@ -19,3 +19,4 @@ float sqr(float x);
 void lpf(float *x, float current, float beta);
 
 void to_bcd(uint8_t bcd_data[], uint64_t data, uint8_t len);
+uint64_t from_bcd(const uint8_t bcd_data[], uint8_t len);

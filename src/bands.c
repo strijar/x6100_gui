@@ -72,8 +72,6 @@ void bands_activate(band_t *band, uint64_t *freq) {
     spectrum_mode_set();
     spectrum_band_set();
     waterfall_band_set();
-    info_params_set();
-    pannel_visible();
 }
 
 void bands_change(bool up) {
@@ -107,6 +105,8 @@ void bands_change(bool up) {
             band_t *band = bands[index];
 
             bands_activate(band, NULL);
+            info_params_set();
+            pannel_visible();
 
             waterfall_clear();
             spectrum_clear();
