@@ -19,6 +19,7 @@
 #include "meter.h"
 #include "audio.h"
 #include "cw.h"
+#include "rtty.h"
 
 static int32_t          nfft = 400;
 static iirfilt_cccf     dc_block;
@@ -229,5 +230,9 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
 
     if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
         cw_put_audio_samples(nsamples, audio);
+    }
+    
+    if (mode == x6100_mode_usb || mode == x6100_mode_usb_dig) {
+        rtty_put_audio_samples(nsamples, audio);
     }
 }

@@ -166,6 +166,18 @@ static void spectrum_draw_cb(lv_event_t * e) {
 
         lv_draw_rect(draw_ctx, &rect_dsc, &area);
     }
+    
+    if (params.rtty_decoder) {
+        main_a.x = x1 + w / 2 + w * (params.rtty_center - params.rtty_width / 2) / w_hz;
+        main_a.y = y1 + h - visor_height;
+        main_b.x = main_a.x;
+        main_b.y = y1 + h;
+        lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
+
+        main_a.x = x1 + w / 2 + w * (params.rtty_center + params.rtty_width / 2) / w_hz;
+        main_b.x = main_a.x;
+        lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
+    }
 
     /* Center */
 

@@ -31,6 +31,7 @@
 #include "cw.h"
 #include "pannel.h"
 #include "cat.h"
+#include "rtty.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -102,6 +103,7 @@ int main(void) {
 
     cw_init();
     dsp_init();
+    rtty_init();
     radio_init(main_obj);
     cat_init();
     pannel_visible();

@@ -63,6 +63,12 @@ params_t params = {
     .cw_decoder_snr_gist    = 3.0f,
     .cw_decoder_peak_beta   = 0.10f,
     .cw_decoder_noise_beta  = 0.80f,
+    
+    .rtty_decoder           = true,
+    .rtty_center            = 800,
+    .rtty_width             = 450,
+    .rtty_rate              = 50.0f,
+    .rtty_bits              = 5,
 };
 
 params_band_t params_band = {

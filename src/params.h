@@ -132,6 +132,14 @@ typedef struct {
     float               cw_decoder_snr_gist;
     float               cw_decoder_peak_beta;
     float               cw_decoder_noise_beta;
+
+    /* RTTY */
+    
+    bool                rtty_decoder;
+    uint16_t            rtty_center;
+    uint16_t            rtty_width;
+    float               rtty_rate;
+    uint8_t             rtty_bits;
     
     /* durty flags */
     

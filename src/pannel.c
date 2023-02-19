@@ -58,16 +58,24 @@ static void pannel_update_cb(lv_event_t * e) {
     lv_point_t text_size;
 
     char *text = lv_event_get_param(e);
+    
+    if (strcmp(text, "\n") == 0) {
+        if (last_line[strlen(last_line) - 1] != '\n') {
+            strcat(last_line, text);
+            check_lines();
+        }
+    } else {
+        lv_txt_get_size(&line_size, last_line, &sony_38, 0, 0, LV_COORD_MAX, 0);
+        lv_txt_get_size(&text_size, text, &sony_38, 0, 0, LV_COORD_MAX, 0);
 
-    lv_txt_get_size(&line_size, last_line, &sony_38, 0, 0, LV_COORD_MAX, 0);
-    lv_txt_get_size(&text_size, text, &sony_38, 0, 0, LV_COORD_MAX, 0);
-
-    if (line_size.x + text_size.x > (lv_obj_get_width(obj) - 40)) {
-        strcat(last_line, "\n");
-        check_lines();
+        if (line_size.x + text_size.x > (lv_obj_get_width(obj) - 40)) {
+            strcat(last_line, "\n");
+            check_lines();
+        }
+    
+        strcat(last_line, text);
     }
     
-    strcat(last_line, text);
     lv_label_set_text_static(obj, buf);
 }
 
@@ -89,8 +97,16 @@ void pannel_visible() {
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
     bool            on = false;
 
-    if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
-        on = params.cw_decoder;
+    switch (mode) {
+        case x6100_mode_cw:
+        case x6100_mode_cwr:
+            on = params.cw_decoder;
+            break;
+            
+        case x6100_mode_usb:
+        case x6100_mode_usb_dig:
+            on = params.rtty_decoder;
+            break;
     }
 
     if (on) {
