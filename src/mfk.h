@@ -17,7 +17,6 @@ typedef enum {
     MFK_SPECTRUM_BETA,
     MFK_PEAK_HOLD,
     MFK_PEAK_SPEED,
-    MFK_LAST,
 
     MFK_SPECTRUM_FILL,
     MFK_SPECTRUM_PEAK,
@@ -48,7 +47,9 @@ typedef enum {
     MFK_CW_DECODER,
     MFK_CW_DECODER_SNR,
     MFK_CW_DECODER_PEAK_BETA,
-    MFK_CW_DECODER_NOISE_BETA
+    MFK_CW_DECODER_NOISE_BETA,
+
+    MFK_LAST,
 } mfk_mode_t;
 
 void mfk_update(int16_t diff);

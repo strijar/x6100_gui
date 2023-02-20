@@ -68,6 +68,9 @@ typedef struct {
 } params_band_t;
 
 typedef struct {
+    uint64_t            vol_modes;
+    uint64_t            mfk_modes;
+
     /* band info */
     
     band_t              *freq_band;
@@ -144,6 +147,9 @@ typedef struct {
     /* durty flags */
     
     struct {
+        bool    vol_modes;
+        bool    mfk_modes;
+
         bool    band;
         bool    vol;
         bool    rfg;

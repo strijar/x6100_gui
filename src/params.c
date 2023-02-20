@@ -15,10 +15,15 @@
 #include "params.h"
 #include "util.h"
 #include "bands.h"
+#include "main_screen.h"
+#include "mfk.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
+    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_RFG) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
+    .mfk_modes              = (1 <<MFK_MIN_LEVEL) | (1 << MFK_MAX_LEVEL) | (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
+
     .spectrum_beta          = 70,
     .spectrum_filled        = true,
     .spectrum_peak          = true,
@@ -415,6 +420,10 @@ static bool params_load() {
             params.cw_decoder_peak_beta = sqlite3_column_int(stmt, 1) * 0.01f;
         } else if (strcmp(name, "cw_decoder_noise_beta") == 0) {
             params.cw_decoder_noise_beta = sqlite3_column_int(stmt, 1) * 0.01f;
+        } else if (strcmp(name, "vol_modes") == 0) {
+            params.vol_modes = sqlite3_column_int64(stmt, 1);
+        } else if (strcmp(name, "mfk_modes") == 0) {
+            params.mfk_modes = sqlite3_column_int64(stmt, 1);
         }
     }
     
@@ -439,6 +448,16 @@ static bool params_exec(const char *sql) {
 static void params_write_int(const char *name, int data, bool *durty) {
     sqlite3_bind_text(write_stmt, 1, name, strlen(name), 0);
     sqlite3_bind_int(write_stmt, 2, data);
+    sqlite3_step(write_stmt);
+    sqlite3_reset(write_stmt);
+    sqlite3_clear_bindings(write_stmt);
+    
+    *durty = false;
+}
+
+static void params_write_int64(const char *name, uint64_t data, bool *durty) {
+    sqlite3_bind_text(write_stmt, 1, name, strlen(name), 0);
+    sqlite3_bind_int64(write_stmt, 2, data);
     sqlite3_step(write_stmt);
     sqlite3_reset(write_stmt);
     sqlite3_clear_bindings(write_stmt);
@@ -495,6 +514,9 @@ static bool params_save() {
     if (params.durty.cw_decoder_snr)        params_write_int("cw_decoder_snr", params.cw_decoder_snr * 10, &params.durty.cw_decoder_snr);
     if (params.durty.cw_decoder_peak_beta)  params_write_int("cw_decoder_peak_beta", params.cw_decoder_peak_beta * 100, &params.durty.cw_decoder_peak_beta);
     if (params.durty.cw_decoder_noise_beta) params_write_int("cw_decoder_noise_beta", params.cw_decoder_noise_beta * 100, &params.durty.cw_decoder_noise_beta);
+
+    if (params.durty.vol_modes)             params_write_int64("vol_modes", params.vol_modes, &params.durty.vol_modes);
+    if (params.durty.mfk_modes)             params_write_int64("mfk_modes", params.mfk_modes, &params.durty.mfk_modes);
 
     if (!params_exec("COMMIT")) {
         return false;

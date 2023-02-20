@@ -8,5 +8,19 @@
 
 #pragma once
 
+typedef enum {
+    VOL_VOL = 0,
+    VOL_SQL,
+    VOL_RFG,
+    VOL_FILTER_LOW,
+    VOL_FILTER_HIGH,
+    VOL_PWR,
+    VOL_HMIC,
+    VOL_MIC,
+    VOL_IMIC,
+    
+    VOL_LAST
+} vol_mode_t;
+
 lv_obj_t * main_screen();
 void main_screen_band_set();

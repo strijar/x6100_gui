@@ -274,7 +274,14 @@ void mfk_update(int16_t diff) {
 }
 
 void mfk_press(int16_t dir) {
-    mfk_mode = (mfk_mode + dir) % MFK_LAST;
+    while (true) {
+        mfk_mode = (mfk_mode + dir) % MFK_LAST;
+        
+        if (params.mfk_modes & (1 << mfk_mode)) {
+            break;
+        }
+    }
+    
     mfk_update(0);
 }
 
