@@ -223,6 +223,7 @@ void radio_init(lv_obj_t *obj) {
 
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
+    x6100_control_sql_set(params.sql);
     x6100_control_atu_set(params.atu);
     x6100_control_txpwr_set(params.pwr);
     x6100_control_charger_set(params.charger);
@@ -320,6 +321,22 @@ uint16_t radio_change_rfg(int16_t df) {
     radio_unlock();
 
     return params.rfg;
+}
+
+uint16_t radio_change_sql(int16_t df) {
+    if (df == 0) {
+        return params.sql;
+    }
+    
+    params_lock();
+    params.sql = limit(params.sql + df, 0, 100);
+    params_unlock(&params.durty.sql);
+
+    radio_lock();
+    x6100_control_sql_set(params.sql);
+    radio_unlock();
+
+    return params.sql;
 }
 
 bool radio_change_pre() {

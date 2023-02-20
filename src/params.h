@@ -80,6 +80,7 @@ typedef struct {
     uint8_t             band;
     int16_t             vol;
     int16_t             rfg;
+    uint8_t             sql;
     bool                atu;
     uint8_t             ant;
     float               pwr;
@@ -153,6 +154,7 @@ typedef struct {
         bool    band;
         bool    vol;
         bool    rfg;
+        bool    sql;
         bool    atu;
         bool    ant;
         bool    pwr;

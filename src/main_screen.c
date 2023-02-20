@@ -318,6 +318,11 @@ static void vol_update(int16_t diff) {
             msg_set_text_fmt("RF gain: %i", x);
             break;
 
+        case VOL_SQL:
+            x = radio_change_sql(diff);
+            msg_set_text_fmt("Voice SQL: %i", x);
+            break;
+
         case VOL_FILTER_LOW:
             x = radio_change_filter_low(diff);
             msg_set_text_fmt("Filter low: %i Hz", x);

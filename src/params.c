@@ -352,6 +352,8 @@ static bool params_load() {
             params.vol = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "rfg") == 0) {
             params.rfg = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "sql") == 0) {
+            params.sql = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "atu") == 0) {
             params.atu = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "pwr") == 0) {
@@ -473,6 +475,7 @@ static bool params_save() {
     if (params.durty.band)                  params_write_int("band", params.band, &params.durty.band);
     if (params.durty.vol)                   params_write_int("vol", params.vol, &params.durty.vol);
     if (params.durty.rfg)                   params_write_int("rfg", params.rfg, &params.durty.rfg);
+    if (params.durty.sql)                   params_write_int("sql", params.sql, &params.durty.sql);
     if (params.durty.atu)                   params_write_int("atu", params.atu, &params.durty.atu);
     if (params.durty.pwr)                   params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
 
