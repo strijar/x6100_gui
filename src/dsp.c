@@ -232,7 +232,7 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
         cw_put_audio_samples(nsamples, audio);
     }
     
-    if (mode == x6100_mode_usb || mode == x6100_mode_usb_dig) {
+    if (rtty_is_enabled()) {
         rtty_put_audio_samples(nsamples, audio);
     }
 }

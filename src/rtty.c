@@ -7,11 +7,13 @@
  */
 
 #include <math.h>
+#include <pthread.h>
 #include "lvgl/lvgl.h"
 #include "rtty.h"
 #include "audio.h"
 #include "params.h"
 #include "pannel.h"
+#include "util.h"
 
 #define SYMBOL_OVER         8
 #define SYMBOL_FACTOR       2
@@ -27,6 +29,8 @@ typedef enum {
     RX_STATE_STOP
 } rx_state_t;
 
+static pthread_mutex_t  rtty_mux;
+
 static fskdem           demod = NULL;
 
 static nco_crcf         nco = NULL;
@@ -36,7 +40,7 @@ static uint16_t         symbol_samples;
 static uint16_t         symbol_over;
 
 static cbuffercf        rx_buf;
-static complex float    *rx_window;
+static complex float    *rx_window = NULL;
 static uint8_t          rx_symbol[SYMBOL_LEN];
 static rx_state_t       rx_state = RX_STATE_IDLE;
 static uint8_t          rx_counter = 0;
@@ -45,6 +49,7 @@ static uint8_t          rx_data = 0;
 static bool             rx_letter = true;
 
 static bool             ready = false;
+static bool             enable = false;
 
 static const char rtty_letters[32] = {
     '\0',   'E',    '\n',   'A',    ' ',    'S',    'I',    'U',
@@ -60,20 +65,24 @@ static const char rtty_symbols[32] = {
     '9',    '?',    '&',    ' ',    '.',    '/',    ';',    ' '
 };
 
-void rtty_init() {
-    symbol_samples = (float) AUDIO_CAPTURE_RATE / params.rtty_rate / (float) SYMBOL_FACTOR + 0.5f;
-    symbol_over = symbol_samples / SYMBOL_OVER;
-
+static void update_nco() {
     float radians = 2.0f * (float) M_PI * (float) params.rtty_center / (float) AUDIO_CAPTURE_RATE;
 
-    nco = nco_crcf_create(LIQUID_NCO);
     nco_crcf_set_phase(nco, 0.0f);
     nco_crcf_set_frequency(nco, radians);
+}
+
+static void init() {
+    symbol_samples = (float) AUDIO_CAPTURE_RATE / (float) (params.rtty_rate / 100.0f) / (float) SYMBOL_FACTOR + 0.5f;
+    symbol_over = symbol_samples / SYMBOL_OVER;
+
+    nco = nco_crcf_create(LIQUID_NCO);
     nco_buf = (float complex*) malloc(symbol_samples * sizeof(float complex));
+    update_nco();
 
     /* RX */
 
-    demod = fskdem_create(1, symbol_samples, (float) params.rtty_width / (float) AUDIO_CAPTURE_RATE / 2.0f);
+    demod = fskdem_create(1, symbol_samples, (float) params.rtty_shift / (float) AUDIO_CAPTURE_RATE / 2.0f);
     rx_buf = cbuffercf_create(symbol_samples * 50);
     
     rx_window = malloc(symbol_samples * sizeof(complex float));
@@ -82,6 +91,30 @@ void rtty_init() {
         rx_window[i] = liquid_hann(i, symbol_samples);
     
     ready = true;
+}
+
+static void done() {
+    ready = false;
+
+    nco_crcf_destroy(nco);
+    free(nco_buf);
+
+    fskdem_destroy(demod);
+    cbuffercf_destroy(rx_buf);
+    free(rx_window);
+}
+
+static void update() {
+    pthread_mutex_lock(&rtty_mux);
+    done();
+    init();
+    pthread_mutex_unlock(&rtty_mux);
+}
+
+void rtty_init() {
+    pthread_mutex_init(&rtty_mux, NULL);
+    
+    init();    
 }
 
 static char baudot_decoder(uint8_t c) {
@@ -174,12 +207,17 @@ static void add_symbol(uint8_t sym) {
 }
 
 void rtty_put_audio_samples(unsigned int n, float complex *samples) {
+    pthread_mutex_lock(&rtty_mux);
+
     if (!ready) {
+        pthread_mutex_unlock(&rtty_mux);
         return;
     }
 
     cbuffercf_write(rx_buf, samples, n);
     
+    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+
     while (cbuffercf_size(rx_buf) > symbol_samples) {
         unsigned int    symbol;
         unsigned int    n;
@@ -192,8 +230,12 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
             nco_buf[i] *= rx_window[i];
 
         symbol = fskdem_demodulate(demod, nco_buf);
-        
-        symbol = (symbol == 0) ? 1 : 0;
+
+        if (((mode == x6100_mode_usb || mode == x6100_mode_usb_dig) && !params.rtty_reverse) || 
+            ((mode == x6100_mode_lsb || mode == x6100_mode_lsb_dig) && params.rtty_reverse))
+        {
+            symbol = (symbol == 0) ? 1 : 0;
+        }
         
         add_symbol(symbol);
 
@@ -204,4 +246,90 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
 
         cbuffercf_release(rx_buf, symbol_over);
     }
+    
+    pthread_mutex_unlock(&rtty_mux);
+}
+
+void rtty_enable(bool on) {
+    enable = on;
+}
+
+bool rtty_is_enabled() {
+    return enable;
+}
+
+float rtty_change_rate(int16_t df) {
+    if (df == 0) {
+        return (float) params.rtty_rate / 100.0f;
+    }
+
+    params_lock();
+    
+    if (params.rtty_rate == 4500) {
+        params.rtty_rate = df > 0 ? 4545 : 10000;
+    } else if (params.rtty_rate == 4545) {
+        params.rtty_rate = df > 0 ? 5000 : 4500;
+    } else if (params.rtty_rate == 5000) {
+        params.rtty_rate = df > 0 ? 7500 : 4545;
+    } else if (params.rtty_rate == 7500) {
+        params.rtty_rate = df > 0 ? 10000 : 5000;
+    } else if (params.rtty_rate == 10000) {
+        params.rtty_rate = df > 0 ? 4500 : 7500;
+    }
+
+    params_unlock(&params.durty.rtty_rate);
+    update();
+
+    return (float) params.rtty_rate / 100.0f;
+}
+
+uint16_t rtty_change_shift(int16_t df) {
+    if (df == 0) {
+        return params.rtty_shift;
+    }
+
+    params_lock();
+    
+    if (params.rtty_shift == 170) {
+        params.rtty_shift = df > 0 ? 425 : 850;
+    } else if (params.rtty_shift == 425) {
+        params.rtty_shift = df > 0 ? 450 : 170;
+    } else if (params.rtty_shift == 450) {
+        params.rtty_shift = df > 0 ? 850 : 425;
+    } else if (params.rtty_shift == 850) {
+        params.rtty_shift = df > 0 ? 170 : 450;
+    }
+    
+    params_unlock(&params.durty.rtty_shift);
+    update();
+
+    return params.rtty_shift;
+}
+
+uint16_t rtty_change_center(int16_t df) {
+    if (df == 0) {
+        return params.rtty_center;
+    }
+
+    params_lock();
+    params.rtty_center = limit(align_int(params.rtty_center + df * 10, 10), 800, 1600);
+    params_unlock(&params.durty.rtty_center);
+
+    pthread_mutex_lock(&rtty_mux);
+    update_nco();
+    pthread_mutex_unlock(&rtty_mux);
+
+    return params.rtty_center;
+}
+
+bool rtty_change_reverse(int16_t df) {
+    if (df == 0) {
+        return params.rtty_reverse;
+    }
+
+    params_lock();
+    params.rtty_reverse = !params.rtty_reverse;
+    params_unlock(&params.durty.rtty_reverse);
+
+    return params.rtty_reverse;
 }

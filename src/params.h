@@ -139,10 +139,10 @@ typedef struct {
 
     /* RTTY */
     
-    bool                rtty_decoder;
     uint16_t            rtty_center;
-    uint16_t            rtty_width;
-    float               rtty_rate;
+    uint16_t            rtty_shift;
+    uint32_t            rtty_rate;
+    bool                rtty_reverse;
     uint8_t             rtty_bits;
     
     /* durty flags */
@@ -196,6 +196,11 @@ typedef struct {
         bool    cw_decoder_snr;
         bool    cw_decoder_peak_beta;
         bool    cw_decoder_noise_beta;
+
+        bool    rtty_center;
+        bool    rtty_shift;
+        bool    rtty_rate;
+        bool    rtty_reverse;
     } durty;
 } params_t;
 

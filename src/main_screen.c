@@ -30,6 +30,7 @@
 #include "mfk.h"
 #include "main.h"
 #include "pannel.h"
+#include "rtty.h"
 
 #define BUTTONS     5
 
@@ -85,7 +86,11 @@ typedef enum {
 
     PAGE_DFN_1,
     PAGE_DFN_2,
-    PAGE_DFN_3
+    PAGE_DFN_3,
+    
+    PAGE_APP_1,
+    
+    PAGE_RTTY
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -166,6 +171,23 @@ static button_item_t    buttons[] = {
     { .label = "NR\nLevel",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NR_LEVEL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
+
+    /* APP */
+
+    { .label = "(APP 1:1)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
+    { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* APP */
+
+    { .label = "(RTTY 1:1)",        .press = NULL },
+    { .label = "Rate",              .press = button_mfk_update_cb,  .data = MFK_RTTY_RATE },
+    { .label = "Shift",             .press = button_mfk_update_cb,  .data = MFK_RTTY_SHIFT },
+    { .label = "Center",            .press = button_mfk_update_cb,  .data = MFK_RTTY_CENTER },
+    { .label = "Reverse",           .press = button_mfk_update_cb,  .data = MFK_RTTY_REVERSE },
+
 };
 
 /* Buttons */
@@ -194,6 +216,13 @@ static void button_next_page_cb(lv_event_t * e) {
     buttons_unload_page();
     buttons_page = item->next;
     buttons_load_page();
+
+    switch (item->next) {
+        case PAGE_RTTY:
+            rtty_enable(true);
+            pannel_visible();
+            break;
+    }
 }
 
 static void button_vol_update_cb(lv_event_t * e) {
@@ -441,6 +470,11 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     }
 }
 
+static void apps_disable() {
+    rtty_enable(false);
+    pannel_visible();
+}
+
 static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
     
@@ -589,6 +623,16 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_page = PAGE_VOL_1;
                 buttons_load_page();
+                apps_disable();
+            }
+            break;
+
+        case KEYPAD_APP:
+            if (keypad->state == KEYPAD_RELEASE) {
+                buttons_unload_page();
+                buttons_page = PAGE_APP_1;
+                buttons_load_page();
+                apps_disable();
             }
             break;
 
@@ -597,6 +641,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_page = PAGE_KEY_1;
                 buttons_load_page();
+                apps_disable();
             }
             break;
 
@@ -605,6 +650,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_page = PAGE_DFN_1;
                 buttons_load_page();
+                apps_disable();
             }
             break;
 

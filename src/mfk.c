@@ -15,6 +15,7 @@
 #include "dsp.h"
 #include "radio.h"
 #include "cw.h"
+#include "rtty.h"
 
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
@@ -269,6 +270,26 @@ void mfk_update(int16_t diff) {
         case MFK_CW_DECODER_NOISE_BETA:
             f = cw_change_noise_beta(diff);
             msg_set_text_fmt("CW decoder noise beta: %.2f", f);
+            break;
+
+        case MFK_RTTY_RATE:
+            f = rtty_change_rate(diff);
+            msg_set_text_fmt("RTTY rate: %.2f", f);
+            break;
+
+        case MFK_RTTY_SHIFT:
+            i = rtty_change_shift(diff);
+            msg_set_text_fmt("RTTY shift: %i Hz", i);
+            break;
+        
+        case MFK_RTTY_CENTER:
+            i = rtty_change_center(diff);
+            msg_set_text_fmt("RTTY center: %i Hz", i);
+            break;
+        
+        case MFK_RTTY_REVERSE:
+            b = rtty_change_reverse(diff);
+            msg_set_text_fmt("RTTY reverse: %s", b ? "On" : "Off");
             break;
     }
 }

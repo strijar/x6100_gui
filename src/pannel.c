@@ -14,6 +14,7 @@
 #include "events.h"
 #include "radio.h"
 #include "params.h"
+#include "rtty.h"
 
 static lv_obj_t     *obj;
 static char         buf[1024];
@@ -104,8 +105,10 @@ void pannel_visible() {
             break;
             
         case x6100_mode_usb:
+        case x6100_mode_lsb:
         case x6100_mode_usb_dig:
-            on = params.rtty_decoder;
+        case x6100_mode_lsb_dig:
+            on = rtty_is_enabled();
             break;
     }
 

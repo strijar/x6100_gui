@@ -17,6 +17,7 @@
 #include "params.h"
 #include "util.h"
 #include "meter.h"
+#include "rtty.h"
 
 static lv_obj_t         *obj;
 
@@ -128,6 +129,9 @@ static void spectrum_draw_cb(lv_event_t * e) {
     int32_t     filter_from, filter_to;
     
     radio_filter_get(&filter_from, &filter_to);
+
+    int16_t sign_from = (filter_from > 0) ? 1 : -1;
+    int16_t sign_to = (filter_to > 0) ? 1 : -1;
     
     int32_t f1 = (int64_t)(w * filter_from) / w_hz;
     int32_t f2 = (int64_t)(w * filter_to) / w_hz;
@@ -145,11 +149,8 @@ static void spectrum_draw_cb(lv_event_t * e) {
         rect_dsc.bg_color = lv_color_white();
         rect_dsc.bg_opa = LV_OPA_50;
 
-        filter_from = (filter_from > 0) ? 1 : -1;
-        filter_to = (filter_to > 0) ? 1 : -1;
-
-        filter_from *= params.dnf_center - params.dnf_width;
-        filter_to *= params.dnf_center + params.dnf_width;
+        filter_from = sign_from * (params.dnf_center - params.dnf_width);
+        filter_to = sign_to * (params.dnf_center + params.dnf_width);
 
         if (filter_from < filter_to) {
             f1 = (int64_t)(w * filter_from) / w_hz;
@@ -167,14 +168,20 @@ static void spectrum_draw_cb(lv_event_t * e) {
         lv_draw_rect(draw_ctx, &rect_dsc, &area);
     }
     
-    if (params.rtty_decoder) {
-        main_a.x = x1 + w / 2 + w * (params.rtty_center - params.rtty_width / 2) / w_hz;
+    if (rtty_is_enabled()) {
+        filter_from = sign_from * (params.rtty_center - params.rtty_shift / 2);
+        filter_to = sign_to * (params.rtty_center + params.rtty_shift / 2);
+
+        f1 = (int64_t)(w * filter_from) / w_hz;
+        f2 = (int64_t)(w * filter_to) / w_hz;
+
+        main_a.x = x1 + w / 2 + f1;
         main_a.y = y1 + h - visor_height;
         main_b.x = main_a.x;
         main_b.y = y1 + h;
         lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
 
-        main_a.x = x1 + w / 2 + w * (params.rtty_center + params.rtty_width / 2) / w_hz;
+        main_a.x = x1 + w / 2 + f2;
         main_b.x = main_a.x;
         lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
     }

@@ -69,10 +69,10 @@ params_t params = {
     .cw_decoder_peak_beta   = 0.10f,
     .cw_decoder_noise_beta  = 0.80f,
     
-    .rtty_decoder           = true,
     .rtty_center            = 800,
-    .rtty_width             = 450,
-    .rtty_rate              = 50.0f,
+    .rtty_shift             = 170,
+    .rtty_rate              = 4545,
+    .rtty_reverse           = false,
     .rtty_bits              = 5,
 };
 
@@ -426,6 +426,14 @@ static bool params_load() {
             params.vol_modes = sqlite3_column_int64(stmt, 1);
         } else if (strcmp(name, "mfk_modes") == 0) {
             params.mfk_modes = sqlite3_column_int64(stmt, 1);
+        } else if (strcmp(name, "rtty_rate") == 0) {
+            params.rtty_rate = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "rtty_shift") == 0) {
+            params.rtty_shift = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "rtty_center") == 0) {
+            params.rtty_center = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "rtty_reverse") == 0) {
+            params.rtty_reverse = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -520,6 +528,11 @@ static bool params_save() {
 
     if (params.durty.vol_modes)             params_write_int64("vol_modes", params.vol_modes, &params.durty.vol_modes);
     if (params.durty.mfk_modes)             params_write_int64("mfk_modes", params.mfk_modes, &params.durty.mfk_modes);
+
+    if (params.durty.rtty_rate)             params_write_int("rtty_rate", params.rtty_rate, &params.durty.rtty_rate);
+    if (params.durty.rtty_shift)            params_write_int("rtty_shift", params.rtty_shift, &params.durty.rtty_shift);
+    if (params.durty.rtty_center)           params_write_int("rtty_center", params.rtty_center, &params.durty.rtty_center);
+    if (params.durty.rtty_reverse)          params_write_int("rtty_reverse", params.rtty_reverse, &params.durty.rtty_reverse);
 
     if (!params_exec("COMMIT")) {
         return false;
