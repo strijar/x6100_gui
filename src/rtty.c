@@ -265,16 +265,42 @@ float rtty_change_rate(int16_t df) {
 
     params_lock();
     
-    if (params.rtty_rate == 4500) {
-        params.rtty_rate = df > 0 ? 4545 : 10000;
-    } else if (params.rtty_rate == 4545) {
-        params.rtty_rate = df > 0 ? 5000 : 4500;
-    } else if (params.rtty_rate == 5000) {
-        params.rtty_rate = df > 0 ? 7500 : 4545;
-    } else if (params.rtty_rate == 7500) {
-        params.rtty_rate = df > 0 ? 10000 : 5000;
-    } else if (params.rtty_rate == 10000) {
-        params.rtty_rate = df > 0 ? 4500 : 7500;
+    switch (params.rtty_rate) {
+        case 4500:
+            params.rtty_rate = df > 0 ? 4545 : 15000;
+            break;
+            
+        case 4545:
+            params.rtty_rate = df > 0 ? 5000 : 4500;
+            break;
+            
+        case 5000:
+            params.rtty_rate = df > 0 ? 5600 : 4545;
+            break;
+            
+        case 5600:
+            params.rtty_rate = df > 0 ? 7500 : 5000;
+            break;
+            
+        case 7500:
+            params.rtty_rate = df > 0 ? 10000 : 5600;
+            break;
+            
+        case 10000:
+            params.rtty_rate = df > 0 ? 11000 : 7500;
+            break;
+            
+        case 11000:
+            params.rtty_rate = df > 0 ? 15000 : 10000;
+            break;
+            
+        case 15000:
+            params.rtty_rate = df > 0 ? 4500 : 11000;
+            break;
+            
+        default:
+            params.rtty_rate = 4500;
+            break;
     }
 
     params_unlock(&params.durty.rtty_rate);
@@ -290,14 +316,26 @@ uint16_t rtty_change_shift(int16_t df) {
 
     params_lock();
     
-    if (params.rtty_shift == 170) {
-        params.rtty_shift = df > 0 ? 425 : 850;
-    } else if (params.rtty_shift == 425) {
-        params.rtty_shift = df > 0 ? 450 : 170;
-    } else if (params.rtty_shift == 450) {
-        params.rtty_shift = df > 0 ? 850 : 425;
-    } else if (params.rtty_shift == 850) {
-        params.rtty_shift = df > 0 ? 170 : 450;
+    switch (params.rtty_shift) {
+        case 170:
+            params.rtty_shift = df > 0 ? 425 : 850;
+            break;
+            
+        case 425:
+            params.rtty_shift = df > 0 ? 450 : 170;
+            break;
+            
+        case 450:
+            params.rtty_shift = df > 0 ? 850 : 425;
+            break;
+            
+        case 850:
+            params.rtty_shift = df > 0 ? 170 : 450;
+            break;
+            
+        default:
+            params.rtty_shift = 170;
+            break;
     }
     
     params_unlock(&params.durty.rtty_shift);
