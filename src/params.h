@@ -144,6 +144,7 @@ typedef struct {
     uint32_t            rtty_rate;
     bool                rtty_reverse;
     uint8_t             rtty_bits;
+    float               rtty_snr;
     
     /* durty flags */
     

@@ -42,6 +42,8 @@ static uint16_t         symbol_over;
 static cbuffercf        rx_buf;
 static complex float    *rx_window = NULL;
 static uint8_t          rx_symbol[SYMBOL_LEN];
+static float            rx_symbol_pwr[SYMBOL_LEN];
+static uint8_t          rx_symbol_cur = 0;
 static rx_state_t       rx_state = RX_STATE_IDLE;
 static uint8_t          rx_counter = 0;
 static uint8_t          rx_bitcntr = 0;
@@ -150,11 +152,35 @@ static bool is_mark() {
     return rx_symbol[SYMBOL_LEN / 2];
 }
 
-static void add_symbol(uint8_t sym) {
-    for (uint8_t i = 1; i < SYMBOL_LEN; i++)
+static void add_symbol(float pwr) {
+    for (uint8_t i = 1; i < SYMBOL_LEN; i++) {
         rx_symbol[i - 1] = rx_symbol[i];
+        rx_symbol_pwr[i - 1] = rx_symbol_pwr[i];
+    }
+
+    rx_symbol_pwr[SYMBOL_LEN - 1] = pwr;
         
-    rx_symbol[SYMBOL_LEN - 1] = sym;
+    float   p_avr = 0.0f;
+    uint8_t p_num = SYMBOL_LEN / 2;
+    
+    for (uint8_t i = SYMBOL_LEN - p_num; i < SYMBOL_LEN; i++)
+        p_avr += rx_symbol_pwr[i];
+        
+    p_avr /= (float) p_num;
+    
+    if (rx_symbol_cur == 0) {
+        if (p_avr > params.rtty_snr) {
+            rx_symbol_cur = 1;
+        }
+    } else {
+        if (p_avr < -params.rtty_snr) {
+            rx_symbol_cur = 0;
+        }
+    }
+
+    /* LV_LOG_INFO("%5.1f %i", p_avr, rx_symbol_cur); */
+        
+    rx_symbol[SYMBOL_LEN - 1] = rx_symbol_cur;
     
     uint8_t correction;
     
@@ -229,21 +255,20 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
         for (uint16_t i = 0; i < n; i++)
             nco_buf[i] *= rx_window[i];
 
-        symbol = fskdem_demodulate(demod, nco_buf);
+        fskdem_demodulate(demod, nco_buf);
+
+        float pwr0 = 10.0f * log10f(fskdem_get_symbol_energy(demod, 0, 1));
+        float pwr1 = 10.0f * log10f(fskdem_get_symbol_energy(demod, 1, 1));
+        float pwr = pwr0 - pwr1;
 
         if (((mode == x6100_mode_usb || mode == x6100_mode_usb_dig) && !params.rtty_reverse) || 
             ((mode == x6100_mode_lsb || mode == x6100_mode_lsb_dig) && params.rtty_reverse))
         {
-            symbol = (symbol == 0) ? 1 : 0;
+            pwr = -pwr;
         }
         
-        add_symbol(symbol);
-
-        float pwr0 = fskdem_get_symbol_energy(demod, 0, 1);
-        float pwr1 = fskdem_get_symbol_energy(demod, 1, 1);
+        add_symbol(pwr);
         
-//        LV_LOG_INFO("%3i %3i --- %i", (int) pwr0, (int) pwr1, symbol);
-
         cbuffercf_release(rx_buf, symbol_over);
     }
     

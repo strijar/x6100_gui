@@ -74,6 +74,7 @@ params_t params = {
     .rtty_rate              = 4545,
     .rtty_reverse           = false,
     .rtty_bits              = 5,
+    .rtty_snr               = 3.0f,
 };
 
 params_band_t params_band = {
