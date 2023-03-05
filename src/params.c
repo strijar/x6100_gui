@@ -599,7 +599,7 @@ static void * params_thread(void *arg) {
 }
 
 void params_init() {
-    int rc = sqlite3_open("/var/lib/x6100/params.db", &db);
+    int rc = sqlite3_open("/mnt/params.db", &db);
     
     if (rc == SQLITE_OK) {
         if (!params_load()) {
