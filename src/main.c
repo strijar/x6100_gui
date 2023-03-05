@@ -12,8 +12,6 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
-#include <signal.h>
-#include <backtrace.h>
 
 #include "main_screen.h"
 #include "styles.h"
@@ -41,23 +39,7 @@ static lv_disp_drv_t        disp_drv;
 
 struct backtrace_state      *bt_state;
 
-void handle_signal(int sig, siginfo_t *, void *) {
-    printf("-- Crash stack --\n");
-    
-    backtrace_print(bt_state, 1, stdout);
-    exit(EXIT_FAILURE);
-}
-       
 int main(void) {
-    bt_state = backtrace_create_state(NULL, 1, NULL, NULL);
-
-    struct sigaction sa;
-    
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_sigaction = &handle_signal;
-    sa.sa_flags = SA_SIGINFO;
-    sigaction(SIGSEGV, &sa, NULL);
-    
     lv_init();
     fbdev_init();
     audio_init();
