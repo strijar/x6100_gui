@@ -12,7 +12,6 @@ target_sources(${PROJECT_NAME} PUBLIC
 )
 
 add_subdirectory(fonts)
-add_subdirectory(images)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

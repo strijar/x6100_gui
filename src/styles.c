@@ -8,6 +8,8 @@
 
 #include "styles.h"
 
+#define PATH "A:/usr/share/x6100/"
+
 lv_style_t  background_style;
 lv_style_t  spectrum_style;
 lv_style_t  freq_style;
@@ -27,13 +29,6 @@ lv_style_t  panel_bottom_style;
 lv_style_t  pannel_style;
 
 lv_color_t  bg_color;
-
-extern const lv_img_dsc_t img_msg;
-extern const lv_img_dsc_t img_btn;
-extern const lv_img_dsc_t img_top_short;
-extern const lv_img_dsc_t img_top_long;
-extern const lv_img_dsc_t img_top_big;
-extern const lv_img_dsc_t img_pannel;
 
 void styles_init() {
     bg_color = lv_color_hex(0x0040A0);
@@ -71,7 +66,7 @@ void styles_init() {
     lv_style_set_x(&waterfall_style, 0);
 
     lv_style_init(&btn_style);
-    lv_style_set_bg_img_src(&btn_style, &img_btn);
+    lv_style_set_bg_img_src(&btn_style, PATH "images/btn.bin");
     lv_style_set_bg_img_opa(&btn_style, LV_OPA_COVER);
     lv_style_set_border_width(&btn_style, 0);
     lv_style_set_text_font(&btn_style, &sony_30);
@@ -86,7 +81,7 @@ void styles_init() {
     lv_style_set_x(&msg_style, 800 / 2 - (603 / 2));
     lv_style_set_y(&msg_style, 300);
     lv_style_set_radius(&msg_style, 0);
-    lv_style_set_bg_img_src(&msg_style, &img_msg);
+    lv_style_set_bg_img_src(&msg_style, PATH "images/msg.bin");
     lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&msg_style, 20);
 
@@ -97,7 +92,7 @@ void styles_init() {
     lv_style_set_x(&pannel_style, 800 / 2 - (795 / 2));
     lv_style_set_y(&pannel_style, 230);
     lv_style_set_radius(&pannel_style, 0);
-    lv_style_set_bg_img_src(&pannel_style, &img_pannel);
+    lv_style_set_bg_img_src(&pannel_style, PATH "images/pannel.bin");
     lv_style_set_bg_img_opa(&pannel_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&pannel_style, 10);
     lv_style_set_pad_hor(&pannel_style, 10);
@@ -107,7 +102,7 @@ void styles_init() {
     lv_style_set_radius(&clock_style, 0);
     lv_style_set_size(&clock_style, 206, 61);
     lv_style_set_x(&clock_style, 800 - 206);
-    lv_style_set_bg_img_src(&clock_style, &img_top_short);
+    lv_style_set_bg_img_src(&clock_style, PATH "images/top_short.bin");
     lv_style_set_bg_img_opa(&clock_style, LV_OPA_COVER);
 
     lv_style_init(&info_style);
@@ -115,7 +110,7 @@ void styles_init() {
     lv_style_set_size(&info_style, 206, 61);
     lv_style_set_x(&info_style, 0);
     lv_style_set_y(&info_style, 0);
-    lv_style_set_bg_img_src(&info_style, &img_top_short);
+    lv_style_set_bg_img_src(&info_style, PATH "images/top_short.bin");
     lv_style_set_bg_img_opa(&info_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&info_style, 0);
     lv_style_set_border_width(&info_style, 0);
@@ -131,7 +126,7 @@ void styles_init() {
     lv_style_set_size(&meter_style, 377, 61);
     lv_style_set_x(&meter_style, 800 / 2 - (377 / 2));
     lv_style_set_border_width(&meter_style, 0);
-    lv_style_set_bg_img_src(&meter_style, &img_top_long);
+    lv_style_set_bg_img_src(&meter_style, PATH "images/top_long.bin");
     lv_style_set_bg_img_opa(&meter_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&meter_style, LV_OPA_0);
 
@@ -140,7 +135,7 @@ void styles_init() {
     lv_style_set_size(&tx_info_style, 377, 123);
     lv_style_set_x(&tx_info_style, 800 / 2 - (377 / 2));
     lv_style_set_border_width(&tx_info_style, 0);
-    lv_style_set_bg_img_src(&tx_info_style, &img_top_big);
+    lv_style_set_bg_img_src(&tx_info_style, PATH "images/top_big.bin");
     lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
 }

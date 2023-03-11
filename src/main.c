@@ -41,6 +41,8 @@ struct backtrace_state      *bt_state;
 
 int main(void) {
     lv_init();
+    lv_png_init();
+    
     fbdev_init();
     audio_init();
     event_init();
