@@ -49,12 +49,16 @@ typedef enum {
     MFK_CW_DECODER_PEAK_BETA,
     MFK_CW_DECODER_NOISE_BETA,
 
+    MFK_ANT,
+
+    MFK_LAST,
+
+    /* APPs */
+
     MFK_RTTY_RATE,
     MFK_RTTY_SHIFT,
     MFK_RTTY_CENTER,
     MFK_RTTY_REVERSE,
-
-    MFK_LAST,
 } mfk_mode_t;
 
 void mfk_update(int16_t diff);

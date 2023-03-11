@@ -435,6 +435,8 @@ static bool params_load() {
             params.rtty_center = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "rtty_reverse") == 0) {
             params.rtty_reverse = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "ant") == 0) {
+            params.ant = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -534,6 +536,8 @@ static bool params_save() {
     if (params.durty.rtty_shift)            params_write_int("rtty_shift", params.rtty_shift, &params.durty.rtty_shift);
     if (params.durty.rtty_center)           params_write_int("rtty_center", params.rtty_center, &params.durty.rtty_center);
     if (params.durty.rtty_reverse)          params_write_int("rtty_reverse", params.rtty_reverse, &params.durty.rtty_reverse);
+
+    if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
 
     if (!params_exec("COMMIT")) {
         return false;

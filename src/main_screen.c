@@ -78,6 +78,7 @@ typedef enum {
     PAGE_MFK_1,
     PAGE_MFK_2,
     PAGE_MFK_3,
+    PAGE_MFK_4,
 
     PAGE_KEY_1,
     PAGE_KEY_2,
@@ -96,7 +97,7 @@ typedef enum {
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MFK_3 },
+    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MFK_4 },
     { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
     { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
     { .label = "RFG",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_RFG },
@@ -114,23 +115,29 @@ static button_item_t    buttons[] = {
     { .label = "I-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_IMIC },
     { .label = "",                  .press = NULL },
     
-    { .label = "(MFK 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_3 },
+    { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_3 },
     { .label = "Min\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MIN_LEVEL },
     { .label = "Max\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MAX_LEVEL },
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
     { .label = "Spectrum\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_BETA },
 
-    { .label = "(MFK 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_3, .prev = PAGE_MFK_1 },
+    { .label = "(MFK 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_3, .prev = PAGE_MFK_1 },
     { .label = "Spectrum\nFill",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FILL },
     { .label = "Spectrum\nPeak",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_PEAK },
     { .label = "Peaks\nHold",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_HOLD },
     { .label = "Peaks\nSpeed",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_SPEED },
 
-    { .label = "(MFK 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MFK_2 },
+    { .label = "(MFK 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_4, .prev = PAGE_MFK_2 },
     { .label = "Charger",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CHARGER },
+    { .label = "Antenna",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_ANT },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MFK_3 },
     { .label = "AGC\nHang",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_HANG },
     { .label = "AGC\nKnee",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_KNEE },
     { .label = "AGC\nSlope",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_SLOPE },
+    { .label = "",                  .press = NULL },
 
     /* CW */
     
@@ -248,13 +255,14 @@ static void button_prev_page_cb(void * ptr) {
 }
 
 static void button_vol_hold_cb(void * ptr) {
-    button_item_t *item = (button_item_t*) ptr;
+    button_item_t   *item = (button_item_t*) ptr;
+    uint64_t        mask = (uint64_t) 1L << item->data;
 
     params_lock();
-    params.vol_modes ^= (1 << item->data);
+    params.vol_modes ^= mask;
     params_unlock(&params.durty.vol_modes);
     
-    if (params.vol_modes & (1 << item->data)) {
+    if (params.vol_modes & mask) {
         msg_set_text_fmt("Added to VOL encoder");
     } else {
         msg_set_text_fmt("Removed from VOL encoder");
@@ -262,13 +270,14 @@ static void button_vol_hold_cb(void * ptr) {
 }
 
 static void button_mfk_hold_cb(void * ptr) {
-    button_item_t *item = (button_item_t*) ptr;
+    button_item_t   *item = (button_item_t*) ptr;
+    uint64_t        mask = (uint64_t) 1L << item->data;
 
     params_lock();
-    params.mfk_modes ^= (1 << item->data);
+    params.mfk_modes ^= mask;
     params_unlock(&params.durty.mfk_modes);
     
-    if (params.mfk_modes & (1 << item->data)) {
+    if (params.mfk_modes & mask) {
         msg_set_text_fmt("Added to MFK encoder");
     } else {
         msg_set_text_fmt("Removed from MFK encoder");

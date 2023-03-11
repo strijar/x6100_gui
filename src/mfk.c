@@ -16,6 +16,8 @@
 #include "radio.h"
 #include "cw.h"
 #include "rtty.h"
+#include "util.h"
+#include "info.h"
 
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
@@ -211,6 +213,18 @@ void mfk_update(int16_t diff) {
             msg_set_text_fmt("Charger: %s", str);
             break;
             
+        case MFK_ANT:
+            if (diff != 0) {
+                params_lock();
+                params.ant = limit(params.ant + diff, 1, 5);
+                params_unlock(&params.durty.ant);
+                
+                radio_load_atu();
+                info_atu_update();
+            }
+            msg_set_text_fmt("Antenna : %i", params.ant);
+            break;
+            
         case MFK_DNF:
             b = radio_change_dnf(diff);
             msg_set_text_fmt("DNF: %s", b ? "On" : "Off");
@@ -305,14 +319,18 @@ void mfk_update(int16_t diff) {
             b = rtty_change_reverse(diff);
             msg_set_text_fmt("RTTY reverse: %s", b ? "On" : "Off");
             break;
+            
+        default:
+            break;
     }
 }
 
 void mfk_press(int16_t dir) {
     while (true) {
         mfk_mode = (mfk_mode + dir) % MFK_LAST;
+        uint64_t mask = (uint64_t) 1L << mfk_mode;
         
-        if (params.mfk_modes & (1 << mfk_mode)) {
+        if (params.mfk_modes & mask) {
             break;
         }
     }

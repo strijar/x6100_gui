@@ -48,13 +48,14 @@ lv_obj_t * info_init(lv_obj_t * parent) {
 
     lv_label_set_text(items[INFO_PRE], "PRE");
     lv_label_set_text(items[INFO_ATT], "ATT");
-    lv_label_set_text(items[INFO_ATU], "ATU");
    
     info_params_set(); 
     return obj;
 }
 
 void info_atu_update() {
+    lv_label_set_text_fmt(items[INFO_ATU], "ATU%i", params.ant);
+
     if (!params.atu) {
         lv_obj_set_style_text_color(items[INFO_ATU], lv_color_white(), 0);
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_black(), 0);
