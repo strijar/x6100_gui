@@ -741,6 +741,10 @@ static void main_screen_update_cb(lv_event_t * e) {
     spectrum_clear();
 }
 
+static void main_screen_atu_update_cb(lv_event_t * e) {
+    info_atu_update();
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = 0;
 
@@ -752,6 +756,7 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
+    lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
     
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);

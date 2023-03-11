@@ -25,6 +25,7 @@
 #include "meter.h"
 #include "events.h"
 #include "clock.h"
+#include "info.h"
 
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (3 * 1000)
@@ -113,6 +114,8 @@ bool radio_tick() {
                         radio_lock();
                         x6100_control_cmd(x6100_atu_network, pack->atu_params);
                         radio_unlock();
+                        params.atu_loaded = true;
+                        event_send(main_obj, EVENT_ATU_UPDATE, NULL);
                     }
                     state = RADIO_RX;
                 } else {
@@ -647,11 +650,13 @@ void radio_start_atu() {
 
 void radio_load_atu() {
     if (params.atu) {
-        uint32_t atu = params_atu_load();
+        uint32_t atu = params_atu_load(&params.atu_loaded);
 
         radio_lock();
         x6100_control_cmd(x6100_atu_network, atu);
         radio_unlock();
+        
+        info_atu_update();
     }
 }
 

@@ -83,6 +83,7 @@ typedef struct {
     int16_t             rfg;
     uint8_t             sql;
     bool                atu;
+    bool                atu_loaded;
     uint8_t             ant;
     float               pwr;
     x6100_mic_sel_t     mic;
@@ -223,6 +224,6 @@ void params_mode_load();
 void params_band_freq_set(uint64_t freq);
 
 void params_atu_save(uint32_t val);
-uint32_t params_atu_load();
+uint32_t params_atu_load(bool *loaded);
 
 void params_band_vfo_clone();

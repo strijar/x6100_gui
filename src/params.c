@@ -691,9 +691,11 @@ void params_atu_save(uint32_t val) {
     params_unlock(NULL);
 }
 
-uint32_t params_atu_load() {
+uint32_t params_atu_load(bool *loaded) {
     uint32_t    res = 0;
     uint64_t    freq = params_band.vfo_x[params_band.vfo].freq;
+    
+    *loaded = false;
 
     params_lock();
 
@@ -702,6 +704,7 @@ uint32_t params_atu_load() {
 
     if (sqlite3_step(load_atu_stmt) != SQLITE_DONE) {
         res = sqlite3_column_int64(load_atu_stmt, 0);
+        *loaded = true;
     }
 
     sqlite3_reset(load_atu_stmt);
