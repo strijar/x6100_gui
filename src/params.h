@@ -13,6 +13,7 @@
 
 #include <aether_radio/x6100_control/control.h>
 #include "bands.h"
+#include "radio.h"
 
 typedef struct {
     int32_t         filter_low;
@@ -87,7 +88,7 @@ typedef struct {
     x6100_mic_sel_t     mic;
     uint8_t             hmic;
     uint8_t             imic;
-    bool                charger;
+    radio_charger_t     charger;
     uint16_t            bias_drive;
     uint16_t            bias_final;
     

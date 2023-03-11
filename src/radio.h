@@ -32,6 +32,12 @@ typedef enum {
     RADIO_OFF
 } radio_state_t;
 
+typedef enum {
+    RADIO_CHARGER_OFF = 0,
+    RADIO_CHARGER_ON,
+    RADIO_CHARGER_SHADOW
+} radio_charger_t;
+
 void radio_init(lv_obj_t *obj);
 bool radio_tick();
 radio_state_t radio_get_state();
@@ -65,7 +71,7 @@ uint16_t radio_change_key_vol(int16_t d);
 bool radio_change_key_train(int16_t d);
 uint16_t radio_change_qsk_time(int16_t d);
 uint8_t radio_change_key_ratio(int16_t d);
-bool radio_change_charger(int16_t d);
+radio_charger_t radio_change_charger(int16_t d);
 
 x6100_mic_sel_t radio_change_mic(int16_t d);
 uint8_t radio_change_hmic(int16_t d);

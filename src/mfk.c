@@ -193,8 +193,22 @@ void mfk_update(int16_t diff) {
             break;
 
         case MFK_CHARGER:
-            b = radio_change_charger(diff);
-            msg_set_text_fmt("Charger: %s", b ? "On" : "Off");
+            i = radio_change_charger(diff);
+            
+            switch (i) {
+                case RADIO_CHARGER_OFF:
+                    str = "On";
+                    break;
+                    
+                case RADIO_CHARGER_ON:
+                    str = "Off";
+                    break;
+                    
+                case RADIO_CHARGER_SHADOW:
+                    str = "Shadow";
+                    break;
+            }
+            msg_set_text_fmt("Charger: %s", str);
             break;
             
         case MFK_DNF:
