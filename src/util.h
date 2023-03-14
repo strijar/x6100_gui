@@ -11,6 +11,8 @@
 #include <stdint.h>
 
 uint64_t get_time();
+void get_time_str(char *str, size_t str_size);
+
 void split_freq(uint64_t freq, uint16_t *mhz, uint16_t *khz, uint16_t *hz);
 int32_t align_int(int32_t x, uint16_t step);
 uint64_t align_long(uint64_t x, uint16_t step);

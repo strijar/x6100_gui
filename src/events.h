@@ -109,6 +109,7 @@ extern uint32_t EVENT_RADIO_RX;
 extern uint32_t EVENT_PANNEL_UPDATE;
 extern uint32_t EVENT_SCREEN_UPDATE;
 extern uint32_t EVENT_ATU_UPDATE;
+extern uint32_t EVENT_MSG_UPDATE;
 
 void event_init();
 

@@ -7,7 +7,9 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/time.h>
+#include <time.h>
 #include "util.h"
 
 uint64_t get_time() {
@@ -18,6 +20,13 @@ uint64_t get_time() {
     uint64_t usec = (uint64_t) now.tv_sec * 1000000L + now.tv_usec;
 
     return usec / 1000;
+}
+
+void get_time_str(char *str, size_t str_size) {
+    time_t      now = time(NULL);
+    struct tm   *t = localtime(&now);
+
+    snprintf(str, str_size, "%04i-%02i-%02i %02i-%02i-%02i", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 }
 
 void split_freq(uint64_t freq, uint16_t *mhz, uint16_t *khz, uint16_t *hz) {

@@ -8,7 +8,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c
-    cat.c rtty.c
+    cat.c rtty.c screenshot.c
 )
 
 add_subdirectory(fonts)
@@ -28,4 +28,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE aether_x6100_control)
 target_link_libraries(${PROJECT_NAME} PRIVATE liquid m)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
-target_link_libraries(${PROJECT_NAME} PRIVATE backtrace)
+target_link_libraries(${PROJECT_NAME} PRIVATE png)

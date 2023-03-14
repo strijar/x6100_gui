@@ -37,8 +37,6 @@ static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
 
-struct backtrace_state      *bt_state;
-
 int main(void) {
     lv_init();
     lv_png_init();

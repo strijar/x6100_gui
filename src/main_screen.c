@@ -31,6 +31,7 @@
 #include "main.h"
 #include "pannel.h"
 #include "rtty.h"
+#include "screenshot.h"
 
 #define BUTTONS     5
 
@@ -633,6 +634,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_page = PAGE_VOL_1;
                 buttons_load_page();
                 apps_disable();
+            } else if (keypad->state == KEYPAD_LONG) {
+                screenshot_take();
             }
             break;
 
