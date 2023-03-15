@@ -199,11 +199,11 @@ void mfk_update(int16_t diff) {
             
             switch (i) {
                 case RADIO_CHARGER_OFF:
-                    str = "On";
+                    str = "Off";
                     break;
                     
                 case RADIO_CHARGER_ON:
-                    str = "Off";
+                    str = "On";
                     break;
                     
                 case RADIO_CHARGER_SHADOW:
