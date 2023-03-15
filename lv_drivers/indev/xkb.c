@@ -140,8 +140,8 @@ bool xkb_set_keymap_state(xkb_drv_state_t *state, struct xkb_rule_names names) {
  * @param down true if the key was pressed, false if it was releases
  * @return the (first) UTF-8 character produced by the event or 0 if no output was produced
  */
-uint32_t xkb_process_key(uint32_t scancode, bool down) {
-  return xkb_process_key_state(&default_state, scancode, down);
+uint32_t xkb_process_key(uint32_t scancode, uint8_t value) {
+  return xkb_process_key_state(&default_state, scancode, value);
 }
 
 /**
@@ -152,7 +152,7 @@ uint32_t xkb_process_key(uint32_t scancode, bool down) {
  * @param down true if the key was pressed, false if it was releases
  * @return the (first) UTF-8 character produced by the event or 0 if no output was produced
  */
-uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, bool down) {
+uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, uint8_t value) {
   /* Offset the evdev scancode by 8, see https://xkbcommon.org/doc/current/xkbcommon_8h.html#ac29aee92124c08d1953910ab28ee1997 */
   xkb_keycode_t keycode = scancode + 8;
 
@@ -197,6 +197,15 @@ uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, bool d
     case XKB_KEY_ISO_Left_Tab: /* Sent on SHIFT + TAB */
       result = LV_KEY_PREV;
       break;
+    case XKB_KEY_Home:
+      result = LV_KEY_HOME;
+      break;
+    case XKB_KEY_End:
+      result = LV_KEY_END;
+      break;
+    case XKB_KEY_Escape:
+      result = LV_KEY_ESC;
+      break;
     default:
       break;
   }
@@ -207,10 +216,14 @@ uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, bool d
     if (size > 1) {
       xkb_state_key_get_utf8(state->state, keycode, buffer, size);
       memcpy(&result, buffer, 4);
+    } else {
+      result = xkb_state_key_get_one_sym(state->state, keycode);
     }
   }
 
-  xkb_state_update_key(state->state, keycode, down ? XKB_KEY_DOWN : XKB_KEY_UP);
+  if (value != 2) {
+    xkb_state_update_key(state->state, keycode, value == 1 ? XKB_KEY_DOWN : XKB_KEY_UP);
+  }
 
   return result;
 }

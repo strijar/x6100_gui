@@ -85,19 +85,18 @@ bool xkb_set_keymap_state(xkb_drv_state_t *state, struct xkb_rule_names names);
  * Process an evdev scancode using the default driver state. Use this function if you only want to
  * connect a single device.
  * @param scancode evdev scancode to process
- * @param down true if the key was pressed, false if it was releases
+ * @param value 
  * @return the (first) UTF-8 character produced by the event or 0 if no output was produced
  */
-uint32_t xkb_process_key(uint32_t scancode, bool down);
+uint32_t xkb_process_key(uint32_t scancode, uint8_t value);
 /**
  * Process an evdev scancode using a specific driver state. Use this function if you want to connect
  * multiple devices.
  * @param state XKB driver state to use
  * @param scancode evdev scancode to process
- * @param down true if the key was pressed, false if it was releases
  * @return the (first) UTF-8 character produced by the event or 0 if no output was produced
  */
-uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, bool down);
+uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, uint8_t value);
 
 /**********************
  *      MACROS

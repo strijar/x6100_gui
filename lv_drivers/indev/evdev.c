@@ -171,7 +171,7 @@ void evdev_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
                     evdev_button = LV_INDEV_STATE_PR;
             } else if(drv->type == LV_INDEV_TYPE_KEYPAD) {
 #if USE_XKB
-                data->key = xkb_process_key(in.code, in.value != 0);
+                data->key = xkb_process_key(in.code, in.value);
 #else
                 switch(in.code) {
                     case KEY_BACKSPACE:
