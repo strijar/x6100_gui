@@ -19,7 +19,7 @@ add_library(lvgl::drivers ALIAS lv_drivers)
 target_include_directories(lv_drivers SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(PkgConfig)
-target_link_libraries(lv_drivers PUBLIC lvgl ${PKG_WAYLAND_LIBRARIES})
+target_link_libraries(lv_drivers PUBLIC lvgl xkbcommon ${PKG_WAYLAND_LIBRARIES})
 
 if("${LIB_INSTALL_DIR}" STREQUAL "")
   set(LIB_INSTALL_DIR "lib")

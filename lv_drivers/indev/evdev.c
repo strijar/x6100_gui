@@ -63,7 +63,9 @@ void evdev_init(void)
     }
 
 #if USE_XKB
-    xkb_init();
+    if (!xkb_init()) {
+        LV_LOG_ERROR("Init");
+    }
 #endif
 }
 /**
@@ -98,6 +100,13 @@ bool evdev_set_file(char* dev_name)
      evdev_root_y = 0;
      evdev_key_val = 0;
      evdev_button = LV_INDEV_STATE_REL;
+
+#if USE_XKB
+    if (!xkb_init()) {
+        LV_LOG_ERROR("Init");
+        return false;
+    }
+#endif
 
      return true;
 }

@@ -145,7 +145,7 @@
  * Full keyboard support for evdev and libinput interface
  *------------------------------------------------*/
 #  ifndef USE_XKB
-#    define USE_XKB           0
+#    define USE_XKB           1
 #  endif
 
 #if USE_LIBINPUT || USE_BSD_LIBINPUT || USE_EVDEV || USE_BSD_EVDEV

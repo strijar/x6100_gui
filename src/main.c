@@ -18,7 +18,7 @@
 #include "radio.h"
 #include "dsp.h"
 #include "util.h"
-#include "mouse.h"
+#include "keyboard.h"
 #include "rotary.h"
 #include "spectrum.h"
 #include "waterfall.h"
@@ -64,7 +64,7 @@ int main(void) {
     
     lv_timer_set_period(timer, 15);
 
-    mouse_init();
+    keyboard_init();
 
     keypad_t *keypad = keypad_init("/dev/input/event0");
     keypad_t *power = keypad_init("/dev/input/event4");
