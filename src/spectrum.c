@@ -168,7 +168,7 @@ static void spectrum_draw_cb(lv_event_t * e) {
         lv_draw_rect(draw_ctx, &rect_dsc, &area);
     }
     
-    if (rtty_is_enabled()) {
+    if (rtty_get_state() != RTTY_OFF) {
         filter_from = sign_from * (params.rtty_center - params.rtty_shift / 2);
         filter_to = sign_to * (params.rtty_center + params.rtty_shift / 2);
 

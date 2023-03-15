@@ -37,6 +37,7 @@ static void on_state_change(pa_context *c, void *userdata) {
 }
 
 static void write_callback(pa_stream *s, size_t nbytes, void *udata) {
+    /*
     int16_t *buf = NULL;
 
     int res = pa_stream_begin_write(play_stm, &buf, &nbytes);
@@ -44,21 +45,20 @@ static void write_callback(pa_stream *s, size_t nbytes, void *udata) {
     if (res != 0 || buf == NULL) {
         return;
     }
-    
+
     pa_stream_write(play_stm, buf, nbytes, NULL, 0, PA_SEEK_RELATIVE);
+    */
 }
 
 static void read_callback(pa_stream *s, size_t nbytes, void *udata) {
     int16_t *buf = NULL;
-        
+
     pa_stream_peek(capture_stm, &buf, &nbytes);
     dsp_put_audio_samples(nbytes / 2, buf);
     pa_stream_drop(capture_stm);
 }
 
 void audio_init() {
-    pthread_t thread;
-
     mloop = pa_threaded_mainloop_new();
     pa_threaded_mainloop_start(mloop);
     
@@ -89,7 +89,8 @@ void audio_init() {
     /* Play */
 
     spec.rate = AUDIO_PLAY_RATE,
-    attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
+    attr.fragsize = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
+    attr.tlength = attr.fragsize * 8;
 
     play_stm = pa_stream_new(ctx, "X6100 GUI Play", &spec, NULL);
 

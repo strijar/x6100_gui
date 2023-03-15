@@ -51,7 +51,7 @@ static uint8_t          rx_data = 0;
 static bool             rx_letter = true;
 
 static bool             ready = false;
-static bool             enable = false;
+static rtty_state_t     state = RTTY_OFF;
 
 static const char rtty_letters[32] = {
     '\0',   'E',    '\n',   'A',    ' ',    'S',    'I',    'U',
@@ -275,12 +275,12 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
     pthread_mutex_unlock(&rtty_mux);
 }
 
-void rtty_enable(bool on) {
-    enable = on;
+void rtty_set_state(rtty_state_t x) {
+    state = x;
 }
 
-bool rtty_is_enabled() {
-    return enable;
+rtty_state_t rtty_get_state() {
+    return state;
 }
 
 float rtty_change_rate(int16_t df) {

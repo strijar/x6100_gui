@@ -8,7 +8,7 @@
 
 #pragma once
 
-#define AUDIO_PLAY_RATE     (11025)
+#define AUDIO_PLAY_RATE     (44100)
 #define AUDIO_CAPTURE_RATE  (44100)
 
 void audio_init();

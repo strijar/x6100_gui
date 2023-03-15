@@ -108,7 +108,7 @@ void pannel_visible() {
         case x6100_mode_lsb:
         case x6100_mode_usb_dig:
         case x6100_mode_lsb_dig:
-            on = rtty_is_enabled();
+            on = rtty_get_state() != RTTY_OFF;
             break;
     }
 

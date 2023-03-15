@@ -230,12 +230,10 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
         firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
 
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
-
-    if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
-        cw_put_audio_samples(nsamples, audio);
-    }
     
-    if (rtty_is_enabled()) {
+    if (rtty_get_state() == RTTY_RX) {
         rtty_put_audio_samples(nsamples, audio);
+    } else if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
+        cw_put_audio_samples(nsamples, audio);
     }
 }

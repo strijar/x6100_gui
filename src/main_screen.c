@@ -32,6 +32,7 @@
 #include "pannel.h"
 #include "rtty.h"
 #include "screenshot.h"
+#include "keyboard.h"
 
 #define BUTTONS     5
 
@@ -227,7 +228,7 @@ static void button_next_page_cb(lv_event_t * e) {
 
     switch (item->next) {
         case PAGE_RTTY:
-            rtty_enable(true);
+            rtty_set_state(RTTY_RX);
             pannel_visible();
             break;
     }
@@ -481,7 +482,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
 }
 
 static void apps_disable() {
-    rtty_enable(false);
+    rtty_set_state(RTTY_OFF);
     pannel_visible();
 }
 
@@ -757,6 +758,10 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
     info_atu_update();
 }
 
+static void main_screen_key_cb(lv_event_t * e) {
+    LV_LOG_INFO("Key %04X", lv_indev_get_key(lv_indev_get_act()));
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = 0;
 
@@ -769,9 +774,11 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
+    lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
     
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_group_add_obj(keyboard_group(), obj);
     
     spectrum = spectrum_init(obj);
     

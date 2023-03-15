@@ -8,4 +8,7 @@
 
 #pragma once
 
+#include "lvgl/lvgl.h"
+
 void keyboard_init();
+lv_group_t * keyboard_group();
