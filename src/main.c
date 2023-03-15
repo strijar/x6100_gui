@@ -69,13 +69,9 @@ int main(void) {
     keypad_t *keypad = keypad_init("/dev/input/event0");
     keypad_t *power = keypad_init("/dev/input/event4");
 
-    rotary_t *main = rotary_init("/dev/input/event1", 0);
-    rotary_t *vol = rotary_init("/dev/input/event2", 1);
-    rotary_t *mfk = rotary_init("/dev/input/event3", 2);
-
-    main->reverse = true;
-    vol->reverse = true;
-    mfk->reverse = true;
+    rotary_t *main = rotary_init("/dev/input/event1", 0, 0);
+    rotary_t *vol = rotary_init("/dev/input/event2", '[', ']');
+    rotary_t *mfk = rotary_init("/dev/input/event3", LV_KEY_LEFT, LV_KEY_RIGHT);
 
     bands_init();
     params_init();

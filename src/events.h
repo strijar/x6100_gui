@@ -13,11 +13,6 @@
 #include <unistd.h>
 #include <stdint.h>
 
-typedef struct {
-    uint8_t id;
-    int16_t diff;
-} event_rotary_t;
-
 typedef enum {
     KEYPAD_UNKNOWN = 0,
     

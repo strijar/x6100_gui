@@ -14,11 +14,11 @@
 
 typedef struct {
     int             fd;
-    event_rotary_t  event;
-    bool            reverse;
+    uint16_t        left;
+    uint16_t        right;
     
     lv_indev_drv_t  indev_drv;
     lv_indev_t      *indev;
 } rotary_t;
 
-rotary_t * rotary_init(char *dev_name, uint8_t id);
+rotary_t * rotary_init(char *dev_name, uint16_t left, uint16_t right);

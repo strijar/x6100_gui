@@ -28,7 +28,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
     keypad_t            *keypad = (keypad_t*) drv->user_data;
 
-    while (read(keypad->fd, &in, sizeof(struct input_event)) > 0) {
+    if (read(keypad->fd, &in, sizeof(struct input_event)) > 0) {
         if (in.type == EV_KEY) {
             switch (in.code) {
                 /* Rotary */

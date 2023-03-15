@@ -457,29 +457,6 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
-static void main_screen_rotary_cb(lv_event_t * e) {
-    event_rotary_t  *rotary = lv_event_get_param(e);
-    uint64_t        freq, prev_freq;
-
-    switch (rotary->id) {
-        case 0:
-            freq = radio_change_freq(-rotary->diff * params_mode.freq_step, &prev_freq);
-            waterfall_change_freq(freq - prev_freq);
-            spectrum_change_freq(freq - prev_freq);
-            main_screen_set_freq();
-            check_cross_band(freq, prev_freq);
-            break;
-            
-        case 1:
-            vol_update(rotary->diff);
-            break;
-            
-        case 2:
-            mfk_update(rotary->diff);
-            break;
-        
-    }
-}
 
 static void apps_disable() {
     rtty_set_state(RTTY_OFF);
@@ -758,8 +735,53 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
     info_atu_update();
 }
 
+static freq_update(int16_t diff) {
+    uint64_t        freq, prev_freq;
+
+    freq = radio_change_freq(diff * params_mode.freq_step, &prev_freq);
+    waterfall_change_freq(freq - prev_freq);
+    spectrum_change_freq(freq - prev_freq);
+    main_screen_set_freq();
+    check_cross_band(freq, prev_freq);
+}
+
+static void main_screen_rotary_cb(lv_event_t * e) {
+    int32_t     diff = lv_event_get_param(e);
+    
+    freq_update(diff);
+}
+
 static void main_screen_key_cb(lv_event_t * e) {
-    LV_LOG_INFO("Key %04X", lv_indev_get_key(lv_indev_get_act()));
+    uint16_t key = lv_indev_get_key(lv_indev_get_act());
+
+    switch (key) {
+        case '-':
+            freq_update(-1);
+            break;
+            
+        case '=':
+            freq_update(+1);
+            break;
+            
+        case '[':
+            vol_update(-1);
+            break;
+            
+        case ']':
+            vol_update(+1);
+            break;
+            
+        case LV_KEY_LEFT:
+            mfk_update(-1);
+            break;
+            
+        case LV_KEY_RIGHT:
+            mfk_update(+1);
+            break;
+            
+        default:
+            break;
+    }
 }
 
 lv_obj_t * main_screen() {
