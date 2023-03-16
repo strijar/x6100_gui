@@ -26,5 +26,8 @@
 #define KEYBOARD_PRINT      (0xFF61)
 #define KEYBOARD_PRINT_SCR  (0xFD1D)
 
+#define KEYBOARD_PGUP       (0xFF55)
+#define KEYBOARD_PGDN       (0xFF56)
+
 void keyboard_init();
 lv_group_t * keyboard_group();

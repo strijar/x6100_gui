@@ -166,14 +166,6 @@ uint32_t xkb_process_key_state(xkb_drv_state_t *state, uint32_t scancode, uint8_
     case XKB_KEY_KP_Enter:
       result = LV_KEY_ENTER;
       break;
-    case XKB_KEY_Prior:
-    case XKB_KEY_KP_Prior:
-      result = LV_KEY_PREV;
-      break;
-    case XKB_KEY_Next:
-    case XKB_KEY_KP_Next:
-      result = LV_KEY_NEXT;
-      break;
     case XKB_KEY_Up:
     case XKB_KEY_KP_Up:
       result = LV_KEY_UP;

@@ -809,6 +809,14 @@ static void main_screen_key_cb(lv_event_t * e) {
         case KEYBOARD_PRINT_SCR:
             screenshot_take();
             break;
+
+        case KEYBOARD_PGUP:
+            bands_change(true);
+            break;
+
+        case KEYBOARD_PGDN:
+            bands_change(false);
+            break;
             
         default:
             break;
