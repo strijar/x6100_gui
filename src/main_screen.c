@@ -735,8 +735,8 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     freq_update(diff);
 }
 
-static void main_screen_key_cb(lv_event_t * e) {
-    uint16_t key = lv_indev_get_key(lv_indev_get_act());
+static void spectrum_key_cb(lv_event_t * e) {
+    uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
         case '-':
@@ -772,19 +772,27 @@ static void main_screen_key_cb(lv_event_t * e) {
             break;
             
         case LV_KEY_LEFT:
-            mfk_update(-1);
+            switch (mfk_state) {
+                case MFK_STATE_EDIT:
+                    mfk_update(-1);
+                    break;
+                    
+                case MFK_STATE_SELECT:
+                    mfk_press(-1);
+                    break;
+            }
             break;
             
         case LV_KEY_RIGHT:
-            mfk_update(+1);
-            break;
-
-        case LV_KEY_DOWN:
-            mfk_press(-1);
-            break;
-            
-        case LV_KEY_UP:
-            mfk_press(+1);
+            switch (mfk_state) {
+                case MFK_STATE_EDIT:
+                    mfk_update(+1);
+                    break;
+                    
+                case MFK_STATE_SELECT:
+                    mfk_press(+1);
+                    break;
+            }
             break;
 
         case LV_KEY_ESC:
@@ -798,19 +806,6 @@ static void main_screen_key_cb(lv_event_t * e) {
                     break;
             }
             vol_update(0);
-            break;
-
-        case LV_KEY_ENTER:
-            switch (mfk->mode) {
-                case MFK_EDIT:
-                    mfk->mode = MFK_SELECT;
-                    break;
-                    
-                case MFK_SELECT:
-                    mfk->mode = MFK_EDIT;
-                    break;
-            }
-            mfk_update(0);
             break;
 
         case KEYBOARD_PRINT:
@@ -831,6 +826,19 @@ static void main_screen_key_cb(lv_event_t * e) {
     }
 }
 
+static void spectrum_pressed_cb(lv_event_t * e) {
+    switch (mfk_state) {
+        case MFK_STATE_EDIT:
+            mfk_state = MFK_STATE_SELECT;
+            break;
+            
+        case MFK_STATE_SELECT:
+            mfk_state = MFK_STATE_EDIT;
+            break;
+    }
+    mfk_update(0);
+}
+
 lv_obj_t * main_screen() {
     uint16_t y = 0;
 
@@ -843,13 +851,16 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
-    lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
     
     lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-    lv_group_add_obj(keyboard_group(), obj);
     
     spectrum = spectrum_init(obj);
+    lv_group_add_obj(keyboard_group(), spectrum);
+    lv_group_set_editing(keyboard_group(), true);
+
+    lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     
     spectrum_band_set();
 

@@ -1,9 +1,9 @@
 add_executable(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} PUBLIC  
-    main.c mouse_cursor_icon.c main_screen.c 
+    main.c main_screen.c 
     styles.c spectrum.c radio.c dsp.c util.c 
-    waterfall.c rotary.c keyboard.c
+    waterfall.c rotary.c keyboard.c encoder.c
     events.c msg.c keypad.c params.c
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c

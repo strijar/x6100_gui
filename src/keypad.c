@@ -12,6 +12,7 @@
 #include <linux/input.h>
 
 #include "keypad.h"
+#include "main.h"
 
 #define KEYPAD_LONG_TIME 1000
 
@@ -43,10 +44,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                 /* Rotary MFK */
                     
                 case BTN_TRIGGER_HAPPY27:
-                    data->key = LV_KEY_ENTER;
-                    data->state = (in.value) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
-                    keypad->evdev_key = data->key;
-                    keypad->evdev_state = data->state;
+                    mfk->pressed = (in.value != 0);
                     return;
                 
                 /* Front side */

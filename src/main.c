@@ -34,7 +34,7 @@
 #define DISP_BUF_SIZE (128 * 1024)
 
 rotary_t                    *vol;
-rotary_t                    *mfk;
+encoder_t                   *mfk;
 
 static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
@@ -75,7 +75,7 @@ int main(void) {
     rotary_t *main = rotary_init("/dev/input/event1");
     
     vol = rotary_init("/dev/input/event2");
-    mfk = rotary_init("/dev/input/event3");
+    mfk = encoder_init("/dev/input/event3");
 
     vol->left[VOL_EDIT] = '[';
     vol->right[VOL_EDIT] = ']';
@@ -83,15 +83,6 @@ int main(void) {
     vol->left[VOL_SELECT] = '{';
     vol->right[VOL_SELECT] = '}';
     
-    mfk->left[MFK_EDIT] = LV_KEY_LEFT;
-    mfk->right[MFK_EDIT] = LV_KEY_RIGHT;
-
-    mfk->left[MFK_SELECT] = LV_KEY_DOWN;
-    mfk->right[MFK_SELECT] = LV_KEY_UP;
-
-    mfk->left[MFK_NAVIGATE] = LV_KEY_NEXT;
-    mfk->right[MFK_NAVIGATE] = LV_KEY_PREV;
-
     bands_init();
     params_init();
     styles_init();

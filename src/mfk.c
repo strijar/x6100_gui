@@ -19,6 +19,7 @@
 #include "util.h"
 #include "info.h"
 
+mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
 void mfk_update(int16_t diff) {

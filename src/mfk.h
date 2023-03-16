@@ -61,6 +61,13 @@ typedef enum {
     MFK_RTTY_REVERSE,
 } mfk_mode_t;
 
+typedef enum {
+    MFK_STATE_EDIT = 0,
+    MFK_STATE_SELECT
+} mfk_state_t;
+
+extern mfk_state_t  mfk_state;
+
 void mfk_update(int16_t diff);
 void mfk_press(int16_t dir);
 void mfk_set_mode(mfk_mode_t mode);
