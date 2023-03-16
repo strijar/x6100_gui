@@ -28,7 +28,7 @@ static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     }
     
     if (send) {
-        if (rotary->left == 0 && rotary->right == 0) {
+        if (rotary->left[0] == 0 && rotary->right[0] == 0) {
             lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
         } else {
             data->state = LV_INDEV_STATE_PRESSED;
