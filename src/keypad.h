@@ -17,6 +17,9 @@ typedef struct {
     
     lv_indev_drv_t  indev_drv;
     lv_indev_t      *indev;
+    
+    int             evdev_state;
+    int             evdev_key;
 } keypad_t;
 
 keypad_t * keypad_init(char *dev_name);

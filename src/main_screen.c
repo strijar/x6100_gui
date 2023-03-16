@@ -467,22 +467,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
     
     switch (keypad->key) {
-        case KEYPAD_ROTARY_VOL:
-            if (keypad->state == KEYPAD_RELEASE) {
-                vol_press(1);
-            } else if (keypad->state == KEYPAD_LONG) {
-                vol_press(-1);
-            }
-            break;
-            
-        case KEYPAD_ROTARY_MFK:
-            if (keypad->state == KEYPAD_RELEASE) {
-                mfk_press(1);
-            } else if (keypad->state == KEYPAD_LONG) {
-                mfk_press(-1);
-            }
-            break;
-
         case KEYPAD_PRE:
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_pre();
@@ -770,6 +754,14 @@ static void main_screen_key_cb(lv_event_t * e) {
         case ']':
             vol_update(+1);
             break;
+
+        case '{':
+            vol_press(-1);
+            break;
+            
+        case '}':
+            vol_press(+1);
+            break;
             
         case LV_KEY_LEFT:
             mfk_update(-1);
@@ -777,6 +769,45 @@ static void main_screen_key_cb(lv_event_t * e) {
             
         case LV_KEY_RIGHT:
             mfk_update(+1);
+            break;
+
+        case LV_KEY_DOWN:
+            mfk_press(-1);
+            break;
+            
+        case LV_KEY_UP:
+            mfk_press(+1);
+            break;
+
+        case LV_KEY_ESC:
+            switch (vol->mode) {
+                case VOL_EDIT:
+                    vol->mode = VOL_SELECT;
+                    break;
+                        
+                case VOL_SELECT:
+                    vol->mode = VOL_EDIT;
+                    break;
+            }
+            vol_update(0);
+            break;
+
+        case LV_KEY_ENTER:
+            switch (mfk->mode) {
+                case MFK_EDIT:
+                    mfk->mode = MFK_SELECT;
+                    break;
+                    
+                case MFK_SELECT:
+                    mfk->mode = MFK_EDIT;
+                    break;
+            }
+            mfk_update(0);
+            break;
+
+        case KEYBOARD_PRINT:
+        case KEYBOARD_PRINT_SCR:
+            screenshot_take();
             break;
             
         default:

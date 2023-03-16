@@ -31,15 +31,23 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     if (read(keypad->fd, &in, sizeof(struct input_event)) > 0) {
         if (in.type == EV_KEY) {
             switch (in.code) {
-                /* Rotary */
+                /* Rotary VOL */
                 
                 case BTN_TRIGGER_HAPPY21:
-                    event.key = KEYPAD_ROTARY_VOL;
-                    break;
+                    data->key = LV_KEY_ESC;
+                    data->state = (in.value) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+                    keypad->evdev_key = data->key;
+                    keypad->evdev_state = data->state;
+                    return;
+
+                /* Rotary MFK */
                     
                 case BTN_TRIGGER_HAPPY27:
-                    event.key = KEYPAD_ROTARY_MFK;
-                    break;
+                    data->key = LV_KEY_ENTER;
+                    data->state = (in.value) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+                    keypad->evdev_key = data->key;
+                    keypad->evdev_state = data->state;
+                    return;
                 
                 /* Front side */
 
@@ -173,6 +181,9 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
             }
         }
     }
+    
+    data->key = keypad->evdev_key;
+    data->state = keypad->evdev_state;
 }
 
 keypad_t * keypad_init(char *dev_name) {
@@ -197,6 +208,8 @@ keypad_t * keypad_init(char *dev_name) {
     keypad->indev_drv.user_data = keypad;
     
     keypad->indev = lv_indev_drv_register(&keypad->indev_drv);
+
+    lv_indev_set_group(keypad->indev, keyboard_group());
 
     return keypad;
 }

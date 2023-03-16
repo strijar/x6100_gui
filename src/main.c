@@ -13,13 +13,13 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "main.h"
 #include "main_screen.h"
 #include "styles.h"
 #include "radio.h"
 #include "dsp.h"
 #include "util.h"
 #include "keyboard.h"
-#include "rotary.h"
 #include "spectrum.h"
 #include "waterfall.h"
 #include "keypad.h"
@@ -32,6 +32,9 @@
 #include "rtty.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
+
+rotary_t                    *vol;
+rotary_t                    *mfk;
 
 static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
@@ -69,9 +72,25 @@ int main(void) {
     keypad_t *keypad = keypad_init("/dev/input/event0");
     keypad_t *power = keypad_init("/dev/input/event4");
 
-    rotary_t *main = rotary_init("/dev/input/event1", 0, 0);
-    rotary_t *vol = rotary_init("/dev/input/event2", '[', ']');
-    rotary_t *mfk = rotary_init("/dev/input/event3", LV_KEY_LEFT, LV_KEY_RIGHT);
+    rotary_t *main = rotary_init("/dev/input/event1");
+    
+    vol = rotary_init("/dev/input/event2");
+    mfk = rotary_init("/dev/input/event3");
+
+    vol->left[VOL_EDIT] = '[';
+    vol->right[VOL_EDIT] = ']';
+
+    vol->left[VOL_SELECT] = '{';
+    vol->right[VOL_SELECT] = '}';
+    
+    mfk->left[MFK_EDIT] = LV_KEY_LEFT;
+    mfk->right[MFK_EDIT] = LV_KEY_RIGHT;
+
+    mfk->left[MFK_SELECT] = LV_KEY_DOWN;
+    mfk->right[MFK_SELECT] = LV_KEY_UP;
+
+    mfk->left[MFK_NAVIGATE] = LV_KEY_NEXT;
+    mfk->right[MFK_NAVIGATE] = LV_KEY_PREV;
 
     bands_init();
     params_init();

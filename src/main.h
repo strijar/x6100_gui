@@ -8,4 +8,20 @@
 
 #pragma once
 
+#include "rotary.h"
+
 #define VERSION "v0.13.0"
+
+typedef enum {
+    VOL_EDIT = 0,
+    VOL_SELECT,
+} vol_rotary_t;
+
+typedef enum {
+    MFK_EDIT = 0,
+    MFK_SELECT,
+    MFK_NAVIGATE
+} mfk_rotary_t;
+
+extern rotary_t *vol;
+extern rotary_t *mfk;
