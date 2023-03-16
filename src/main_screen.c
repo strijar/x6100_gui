@@ -746,6 +746,14 @@ static void main_screen_key_cb(lv_event_t * e) {
         case '=':
             freq_update(+1);
             break;
+
+        case '_':
+            next_freq_step(false);
+            break;
+
+        case '+':
+            next_freq_step(true);
+            break;
             
         case '[':
             vol_update(-1);
