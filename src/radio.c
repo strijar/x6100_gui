@@ -259,6 +259,9 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_agc_knee_set(params.agc_knee);
     x6100_control_agc_slope_set(params.agc_slope);
 
+    x6100_control_cmd(x6100_rit, params.rit);
+    x6100_control_cmd(x6100_xit, params.xit);
+
     prev_time = get_time();
     idle_time = prev_time;
 
@@ -1164,4 +1167,36 @@ void radio_set_ptt(bool tx) {
     radio_lock();
     x6100_control_ptt_set(tx);
     radio_unlock();
+}
+
+int16_t radio_change_rit(int16_t d) {
+    if (d == 0) {
+        return params.rit;
+    }
+    
+    params_lock();
+    params.rit = limit(align_int(params.rit + d * 10, 10), -1500, +1500);
+    params_unlock(&params.durty.rit);
+
+    radio_lock();
+    x6100_control_cmd(x6100_rit, params.rit);
+    radio_unlock();
+    
+    return params.rit;
+}
+
+int16_t radio_change_xit(int16_t d) {
+    if (d == 0) {
+        return params.xit;
+    }
+    
+    params_lock();
+    params.xit = limit(align_int(params.xit + d * 10, 10), -1500, +1500);
+    params_unlock(&params.durty.xit);
+
+    radio_lock();
+    x6100_control_cmd(x6100_xit, params.xit);
+    radio_unlock();
+    
+    return params.xit;
 }

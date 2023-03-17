@@ -40,6 +40,8 @@ params_t params = {
     .charger                = true,
     .bias_drive             = 450,
     .bias_final             = 650,
+    .rit                    = 0,
+    .xit                    = 0,
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -437,6 +439,10 @@ static bool params_load() {
             params.rtty_reverse = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "ant") == 0) {
             params.ant = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "rit") == 0) {
+            params.rit = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "xit") == 0) {
+            params.xit = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -538,6 +544,8 @@ static bool params_save() {
     if (params.durty.rtty_reverse)          params_write_int("rtty_reverse", params.rtty_reverse, &params.durty.rtty_reverse);
 
     if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
+    if (params.durty.rit)                   params_write_int("rit", params.rit, &params.durty.rit);
+    if (params.durty.xit)                   params_write_int("xit", params.xit, &params.durty.xit);
 
     if (!params_exec("COMMIT")) {
         return false;

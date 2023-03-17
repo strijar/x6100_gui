@@ -225,6 +225,16 @@ void mfk_update(int16_t diff) {
             }
             msg_set_text_fmt("Antenna : %i", params.ant);
             break;
+
+        case MFK_RIT:
+            i = radio_change_rit(diff);
+            msg_set_text_fmt("RIT: %c%i", i < 0 ? '-' : '+', abs(i));
+            break;
+
+        case MFK_XIT:
+            i = radio_change_xit(diff);
+            msg_set_text_fmt("XIT: %c%i", i < 0 ? '-' : '+', abs(i));
+            break;
             
         case MFK_DNF:
             b = radio_change_dnf(diff);

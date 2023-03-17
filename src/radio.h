@@ -56,6 +56,7 @@ uint16_t radio_change_rfg(int16_t df);
 uint16_t radio_change_sql(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);
 uint32_t radio_change_filter_high(int32_t freq);
+
 bool radio_change_pre();
 bool radio_change_att();
 void radio_change_agc();
@@ -99,3 +100,6 @@ void radio_mode_set();
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();
 void radio_set_ptt(bool tx);
+
+int16_t radio_change_xit(int16_t d);
+int16_t radio_change_rit(int16_t d);

@@ -92,6 +92,8 @@ typedef struct {
     radio_charger_t     charger;
     uint16_t            bias_drive;
     uint16_t            bias_final;
+    int16_t             rit;
+    int16_t             xit;
     
     /* DSP */
     
@@ -165,6 +167,8 @@ typedef struct {
         bool    hmic;
         bool    imic;
         bool    charger;
+        bool    rit;
+        bool    xit;
 
         bool    dnf;
         bool    dnf_center;
