@@ -23,10 +23,12 @@ mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
 void mfk_update(int16_t diff) {
-    int32_t i;
-    char    *str;
-    bool    b;
-    float   f;
+    int32_t     i;
+    char        *str;
+    bool        b;
+    float       f;
+
+    uint32_t    color = mfk_state == MFK_STATE_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
     switch (mfk_mode) {
         case MFK_MIN_LEVEL:
@@ -34,7 +36,7 @@ void mfk_update(int16_t diff) {
                 waterfall_change_min(diff);
                 spectrum_set_min(params_band.grid_min);
             }
-            msg_set_text_fmt("Min level: %i dB", params_band.grid_min);
+            msg_set_text_fmt("#%3X Min level: %i dB", color, params_band.grid_min);
             break;
             
         case MFK_MAX_LEVEL:
@@ -42,7 +44,7 @@ void mfk_update(int16_t diff) {
                 waterfall_change_max(diff);
                 spectrum_set_max(params_band.grid_max);
             }
-            msg_set_text_fmt("Max level: %i dB", params_band.grid_max);
+            msg_set_text_fmt("#%3X Max level: %i dB", color, params_band.grid_max);
             break;
 
         case MFK_SPECTRUM_FACTOR:
@@ -59,7 +61,7 @@ void mfk_update(int16_t diff) {
             
                 spectrum_mode_set();
             }
-            msg_set_text_fmt("Spectrum zoom: x%i", params_mode.spectrum_factor);
+            msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, params_mode.spectrum_factor);
             break;
 
         case MFK_SPECTRUM_BETA:
@@ -76,7 +78,7 @@ void mfk_update(int16_t diff) {
             
                 dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
             }
-            msg_set_text_fmt("Spectrum beta: %i", params.spectrum_beta);
+            msg_set_text_fmt("#%3X Spectrum beta: %i", color, params.spectrum_beta);
             break;
 
         case MFK_SPECTRUM_FILL:
@@ -85,7 +87,7 @@ void mfk_update(int16_t diff) {
                 params.spectrum_filled = !params.spectrum_filled;
                 params_unlock(&params.durty.spectrum_filled);
             }
-            msg_set_text_fmt("Spectrum fill: %s", params.spectrum_filled ? "On" : "Off");
+            msg_set_text_fmt("#%3X Spectrum fill: %s", color, params.spectrum_filled ? "On" : "Off");
             break;
             
         case MFK_SPECTRUM_PEAK:
@@ -94,7 +96,7 @@ void mfk_update(int16_t diff) {
                 params.spectrum_peak = !params.spectrum_peak;
                 params_unlock(&params.durty.spectrum_peak);
             }
-            msg_set_text_fmt("Spectrum peak: %s", params.spectrum_peak ? "On" : "Off");
+            msg_set_text_fmt("#%3X Spectrum peak: %s", color, params.spectrum_peak ? "On" : "Off");
             break;
 
         case MFK_PEAK_HOLD:
@@ -111,7 +113,7 @@ void mfk_update(int16_t diff) {
                 params.spectrum_peak_hold = i;
                 params_unlock(&params.durty.spectrum_peak_hold);
             }
-            msg_set_text_fmt("Peak hold: %i s", params.spectrum_peak_hold / 1000);
+            msg_set_text_fmt("#%3X Peak hold: %i s", color, params.spectrum_peak_hold / 1000);
             break;
             
         case MFK_PEAK_SPEED:
@@ -128,12 +130,12 @@ void mfk_update(int16_t diff) {
                 params.spectrum_peak_speed = f;
                 params_unlock(&params.durty.spectrum_peak_speed);
             }
-            msg_set_text_fmt("Peak speed: %.1f dB", params.spectrum_peak_speed);
+            msg_set_text_fmt("#%3X Peak speed: %.1f dB", color, params.spectrum_peak_speed);
             break;
             
         case MFK_KEY_SPEED:
             i = radio_change_key_speed(diff);
-            msg_set_text_fmt("Key speed: %i wpm", i);
+            msg_set_text_fmt("#%3X Key speed: %i wpm", color, i);
             break;
 
         case MFK_KEY_MODE:
@@ -152,7 +154,7 @@ void mfk_update(int16_t diff) {
                     str = "Auto-R";
                     break;
             }
-            msg_set_text_fmt("Key mode: %s", str);
+            msg_set_text_fmt("#%3X Key mode: %s", color, str);
             break;
             
         case MFK_IAMBIC_MODE:
@@ -167,32 +169,32 @@ void mfk_update(int16_t diff) {
                     str = "B";
                     break;
             }
-            msg_set_text_fmt("Iambic mode: %s", str);
+            msg_set_text_fmt("#%3X Iambic mode: %s", color, str);
             break;
             
         case MFK_KEY_TONE:
             i = radio_change_key_tone(diff);
-            msg_set_text_fmt("Key tone: %i Hz", i);
+            msg_set_text_fmt("#%3X Key tone: %i Hz", color, i);
             break;
 
         case MFK_KEY_VOL:
             i = radio_change_key_vol(diff);
-            msg_set_text_fmt("Key volume: %i", i);
+            msg_set_text_fmt("#%3X Key volume: %i", color, i);
             break;
 
         case MFK_KEY_TRAIN:
             b = radio_change_key_train(diff);
-            msg_set_text_fmt("Key train: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X Key train: %s", color, b ? "On" : "Off");
             break;
 
         case MFK_QSK_TIME:
             i = radio_change_qsk_time(diff);
-            msg_set_text_fmt("QSK time: %i ms", i);
+            msg_set_text_fmt("#%3X QSK time: %i ms", color, i);
             break;
 
         case MFK_KEY_RATIO:
             i = radio_change_key_ratio(diff);
-            msg_set_text_fmt("Key ratio: %.1f", i * 0.1f);
+            msg_set_text_fmt("#%3X Key ratio: %.1f", color, i * 0.1f);
             break;
 
         case MFK_CHARGER:
@@ -211,7 +213,7 @@ void mfk_update(int16_t diff) {
                     str = "Shadow";
                     break;
             }
-            msg_set_text_fmt("Charger: %s", str);
+            msg_set_text_fmt("#%3X Charger: %s", color, str);
             break;
             
         case MFK_ANT:
@@ -223,112 +225,112 @@ void mfk_update(int16_t diff) {
                 radio_load_atu();
                 info_atu_update();
             }
-            msg_set_text_fmt("Antenna : %i", params.ant);
+            msg_set_text_fmt("#%3X Antenna : %i", color, params.ant);
             break;
 
         case MFK_RIT:
             i = radio_change_rit(diff);
-            msg_set_text_fmt("RIT: %c%i", i < 0 ? '-' : '+', abs(i));
+            msg_set_text_fmt("#%3X RIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
             break;
 
         case MFK_XIT:
             i = radio_change_xit(diff);
-            msg_set_text_fmt("XIT: %c%i", i < 0 ? '-' : '+', abs(i));
+            msg_set_text_fmt("#%3X XIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
             break;
             
         case MFK_DNF:
             b = radio_change_dnf(diff);
-            msg_set_text_fmt("DNF: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X DNF: %s", color, b ? "On" : "Off");
             break;
 
         case MFK_DNF_CENTER:
             i = radio_change_dnf_center(diff);
-            msg_set_text_fmt("DNF center: %i Hz", i);
+            msg_set_text_fmt("#%3X DNF center: %i Hz", color, i);
             break;
             
         case MFK_DNF_WIDTH:
             i = radio_change_dnf_width(diff);
-            msg_set_text_fmt("DNF width: %i Hz", i);
+            msg_set_text_fmt("#%3X DNF width: %i Hz", color, i);
             break;
 
         case MFK_NB:
             b = radio_change_nb(diff);
-            msg_set_text_fmt("NB: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X NB: %s", color, b ? "On" : "Off");
             break;
 
         case MFK_NB_LEVEL:
             i = radio_change_nb_level(diff);
-            msg_set_text_fmt("NB level: %i", i);
+            msg_set_text_fmt("#%3X NB level: %i", color, i);
             break;
 
         case MFK_NB_WIDTH:
             i = radio_change_nb_width(diff);
-            msg_set_text_fmt("NB width: %i Hz", i);
+            msg_set_text_fmt("#%3X NB width: %i Hz", color, i);
             break;
 
         case MFK_NR:
             b = radio_change_nr(diff);
-            msg_set_text_fmt("NR: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X NR: %s", color, b ? "On" : "Off");
             break;
 
         case MFK_NR_LEVEL:
             i = radio_change_nr_level(diff);
-            msg_set_text_fmt("NR level: %i", i);
+            msg_set_text_fmt("#%3X NR level: %i", color, i);
             break;
 
         case MFK_AGC_HANG:
             b = radio_change_agc_hang(diff);
-            msg_set_text_fmt("AGC hang: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X AGC hang: %s", color, b ? "On" : "Off");
             break;
 
         case MFK_AGC_KNEE:
             i = radio_change_agc_knee(diff);
-            msg_set_text_fmt("AGC knee: %i dB", i);
+            msg_set_text_fmt("#%3X AGC knee: %i dB", color, i);
             break;
 
         case MFK_AGC_SLOPE:
             i = radio_change_agc_slope(diff);
-            msg_set_text_fmt("AGC slope: %i dB", i);
+            msg_set_text_fmt("#%3X AGC slope: %i dB", color, i);
             break;
 
         case MFK_CW_DECODER:
             b = cw_change_decoder(diff);
-            msg_set_text_fmt("CW decoder: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X CW decoder: %s", color, b ? "On" : "Off");
             break;
             
         case MFK_CW_DECODER_SNR:
             f = cw_change_snr(diff);
-            msg_set_text_fmt("CW decoder SNR: %.1f dB", f);
+            msg_set_text_fmt("#%3X CW decoder SNR: %.1f dB", color, f);
             break;
             
         case MFK_CW_DECODER_PEAK_BETA:
             f = cw_change_peak_beta(diff);
-            msg_set_text_fmt("CW decoder peak beta: %.2f", f);
+            msg_set_text_fmt("#%3X CW decoder peak beta: %.2f", color, f);
             break;
             
         case MFK_CW_DECODER_NOISE_BETA:
             f = cw_change_noise_beta(diff);
-            msg_set_text_fmt("CW decoder noise beta: %.2f", f);
+            msg_set_text_fmt("#%3X CW decoder noise beta: %.2f", color, f);
             break;
 
         case MFK_RTTY_RATE:
             f = rtty_change_rate(diff);
-            msg_set_text_fmt("RTTY rate: %.2f", f);
+            msg_set_text_fmt("#%3X RTTY rate: %.2f", color, f);
             break;
 
         case MFK_RTTY_SHIFT:
             i = rtty_change_shift(diff);
-            msg_set_text_fmt("RTTY shift: %i Hz", i);
+            msg_set_text_fmt("#%3X RTTY shift: %i Hz", color, i);
             break;
         
         case MFK_RTTY_CENTER:
             i = rtty_change_center(diff);
-            msg_set_text_fmt("RTTY center: %i Hz", i);
+            msg_set_text_fmt("#%3X RTTY center: %i Hz", color, i);
             break;
         
         case MFK_RTTY_REVERSE:
             b = rtty_change_reverse(diff);
-            msg_set_text_fmt("RTTY reverse: %s", b ? "On" : "Off");
+            msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
             break;
             
         default:

@@ -343,39 +343,41 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
 }
 
 static void vol_update(int16_t diff) {
-    int32_t x;
-    float   f;
-    char    *s;
+    int32_t     x;
+    float       f;
+    char        *s;
+
+    uint32_t    color = vol->mode == VOL_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
     switch (vol_mode) {
         case VOL_VOL:
             x = radio_change_vol(diff);
-            msg_set_text_fmt("Volume: %i", x);
+            msg_set_text_fmt("#%3X Volume: %i", color, x);
             break;
             
         case VOL_RFG:
             x = radio_change_rfg(diff);
-            msg_set_text_fmt("RF gain: %i", x);
+            msg_set_text_fmt("#%3X RF gain: %i", color, x);
             break;
 
         case VOL_SQL:
             x = radio_change_sql(diff);
-            msg_set_text_fmt("Voice SQL: %i", x);
+            msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
             break;
 
         case VOL_FILTER_LOW:
             x = radio_change_filter_low(diff);
-            msg_set_text_fmt("Filter low: %i Hz", x);
+            msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
             break;
 
         case VOL_FILTER_HIGH:
             x = radio_change_filter_high(diff);
-            msg_set_text_fmt("Filter high: %i Hz", x);
+            msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
             break;
 
         case VOL_PWR:
             f = radio_change_pwr(diff);
-            msg_set_text_fmt("Power: %0.1f W", f);
+            msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
             break;
 
         case VOL_MIC:
@@ -395,17 +397,17 @@ static void vol_update(int16_t diff) {
                     break;
             }
             
-            msg_set_text_fmt("MIC: %s", s);
+            msg_set_text_fmt("#%3X MIC: %s", color, s);
             break;
 
         case VOL_HMIC:
             x = radio_change_hmic(diff);
-            msg_set_text_fmt("H-MIC gain: %i", x);
+            msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
             break;
 
         case VOL_IMIC:
             x = radio_change_imic(diff);
-            msg_set_text_fmt("I-MIC gain: %i", x);
+            msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
             break;
             
         default:
