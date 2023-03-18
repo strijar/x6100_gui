@@ -319,7 +319,7 @@ void main_screen_set_freq() {
     lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
 
     split_freq(f, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[1], "#%02X %i.%03i.%03i", color, mhz, khz, hz);
+    lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
 
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
