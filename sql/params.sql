@@ -8,7 +8,8 @@ CREATE TABLE bands(
     type        INTEGER
 );
 
-.import bands_r1.csv bands
+.import bands_ham.csv bands
+.import bands_cb.csv bands
 .import bands_broadcast.csv bands
 
 CREATE TABLE band_params(

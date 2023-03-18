@@ -20,3 +20,13 @@
 10	vfoa_mode	2
 11	vfoa_freq	28000000
 11	vfoa_mode	2
+12	vfoa_freq	50000000
+12	vfoa_mode	2
+201	vfoa_freq	26055000
+201	vfoa_mode	6
+202	vfoa_freq	26515000
+202	vfoa_mode	6
+203	vfoa_freq	26965000
+203	vfoa_mode	6
+204	vfoa_freq	27415000
+204	vfoa_mode	6
