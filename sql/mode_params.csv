@@ -10,11 +10,11 @@
 3	filter_low	100
 3	filter_high	2900
 3	freq_step	500
-4	filter_low	500
-4	filter_high	700
+4	filter_low	400
+4	filter_high	800
 4	freq_step	100
-5	filter_low	500
-5	filter_high	700
+5	filter_low	400
+5	filter_high	800
 5	freq_step	100
 6	filter_low	0
 6	filter_high	4000
