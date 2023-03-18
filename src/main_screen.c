@@ -42,6 +42,7 @@ static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
 static uint8_t      btn_height = 62;
 static lv_obj_t     *obj;
+static bool         freq_lock = false;
 
 static lv_obj_t     *spectrum;
 static lv_obj_t     *freq[3];
@@ -304,6 +305,7 @@ static void button_press(uint8_t n, bool hold) {
 void main_screen_set_freq() {
     uint64_t    f;
     x6100_vfo_t vfo = params_band.vfo;
+    uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
 
     if (params_band.split && radio_get_state() == RADIO_TX) {
         vfo = (vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A;
@@ -314,13 +316,13 @@ void main_screen_set_freq() {
     uint16_t    mhz, khz, hz;
 
     split_freq(f - 50000, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[0], "%i.%03i", mhz, khz);
+    lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
 
     split_freq(f, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[1], "%i.%03i.%03i", mhz, khz, hz);
+    lv_label_set_text_fmt(freq[1], "#%02X %i.%03i.%03i", color, mhz, khz, hz);
 
     split_freq(f + 50000, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[2], "%i.%03i", mhz, khz);
+    lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
     
     band_info_update(f);
 }
@@ -652,7 +654,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_LOCK:
-            if (keypad->state == KEYPAD_LONG) {
+            if (keypad->state == KEYPAD_RELEASE) {
+                freq_lock = !freq_lock;
+                main_screen_set_freq();
+            } else if (keypad->state == KEYPAD_LONG) {
                 exit(1);
             }
             break;
@@ -722,6 +727,10 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
 }
 
 static freq_update(int16_t diff) {
+    if (freq_lock) {
+        return;
+    }
+    
     uint64_t        freq, prev_freq;
 
     freq = radio_change_freq(diff * params_mode.freq_step, &prev_freq);
@@ -814,6 +823,11 @@ static void spectrum_key_cb(lv_event_t * e) {
         case KEYBOARD_PRINT_SCR:
             screenshot_take();
             break;
+            
+        case KEYBOARD_SCRL_LOCK:
+            freq_lock = !freq_lock;
+            main_screen_set_freq();
+            break;
 
         case KEYBOARD_PGUP:
             bands_change(true);
@@ -893,6 +907,7 @@ lv_obj_t * main_screen() {
         
         lv_obj_set_pos(f, i * ((800 - 10 * 2) / 3) + 10, y);
         lv_obj_set_size(f, (800 - 10 * 2) / 3, freq_height);
+        lv_label_set_recolor(f, true);
         
         freq[i] = f;
     }

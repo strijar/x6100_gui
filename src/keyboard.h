@@ -23,6 +23,7 @@
 #define KEYBOARD_F11        (0xFFC8)
 #define KEYBOARD_F12        (0xFFC9)
 
+#define KEYBOARD_SCRL_LOCK  (0xFF14)
 #define KEYBOARD_PRINT      (0xFF61)
 #define KEYBOARD_PRINT_SCR  (0xFD1D)
 
