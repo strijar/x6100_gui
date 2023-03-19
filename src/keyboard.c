@@ -14,6 +14,8 @@ static lv_indev_drv_t       indev_drv_2;
 static lv_group_t           *group;
 
 void keyboard_init() {
+    group = lv_group_create();
+
     if (!evdev_set_file("/dev/input/event5")) {
         return;
     }
@@ -24,9 +26,7 @@ void keyboard_init() {
     indev_drv_2.read_cb = evdev_read;
 
     lv_indev_t *keyboard_indev = lv_indev_drv_register(&indev_drv_2);
-    
-    group = lv_group_create();
-    
+
     lv_indev_set_group(keyboard_indev, group);
 }
 
