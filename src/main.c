@@ -30,6 +30,7 @@
 #include "pannel.h"
 #include "cat.h"
 #include "rtty.h"
+#include "backlight.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -86,6 +87,7 @@ int main(void) {
     bands_init();
     params_init();
     styles_init();
+    backlight_init();
     
     lv_obj_t *main_obj = main_screen();
 

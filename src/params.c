@@ -24,6 +24,10 @@ params_t params = {
     .vol_modes              = (1 << VOL_VOL) | (1 << VOL_RFG) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
     .mfk_modes              = (1 <<MFK_MIN_LEVEL) | (1 << MFK_MAX_LEVEL) | (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
 
+    .brightness_normal      = 9,
+    .brightness_idle        = 1,
+    .brightness_timeout     = 10,
+
     .spectrum_beta          = 70,
     .spectrum_filled        = true,
     .spectrum_peak          = true,
@@ -443,6 +447,12 @@ static bool params_load() {
             params.rit = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "xit") == 0) {
             params.xit = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "brightness_normal") == 0) {
+            params.brightness_normal = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "brightness_idle") == 0) {
+            params.brightness_idle = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "brightness_timeout") == 0) {
+            params.brightness_timeout = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -546,6 +556,10 @@ static bool params_save() {
     if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
     if (params.durty.rit)                   params_write_int("rit", params.rit, &params.durty.rit);
     if (params.durty.xit)                   params_write_int("xit", params.xit, &params.durty.xit);
+
+    if (params.durty.brightness_normal)     params_write_int("brightness_normal", params.brightness_normal, &params.durty.brightness_normal);
+    if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);
+    if (params.durty.brightness_timeout)     params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
 
     if (!params_exec("COMMIT")) {
         return false;

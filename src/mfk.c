@@ -18,6 +18,7 @@
 #include "rtty.h"
 #include "util.h"
 #include "info.h"
+#include "backlight.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
@@ -331,6 +332,11 @@ void mfk_update(int16_t diff) {
         case MFK_RTTY_REVERSE:
             b = rtty_change_reverse(diff);
             msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
+            break;
+
+        case MFK_BRIGHTNESS_NORMAL:
+            i = backlight_change_brightness(diff);
+            msg_set_text_fmt("Brightness: %i %%", (i + 1) * 10);
             break;
             
         default:

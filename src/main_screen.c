@@ -222,6 +222,8 @@ static void buttons_unload_page() {
 
 static void button_next_page_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
+
+    backlight_tick();
     
     buttons_unload_page();
     buttons_page = item->next;
@@ -238,12 +240,16 @@ static void button_next_page_cb(lv_event_t * e) {
 static void button_vol_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
+    backlight_tick();
+
     vol_mode = item->data;
     vol_update(0);
 }
 
 static void button_mfk_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
+
+    backlight_tick();
 
     mfk_set_mode(item->data);
     mfk_update(0);
@@ -252,6 +258,8 @@ static void button_mfk_update_cb(lv_event_t * e) {
 static void button_prev_page_cb(void * ptr) {
     button_item_t *item = (button_item_t*) ptr;
     
+    backlight_tick();
+
     buttons_unload_page();
     buttons_page = item->prev;
     buttons_load_page();
@@ -260,6 +268,8 @@ static void button_prev_page_cb(void * ptr) {
 static void button_vol_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
+
+    backlight_tick();
 
     params_lock();
     params.vol_modes ^= mask;
@@ -275,6 +285,8 @@ static void button_vol_hold_cb(void * ptr) {
 static void button_mfk_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
+
+    backlight_tick();
 
     params_lock();
     params.mfk_modes ^= mask;
@@ -469,6 +481,8 @@ static void apps_disable() {
 
 static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
+
+    backlight_tick();
     
     switch (keypad->key) {
         case KEYPAD_PRE:
@@ -647,7 +661,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
 
         case KEYPAD_POWER:
-            if (keypad->state == KEYPAD_LONG) {
+            if (keypad->state == KEYPAD_RELEASE) {
+                mfk_set_mode(MFK_BRIGHTNESS_NORMAL);
+                mfk_update(0);
+            } else if (keypad->state == KEYPAD_LONG) {
                 msg_set_text_fmt("Power off");
                 radio_poweroff();
             }
@@ -683,6 +700,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
 static void main_screen_hkey_cb(lv_event_t * e) {
     event_hkey_t *hkey = lv_event_get_param(e);
+
+    backlight_tick();
 
     switch (hkey->key) {
         case HKEY_UP:
@@ -744,10 +763,13 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     int32_t     diff = lv_event_get_param(e);
     
     freq_update(diff);
+    backlight_tick();
 }
 
 static void spectrum_key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
+
+    backlight_tick();
 
     switch (key) {
         case '-':
@@ -843,6 +865,8 @@ static void spectrum_key_cb(lv_event_t * e) {
 }
 
 static void spectrum_pressed_cb(lv_event_t * e) {
+    backlight_tick();
+
     switch (mfk_state) {
         case MFK_STATE_EDIT:
             mfk_state = MFK_STATE_SELECT;

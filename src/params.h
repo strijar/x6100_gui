@@ -71,6 +71,12 @@ typedef struct {
 typedef struct {
     uint64_t            vol_modes;
     uint64_t            mfk_modes;
+    
+    /* LCD */
+    
+    int16_t             brightness_normal;
+    int16_t             brightness_idle;
+    uint16_t            brightness_timeout; /* seconds */
 
     /* band info */
     
@@ -155,6 +161,10 @@ typedef struct {
     struct {
         bool    vol_modes;
         bool    mfk_modes;
+
+        bool    brightness_normal;
+        bool    brightness_idle;
+        bool    brightness_timeout;
 
         bool    band;
         bool    vol;
