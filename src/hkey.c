@@ -12,6 +12,7 @@
 
 #include "hkey.h"
 #include "events.h"
+#include "backlight.h"
 
 static uint32_t prev_key = 0;
 
@@ -136,5 +137,7 @@ void hkey_put(uint32_t key) {
 
         event_send(lv_scr_act(), EVENT_HKEY, (void*) event);
         prev_key = key;
+        
+        backlight_tick();
     }
 }

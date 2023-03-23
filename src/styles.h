@@ -31,6 +31,11 @@ extern lv_style_t   panel_mid_style;
 extern lv_style_t   panel_bottom_style;
 extern lv_style_t   pannel_style;
 
+extern lv_style_t   dialog_style;
+extern lv_style_t   dialog_item_style;
+extern lv_style_t   dialog_item_focus_style;
+extern lv_style_t   dialog_item_edited_style;
+
 extern lv_font_t    sony_14;
 extern lv_font_t    sony_16;
 extern lv_font_t    sony_18;

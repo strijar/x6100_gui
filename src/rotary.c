@@ -13,6 +13,7 @@
 
 #include "rotary.h"
 #include "keyboard.h"
+#include "backlight.h"
 
 static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
@@ -28,6 +29,8 @@ static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     }
     
     if (send) {
+        backlight_tick();
+    
         if (rotary->left[0] == 0 && rotary->right[0] == 0) {
             lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
         } else {

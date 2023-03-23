@@ -13,6 +13,7 @@
 
 #include "encoder.h"
 #include "keyboard.h"
+#include "backlight.h"
 
 static void encoder_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
@@ -23,7 +24,12 @@ static void encoder_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     while (read(encoder->fd, &in, sizeof(struct input_event)) > 0) {
         if (in.type == EV_REL) {
             diff += in.value;
+            send = true;
         }
+    }
+
+    if (send) {
+        backlight_tick();
     }
 
     data->enc_diff = -diff;

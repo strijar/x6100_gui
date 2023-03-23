@@ -24,3 +24,5 @@ typedef enum {
 
 lv_obj_t * main_screen();
 void main_screen_band_set();
+
+void main_screen_keys_enable(bool value);

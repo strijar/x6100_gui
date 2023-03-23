@@ -33,6 +33,7 @@
 #include "rtty.h"
 #include "screenshot.h"
 #include "keyboard.h"
+#include "dialog_settings.h"
 
 #define BUTTONS     5
 
@@ -51,6 +52,7 @@ static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *msg;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
+static lv_obj_t     *dialog = NULL;
 
 typedef void (*hold_cb_t)(void *);
 
@@ -94,7 +96,8 @@ typedef enum {
     
     PAGE_APP_1,
     
-    PAGE_RTTY
+    PAGE_RTTY,
+    PAGE_SETTINGS
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -186,17 +189,25 @@ static button_item_t    buttons[] = {
 
     { .label = "(APP 1:1)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
     { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
-    { .label = "",                  .press = NULL },
+    { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
-    /* APP */
+    /* RTTY */
 
     { .label = "(RTTY 1:1)",        .press = NULL },
     { .label = "Rate",              .press = button_mfk_update_cb,  .data = MFK_RTTY_RATE },
     { .label = "Shift",             .press = button_mfk_update_cb,  .data = MFK_RTTY_SHIFT },
     { .label = "Center",            .press = button_mfk_update_cb,  .data = MFK_RTTY_CENTER },
     { .label = "Reverse",           .press = button_mfk_update_cb,  .data = MFK_RTTY_REVERSE },
+
+    /* Settings */
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
 
 };
 
@@ -223,8 +234,6 @@ static void buttons_unload_page() {
 static void button_next_page_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
-    backlight_tick();
-    
     buttons_unload_page();
     buttons_page = item->next;
     buttons_load_page();
@@ -234,13 +243,15 @@ static void button_next_page_cb(lv_event_t * e) {
             rtty_set_state(RTTY_RX);
             pannel_visible();
             break;
+            
+        case PAGE_SETTINGS:
+            dialog = dialog_settings(obj);
+            break;
     }
 }
 
 static void button_vol_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
-
-    backlight_tick();
 
     vol_mode = item->data;
     vol_update(0);
@@ -249,8 +260,6 @@ static void button_vol_update_cb(lv_event_t * e) {
 static void button_mfk_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
-    backlight_tick();
-
     mfk_set_mode(item->data);
     mfk_update(0);
 }
@@ -258,8 +267,6 @@ static void button_mfk_update_cb(lv_event_t * e) {
 static void button_prev_page_cb(void * ptr) {
     button_item_t *item = (button_item_t*) ptr;
     
-    backlight_tick();
-
     buttons_unload_page();
     buttons_page = item->prev;
     buttons_load_page();
@@ -268,8 +275,6 @@ static void button_prev_page_cb(void * ptr) {
 static void button_vol_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
-
-    backlight_tick();
 
     params_lock();
     params.vol_modes ^= mask;
@@ -285,8 +290,6 @@ static void button_vol_hold_cb(void * ptr) {
 static void button_mfk_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
-
-    backlight_tick();
 
     params_lock();
     params.mfk_modes ^= mask;
@@ -473,7 +476,6 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
-
 static void apps_disable() {
     rtty_set_state(RTTY_OFF);
     pannel_visible();
@@ -482,8 +484,6 @@ static void apps_disable() {
 static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
 
-    backlight_tick();
-    
     switch (keypad->key) {
         case KEYPAD_PRE:
             if (keypad->state == KEYPAD_RELEASE) {
@@ -701,8 +701,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 static void main_screen_hkey_cb(lv_event_t * e) {
     event_hkey_t *hkey = lv_event_get_param(e);
 
-    backlight_tick();
-
     switch (hkey->key) {
         case HKEY_UP:
             if (!hkey->pressed) {
@@ -763,13 +761,10 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     int32_t     diff = lv_event_get_param(e);
     
     freq_update(diff);
-    backlight_tick();
 }
 
 static void spectrum_key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
-
-    backlight_tick();
 
     switch (key) {
         case '-':
@@ -804,6 +799,14 @@ static void spectrum_key_cb(lv_event_t * e) {
             vol_press(+1);
             break;
             
+        case KEYBOARD_F9:
+            buttons_unload_page();
+            buttons_page = PAGE_SETTINGS;
+            buttons_load_page();
+            
+            dialog = dialog_settings(obj);
+            break;
+            
         case LV_KEY_LEFT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
@@ -829,16 +832,23 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case LV_KEY_ESC:
-            switch (vol->mode) {
-                case VOL_EDIT:
-                    vol->mode = VOL_SELECT;
-                    break;
+            if (dialog) {
+                dialog = NULL;
+                buttons_unload_page();
+                buttons_page = PAGE_VOL_1;
+                buttons_load_page();
+            } else {
+                switch (vol->mode) {
+                    case VOL_EDIT:
+                        vol->mode = VOL_SELECT;
+                        break;
                         
-                case VOL_SELECT:
-                    vol->mode = VOL_EDIT;
-                    break;
+                    case VOL_SELECT:
+                        vol->mode = VOL_EDIT;
+                        break;
+                }
+                vol_update(0);
             }
-            vol_update(0);
             break;
 
         case KEYBOARD_PRINT:
@@ -865,8 +875,6 @@ static void spectrum_key_cb(lv_event_t * e) {
 }
 
 static void spectrum_pressed_cb(lv_event_t * e) {
-    backlight_tick();
-
     switch (mfk_state) {
         case MFK_STATE_EDIT:
             mfk_state = MFK_STATE_SELECT;
@@ -877,6 +885,16 @@ static void spectrum_pressed_cb(lv_event_t * e) {
             break;
     }
     mfk_update(0);
+}
+
+void main_screen_keys_enable(bool value) {
+    if (value) {
+        lv_group_add_obj(keyboard_group(), spectrum);
+        lv_group_set_editing(keyboard_group(), true);
+    } else {
+        lv_group_remove_obj(spectrum);
+        lv_group_set_editing(keyboard_group(), false);
+    }
 }
 
 lv_obj_t * main_screen() {
@@ -896,8 +914,7 @@ lv_obj_t * main_screen() {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     
     spectrum = spectrum_init(obj);
-    lv_group_add_obj(keyboard_group(), spectrum);
-    lv_group_set_editing(keyboard_group(), true);
+    main_screen_keys_enable(true);
 
     lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);

@@ -28,6 +28,11 @@ lv_style_t  panel_mid_style;
 lv_style_t  panel_bottom_style;
 lv_style_t  pannel_style;
 
+lv_style_t  dialog_style;
+lv_style_t  dialog_item_style;
+lv_style_t  dialog_item_focus_style;
+lv_style_t  dialog_item_edited_style;
+
 lv_color_t  bg_color;
 
 void styles_init() {
@@ -97,6 +102,30 @@ void styles_init() {
     lv_style_set_pad_ver(&pannel_style, 10);
     lv_style_set_pad_hor(&pannel_style, 10);
 
+    lv_style_init(&dialog_style);
+    lv_style_set_text_color(&dialog_style, lv_color_white());
+    lv_style_set_text_font(&dialog_style, &sony_36);
+    lv_style_set_size(&dialog_style, 796, 348);
+    lv_style_set_x(&dialog_style, 800 / 2 - (796 / 2));
+    lv_style_set_y(&dialog_style, 66);
+    lv_style_set_radius(&dialog_style, 0);
+    lv_style_set_bg_img_src(&dialog_style, PATH "images/dialog.bin");
+    lv_style_set_bg_img_opa(&dialog_style, LV_OPA_COVER);
+    lv_style_set_pad_ver(&dialog_style, 0);
+    lv_style_set_pad_hor(&dialog_style, 0);
+
+    lv_style_init(&dialog_item_style);
+    lv_style_set_bg_opa(&dialog_item_style, LV_OPA_TRANSP);
+    lv_style_set_text_color(&dialog_item_style, lv_color_white());
+
+    lv_style_init(&dialog_item_focus_style);
+    lv_style_set_bg_opa(&dialog_item_focus_style, 128);
+    lv_style_set_text_color(&dialog_item_focus_style, lv_color_black());
+
+    lv_style_init(&dialog_item_edited_style);
+    lv_style_set_bg_opa(&dialog_item_edited_style, LV_OPA_COVER);
+    lv_style_set_text_color(&dialog_item_edited_style, lv_color_black());
+
     lv_style_init(&clock_style);
     lv_style_set_text_color(&clock_style, lv_color_white());
     lv_style_set_radius(&clock_style, 0);
@@ -138,4 +167,6 @@ void styles_init() {
     lv_style_set_bg_img_src(&tx_info_style, PATH "images/top_big.bin");
     lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
+
+
 }
