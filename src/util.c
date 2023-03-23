@@ -13,11 +13,11 @@
 #include "util.h"
 
 uint64_t get_time() {
-    struct timeval now;
+    struct timespec now;
     
-    gettimeofday(&now, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &now);
 
-    uint64_t usec = (uint64_t) now.tv_sec * 1000000L + now.tv_usec;
+    uint64_t usec = (uint64_t) now.tv_sec * 1000000L + now.tv_nsec / 1000;
 
     return usec / 1000;
 }

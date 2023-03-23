@@ -6,6 +6,14 @@
  *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
  */
 
+#include <sys/time.h>
+#include <time.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/rtc.h>
+
 #include "lvgl/lvgl.h"
 #include "dialog.h"
 #include "dialog_settings.h"
@@ -16,6 +24,45 @@ static lv_obj_t     *grid;
 
 static lv_coord_t   col_dsc[] = { 330, 125, 125, 125, LV_GRID_TEMPLATE_LAST };
 static lv_coord_t   row_dsc[] = { 54, 54, 54, 54, 54, 54, 54, 54, LV_GRID_TEMPLATE_LAST };
+
+static time_t       now;
+struct tm           ts;
+
+static lv_obj_t     *day;
+static lv_obj_t     *month;
+static lv_obj_t     *year;
+static lv_obj_t     *hour;
+static lv_obj_t     *min;
+static lv_obj_t     *sec;
+
+static void datetime_update_cb(lv_event_t * e) {
+    ts.tm_mday = lv_spinbox_get_value(day);
+    ts.tm_mon = lv_spinbox_get_value(month) - 1;
+    ts.tm_year = lv_spinbox_get_value(year) - 1900;
+    ts.tm_hour = lv_spinbox_get_value(hour);
+    ts.tm_min = lv_spinbox_get_value(min);
+    ts.tm_sec = lv_spinbox_get_value(sec);
+
+    /* Set system */
+    
+    struct timespec tp;
+    
+    tp.tv_sec = mktime(&ts);
+    tp.tv_nsec = 0;
+
+    clock_settime(CLOCK_REALTIME, &tp);
+    
+    /* Set RTC */
+    
+    int rtc = open("/dev/rtc1", O_WRONLY);
+    
+    if (rtc > 0) {
+        ioctl(rtc, RTC_SET_TIME, &ts);
+        close(rtc);
+    } else {
+        LV_LOG_ERROR("Set RTC");
+    }
+}
 
 static uint8_t make_date(uint8_t row) {
     lv_obj_t    *obj;
@@ -31,44 +78,50 @@ static uint8_t make_date(uint8_t row) {
     /* Day */
 
     obj = lv_spinbox_create(grid);
+    day = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
-    lv_spinbox_set_range(obj, 1, 32);
+    lv_spinbox_set_value(obj, ts.tm_mday);
+    lv_spinbox_set_range(obj, 1, 31);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Month */
 
     obj = lv_spinbox_create(grid);
+    month = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
+    lv_spinbox_set_value(obj, ts.tm_mon + 1);
     lv_spinbox_set_range(obj, 1, 12);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Year */
 
     obj = lv_spinbox_create(grid);
+    year = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
+    lv_spinbox_set_value(obj, ts.tm_year + 1900);
     lv_spinbox_set_range(obj, 2020, 2038);
     lv_spinbox_set_digit_format(obj, 4, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     return row + 1;
 }
@@ -87,44 +140,50 @@ static uint8_t make_time(uint8_t row) {
     /* Hour */
 
     obj = lv_spinbox_create(grid);
+    hour = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
+    lv_spinbox_set_value(obj, ts.tm_hour);
     lv_spinbox_set_range(obj, 0, 23);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Min */
 
     obj = lv_spinbox_create(grid);
+    min = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
+    lv_spinbox_set_value(obj, ts.tm_min);
     lv_spinbox_set_range(obj, 0, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Sec */
 
     obj = lv_spinbox_create(grid);
+    sec = obj;
 
     dialog_item(obj);
 
-    lv_spinbox_set_value(obj, row);
+    lv_spinbox_set_value(obj, ts.tm_sec);
     lv_spinbox_set_range(obj, 0, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, 120, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     return row + 1;
 }
@@ -144,6 +203,11 @@ lv_obj_t * dialog_settings(lv_obj_t *parent) {
     lv_obj_center(grid);
 
     uint8_t row = 0;
+
+    now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    memcpy(&ts, t, sizeof(ts));
     
     row = make_date(row);
     row = make_time(row);
