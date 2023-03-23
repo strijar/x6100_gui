@@ -18,6 +18,8 @@
 #include "dialog.h"
 #include "dialog_settings.h"
 #include "styles.h"
+#include "params.h"
+#include "backlight.h"
 
 static lv_obj_t     *dialog;
 static lv_obj_t     *grid;
@@ -34,6 +36,8 @@ static lv_obj_t     *year;
 static lv_obj_t     *hour;
 static lv_obj_t     *min;
 static lv_obj_t     *sec;
+
+/* Datetime */
 
 static void datetime_update_cb(lv_event_t * e) {
     ts.tm_mday = lv_spinbox_get_value(day);
@@ -188,6 +192,74 @@ static uint8_t make_time(uint8_t row) {
     return row + 1;
 }
 
+/* Backlight */
+
+static void backlight_timeout_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.brightness_timeout = lv_spinbox_get_value(obj);
+    params_unlock(&params.durty.brightness_timeout);
+
+    backlight_tick();
+}
+
+static void backlight_brightness_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.brightness_normal = lv_slider_get_value(obj);
+    params_unlock(&params.durty.brightness_normal);
+
+    params_lock();
+    params.brightness_idle = lv_slider_get_left_value(obj);
+    params_unlock(&params.durty.brightness_idle);
+
+    backlight_set_brightness(params.brightness_normal);
+}
+
+static uint8_t make_backlight(uint8_t row) {
+    lv_obj_t    *obj;
+    uint8_t     col = 0;
+
+    /* Label */
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Timeout, Brightness");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    
+    /* Timeout */
+
+    obj = lv_spinbox_create(grid);
+
+    dialog_item(obj);
+
+    lv_spinbox_set_value(obj, params.brightness_timeout);
+    lv_spinbox_set_range(obj, 5, 120);
+    lv_spinbox_set_digit_format(obj, 3, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, 120, 56);
+    
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, backlight_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    /* Brightness */
+    
+    obj = lv_slider_create(grid);
+
+    dialog_item(obj);
+    
+    lv_slider_set_mode(obj, LV_SLIDER_MODE_RANGE);
+    lv_slider_set_value(obj, params.brightness_normal, LV_ANIM_OFF);
+    lv_slider_set_left_value(obj, params.brightness_idle, LV_ANIM_OFF);
+    lv_slider_set_range(obj, -1, 9);
+    lv_obj_set_width(obj, 120 * 2);
+
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 2, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
 lv_obj_t * dialog_settings(lv_obj_t *parent) {
     dialog = dialog_init(parent);
     grid = lv_obj_create(dialog);
@@ -211,6 +283,7 @@ lv_obj_t * dialog_settings(lv_obj_t *parent) {
     
     row = make_date(row);
     row = make_time(row);
+    row = make_backlight(row);
 
     return dialog;
 }
