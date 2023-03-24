@@ -334,11 +334,6 @@ void mfk_update(int16_t diff) {
             msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
             break;
 
-        case MFK_BRIGHTNESS_NORMAL:
-            i = backlight_change_brightness(diff);
-            msg_set_text_fmt("Brightness: %i %%", (i + 1) * 10);
-            break;
-            
         default:
             break;
     }

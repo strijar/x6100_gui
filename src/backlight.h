@@ -15,6 +15,6 @@ void backlight_init();
 void backlight_tick();
 
 void backlight_set_brightness(int16_t value);
-void backlight_set_power(bool value);
 
-int16_t backlight_change_brightness(int16_t d);
+void backlight_switch();
+bool backlight_is_on();

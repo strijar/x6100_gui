@@ -14,6 +14,7 @@
 #include "styles.h"
 #include "radio.h"
 #include "util.h"
+#include "backlight.h"
 
 #define TIME_TIMEOUT    5000
 #define POWER_TIMEOUT   3000
@@ -53,6 +54,10 @@ static void set_state(clock_state_t new_state) {
 }
 
 static void show_time() {
+    if (!backlight_is_on()) {
+        return;
+    }
+
     time_t      now;
     struct tm   *t;
     uint64_t    ms = get_time();

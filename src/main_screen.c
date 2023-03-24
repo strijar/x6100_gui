@@ -662,8 +662,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
-                mfk_set_mode(MFK_BRIGHTNESS_NORMAL);
-                mfk_update(0);
+                backlight_switch();
             } else if (keypad->state == KEYPAD_LONG) {
                 msg_set_text_fmt("Power off");
                 radio_poweroff();

@@ -52,7 +52,6 @@ typedef enum {
     MFK_ANT,
     MFK_RIT,
     MFK_XIT,
-    MFK_BRIGHTNESS_NORMAL,
 
     MFK_LAST,
 

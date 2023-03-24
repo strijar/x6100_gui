@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "events.h"
+#include "backlight.h"
 
 #define QUEUE_SIZE  32
 
@@ -57,7 +58,9 @@ void event_obj_check() {
         item_t *item = queue[queue_read];
         
         if (item->event_code == LV_EVENT_REFRESH) {
-            lv_obj_invalidate(item->obj);
+            if (backlight_is_on()) {
+                lv_obj_invalidate(item->obj);
+            }
         } else {
             lv_event_send(item->obj, item->event_code, item->param);
         }

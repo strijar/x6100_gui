@@ -16,6 +16,7 @@
 #include "bands.h"
 #include "band_info.h"
 #include "meter.h"
+#include "backlight.h"
 
 #define PX_BYTES    4
 

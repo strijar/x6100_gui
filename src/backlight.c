@@ -18,6 +18,7 @@
 
 static int          power;
 static int          brightness;
+static bool         on = true;
 
 static lv_timer_t   *timer = NULL;
 
@@ -26,15 +27,35 @@ static void backlight_timer(lv_timer_t *t) {
     timer = NULL;
 }
 
+static void set_brightness(int16_t value) {
+    if (brightness > 0) {
+        char    str[8];
+        int     len = snprintf(str, sizeof(str), "%i\n", 10 - value);
+
+        write(brightness, str, len);
+    }
+}
+
+static void set_power(bool value) {
+    if (power > 0) {
+        char    str[8];
+        int     len = snprintf(str, sizeof(str), "%i\n", value ? 0 : 1);
+        
+        write(power, str, len);
+    }
+}
+
 void backlight_init() {
     power = open("/sys/class/backlight/backlight/bl_power", O_WRONLY);
     brightness = open("/sys/class/backlight/backlight/brightness", O_WRONLY);
+    on = true;
     
     backlight_tick();
 }
 
 void backlight_tick() {
     if (timer) {
+        lv_timer_set_period(timer, params.brightness_timeout * 1000);
         lv_timer_reset(timer);
     } else {
         timer = lv_timer_create(backlight_timer, params.brightness_timeout * 1000, NULL);
@@ -45,38 +66,31 @@ void backlight_tick() {
 }
 
 void backlight_set_brightness(int16_t value) {
-    if (brightness > 0) {
+    if (on) {
         if (value < 0) {
-            backlight_set_power(false);
-        } else if (value < 10) {
-            char    str[8];
-            int     len = snprintf(str, sizeof(str), "%i\n", 10 - value);
-        
-            write(brightness, str, len);
-            backlight_set_power(true);
+            set_power(false);
+            
+            /* Setting max PWM for reduce noice */
+            set_brightness(9);
+        } else {
+            set_brightness(value);
+            set_power(true);
         }
     }
 }
 
-void backlight_set_power(bool value) {
-    if (power > 0) {
-        char    str[8];
-        int     len = snprintf(str, sizeof(str), "%i\n", value ? 0 : 1);
-        
-        write(power, str, len);
+void backlight_switch() {
+    on = !on;
+    
+    if (on) {
+        set_power(true);
+        set_brightness(params.brightness_normal);
+    } else {
+        set_power(false);
+        set_brightness(9);
     }
 }
 
-int16_t backlight_change_brightness(int16_t d) {
-    if (d == 0) {
-        return params.brightness_normal;
-    }
-    
-    params_lock();
-    params.brightness_normal = limit(params.brightness_normal + d, 0, 9);
-    params_unlock(&params.durty.brightness_normal);
-
-    backlight_set_brightness(params.brightness_normal);
-
-    return params.brightness_normal;
+bool backlight_is_on() {
+    return on;
 }

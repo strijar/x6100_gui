@@ -10,6 +10,7 @@
 #include "band_info.h"
 #include "styles.h"
 #include "events.h"
+#include "backlight.h"
 
 static lv_obj_t         *obj;
 
@@ -153,7 +154,9 @@ void band_info_update(uint64_t f) {
     bands = bands_find_all(f, width_hz / 2);
     freq = f;
 
-    lv_obj_invalidate(obj);
+    if (backlight_is_on()) {
+        lv_obj_invalidate(obj);
+    }
 
     if (!fade_run) {
         fade_run = true;
