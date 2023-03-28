@@ -34,6 +34,8 @@
 #include "screenshot.h"
 #include "keyboard.h"
 #include "dialog_settings.h"
+#include "dialog_swrscan.h"
+#include "backlight.h"
 
 #define BUTTONS     5
 
@@ -97,7 +99,8 @@ typedef enum {
     PAGE_APP_1,
     
     PAGE_RTTY,
-    PAGE_SETTINGS
+    PAGE_SETTINGS,
+    PAGE_SWRSCAN
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -190,7 +193,7 @@ static button_item_t    buttons[] = {
     { .label = "(APP 1:1)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
     { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
     { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
-    { .label = "",                  .press = NULL },
+    { .label = "SWR\nScan",         .press = button_next_page_cb,   .next = PAGE_SWRSCAN },
     { .label = "",                  .press = NULL },
 
     /* RTTY */
@@ -206,6 +209,14 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* SWR Scan */
+
+    { .label = "Run",               .press = dialog_swrscan_run_cb },
+    { .label = "Scale",             .press = dialog_swrscan_scale_cb },
+    { .label = "Span",              .press = dialog_swrscan_span_cb },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
@@ -246,6 +257,10 @@ static void button_next_page_cb(lv_event_t * e) {
             
         case PAGE_SETTINGS:
             dialog = dialog_settings(obj);
+            break;
+
+        case PAGE_SWRSCAN:
+            dialog = dialog_swrscan(obj);
             break;
     }
 }
@@ -476,7 +491,23 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
+void close_dialog(bool destroy) {
+    if (destroy) {
+        main_screen_keys_enable(true);
+        lv_obj_del(dialog);
+    }
+    
+    dialog = NULL;
+    buttons_unload_page();
+    buttons_page = PAGE_VOL_1;
+    buttons_load_page();
+}
+
 static void apps_disable() {
+    if (dialog) {
+        close_dialog(true);
+    }
+
     rtty_set_state(RTTY_OFF);
     pannel_visible();
 }
@@ -742,7 +773,7 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
     info_atu_update();
 }
 
-static freq_update(int16_t diff) {
+static void freq_update(int16_t diff) {
     if (freq_lock) {
         return;
     }
@@ -832,10 +863,7 @@ static void spectrum_key_cb(lv_event_t * e) {
 
         case LV_KEY_ESC:
             if (dialog) {
-                dialog = NULL;
-                buttons_unload_page();
-                buttons_page = PAGE_VOL_1;
-                buttons_load_page();
+                close_dialog(false);
             } else {
                 switch (vol->mode) {
                     case VOL_EDIT:

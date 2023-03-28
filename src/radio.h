@@ -27,6 +27,7 @@ typedef enum {
     RADIO_ATU_START,
     RADIO_ATU_WAIT,
     RADIO_ATU_RUN,
+    RADIO_SWRSCAN,
     
     RADIO_POWEROFF,
     RADIO_OFF
@@ -93,6 +94,8 @@ uint8_t radio_change_agc_slope(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();
+
+bool radio_start_swrscan();
 
 void radio_vfo_set();
 void radio_mode_set();

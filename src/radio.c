@@ -26,6 +26,7 @@
 #include "events.h"
 #include "clock.h"
 #include "info.h"
+#include "dialog_swrscan.h"
 
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (3 * 1000)
@@ -121,6 +122,10 @@ bool radio_tick() {
                 } else {
                     tx_info_update(pack->tx_power * 0.1f, pack->vswr * 0.1f, pack->alc_level * 0.1f);
                 }
+                break;
+
+            case RADIO_SWRSCAN:
+                dialog_swrscan_update(pack->vswr * 0.1f);
                 break;
                 
             case RADIO_POWEROFF:
@@ -651,6 +656,28 @@ void radio_start_atu() {
     }
 }
 
+bool radio_start_swrscan() {
+    static uint64_t freq_save;
+
+    if (state == RADIO_RX) {
+        state = RADIO_SWRSCAN;
+
+        freq_save = params_band.vfo_x[params_band.vfo].freq;
+        x6100_control_vfo_mode_set(params_band.vfo, x6100_mode_am);
+        x6100_control_swrscan_set(true);
+        
+        return true;
+    } else if (state == RADIO_SWRSCAN) {
+        x6100_control_swrscan_set(false);
+        x6100_control_vfo_mode_set(params_band.vfo, params_band.vfo_x[params_band.vfo].mode);
+        radio_set_freq(freq_save);
+
+        state = RADIO_RX;
+    }
+    
+    return false;
+}
+
 void radio_load_atu() {
     if (params.atu) {
         uint32_t atu = params_atu_load(&params.atu_loaded);
@@ -658,8 +685,10 @@ void radio_load_atu() {
         radio_lock();
         x6100_control_cmd(x6100_atu_network, atu);
         radio_unlock();
-        
-        info_atu_update();
+    
+        if (state != RADIO_SWRSCAN) {
+            info_atu_update();
+        }
     }
 }
 
