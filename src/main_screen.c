@@ -529,12 +529,20 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_BAND_UP:
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
+                
+                if (dialog) {
+                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                }
             }
             break;
             
         case KEYPAD_BAND_DOWN:
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
+
+                if (dialog) {
+                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                }
             }
             break;
             
@@ -735,12 +743,20 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         case HKEY_UP:
             if (!hkey->pressed) {
                 bands_change(true);
+                
+                if (dialog) {
+                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                }
             }
             break;
 
         case HKEY_DOWN:
             if (!hkey->pressed) {
                 bands_change(false);
+
+                if (dialog) {
+                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                }
             }
             break;
         
@@ -785,6 +801,10 @@ static void freq_update(int16_t diff) {
     spectrum_change_freq(freq - prev_freq);
     main_screen_set_freq();
     check_cross_band(freq, prev_freq);
+    
+    if (dialog) {
+        event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+    }
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -890,10 +910,18 @@ static void spectrum_key_cb(lv_event_t * e) {
 
         case KEYBOARD_PGUP:
             bands_change(true);
+            
+            if (dialog) {
+                event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+            }
             break;
 
         case KEYBOARD_PGDN:
             bands_change(false);
+
+            if (dialog) {
+                event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+            }
             break;
             
         default:

@@ -20,19 +20,17 @@
 #include "events.h"
 #include "util.h"
 
-#define AVR     2
 #define STEPS   50
 
 static lv_obj_t             *dialog;
 static lv_obj_t             *chart;
 static float                data[STEPS];
+static float                data_filtered[STEPS];
 
 static lv_coord_t           w;
 static lv_coord_t           h;
 
 static bool                 run = false;
-static float                avr_sum = 0.0f;
-static uint8_t              avr_count = 0;
 
 static uint32_t             span = 200000;
 static bool                 linear = true;
@@ -43,13 +41,12 @@ static uint64_t             freq_center;
 static uint64_t             freq_stop;
 
 static void do_init() {
-    for (uint16_t i = 0; i < STEPS; i++)
+    for (uint16_t i = 0; i < STEPS; i++) {
         data[i] = 1.0f;
+        data_filtered[i] = 1.0f;
+    }
 
-    avr_sum = 0.0f;
-    avr_count = 0;
     freq_index = 0;
-        
     freq_center = params_band.vfo_x[params_band.vfo].freq;
         
     freq_start = freq_center - span / 2;
@@ -58,11 +55,27 @@ static void do_init() {
 
 static void do_step(float vswr) {
     data[freq_index] = vswr;
+
+    for (int16_t i = 0; i < STEPS; i++) {
+        for (int16_t n = -2; n <= 2; n++) {
+            int16_t index = i + n;
+            
+            if (index < 0) {
+                index = 0;
+            } else if (index > STEPS-1) {
+                index = STEPS-1;
+            }
+        
+            data_filtered[i] += data[index];
+        }
+        data_filtered[i] /= 5.0f;
+    }
+
     event_send(chart, LV_EVENT_REFRESH, NULL);
 
     freq_index++;
     
-    if (freq_index >= STEPS) {
+    if (freq_index == STEPS) {
         freq_index = 0;
     }
 
@@ -152,7 +165,7 @@ static void draw_cb(lv_event_t * e) {
         lv_txt_get_size(&label_size, str, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
 
         area.x1 = a.x - label_size.x / 2;
-        area.y1 = y1 + h - label_size.y;
+        area.y1 = y1 + label_size.y / 2;
         area.x2 = area.x1 + label_size.x;
         area.y2 = area.y1 + label_size.y;
 
@@ -164,22 +177,26 @@ static void draw_cb(lv_event_t * e) {
     line_dsc.color = lv_color_white();
     line_dsc.width = 4;
 
-    for (uint16_t i = 1; i < STEPS; i++) {
-        float av = (data[i-1] - 1.0f) / (5.0f - 1.0f);
-        float bv = (data[i] - 1.0f) / (5.0f - 1.0f);
-
+    for (uint16_t i = 0; i < STEPS; i++) {
         a.x = x1 + (i - 1) * w / STEPS;
-        a.y = y1 + calc_y(data[i-1]);
+        a.y = y1 + calc_y(data_filtered[i-1]);
 
         b.x = x1 + (i) * w / STEPS;
-        b.y = y1 + calc_y(data[i]);
+        b.y = y1 + calc_y(data_filtered[i]);
 
         lv_draw_line(draw_ctx, &line_dsc, &a, &b);
     }
 }
 
+static void freq_update_cb(lv_event_t * e) {
+    do_init();
+    lv_obj_invalidate(chart);
+}
+
 lv_obj_t * dialog_swrscan(lv_obj_t *parent) {
     dialog = dialog_init(parent);
+
+    lv_obj_add_event_cb(dialog, freq_update_cb, EVENT_FREQ_UPDATE, NULL);
 
     chart  = lv_obj_create(dialog);
 
@@ -236,13 +253,5 @@ void dialog_swrscan_span_cb(lv_event_t * e) {
 }
 
 void dialog_swrscan_update(float vswr) {
-    avr_sum += vswr;
-    avr_count++;
-    
-    if (avr_count >= AVR) {
-        do_step(avr_sum / AVR);
-        avr_sum = 0;
-        avr_count = 0;
-    }
+    do_step(vswr);
 }
-

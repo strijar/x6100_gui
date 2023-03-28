@@ -664,11 +664,13 @@ bool radio_start_swrscan() {
 
         freq_save = params_band.vfo_x[params_band.vfo].freq;
         x6100_control_vfo_mode_set(params_band.vfo, x6100_mode_am);
+        x6100_control_txpwr_set(5.0f);
         x6100_control_swrscan_set(true);
         
         return true;
     } else if (state == RADIO_SWRSCAN) {
         x6100_control_swrscan_set(false);
+        x6100_control_txpwr_set(params.pwr);
         x6100_control_vfo_mode_set(params_band.vfo, params_band.vfo_x[params_band.vfo].mode);
         radio_set_freq(freq_save);
 
