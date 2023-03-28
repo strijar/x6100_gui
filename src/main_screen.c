@@ -648,11 +648,11 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_GEN:
             if (keypad->state == KEYPAD_RELEASE) {
+                apps_disable();
                 mfk_set_mode(MFK_MIN_LEVEL);
                 buttons_unload_page();
                 buttons_page = PAGE_VOL_1;
                 buttons_load_page();
-                apps_disable();
             } else if (keypad->state == KEYPAD_LONG) {
                 screenshot_take();
             }
@@ -660,28 +660,28 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_APP:
             if (keypad->state == KEYPAD_RELEASE) {
+                apps_disable();
                 buttons_unload_page();
                 buttons_page = PAGE_APP_1;
                 buttons_load_page();
-                apps_disable();
             }
             break;
 
         case KEYPAD_KEY:
             if (keypad->state == KEYPAD_RELEASE) {
+                apps_disable();
                 buttons_unload_page();
                 buttons_page = PAGE_KEY_1;
                 buttons_load_page();
-                apps_disable();
             }
             break;
 
         case KEYPAD_DFN:
             if (keypad->state == KEYPAD_RELEASE) {
+                apps_disable();
                 buttons_unload_page();
                 buttons_page = PAGE_DFN_1;
                 buttons_load_page();
-                apps_disable();
             }
             break;
 
