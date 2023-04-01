@@ -43,7 +43,6 @@ static uint64_t             freq_stop;
 static void do_init() {
     for (uint16_t i = 0; i < STEPS; i++) {
         data[i] = 1.0f;
-        data_filtered[i] = 1.0f;
     }
 
     freq_index = 0;
@@ -246,6 +245,10 @@ void dialog_swrscan_span_cb(lv_event_t * e) {
             break;
             
         case 200000:
+            span = 500000;
+            break;
+
+        case 500000:
             span = 50000;
             break;
     }
