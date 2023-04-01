@@ -57,6 +57,8 @@ static void do_step(float vswr) {
     data[freq_index] = vswr;
 
     for (int16_t i = 0; i < STEPS; i++) {
+        data_filtered[i] = 0.0;
+    
         for (int16_t n = -2; n <= 2; n++) {
             int16_t index = i + n;
             
