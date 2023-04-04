@@ -35,6 +35,7 @@
 #include "keyboard.h"
 #include "dialog_settings.h"
 #include "dialog_swrscan.h"
+#include "dialog_ft8.h"
 #include "backlight.h"
 
 #define BUTTONS     5
@@ -100,7 +101,8 @@ typedef enum {
     
     PAGE_RTTY,
     PAGE_SETTINGS,
-    PAGE_SWRSCAN
+    PAGE_SWRSCAN,
+    PAGE_FT8,
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -192,9 +194,9 @@ static button_item_t    buttons[] = {
 
     { .label = "(APP 1:1)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
     { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
-    { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
+    { .label = "FT8",               .press = button_next_page_cb,   .next = PAGE_FT8 },
     { .label = "SWR\nScan",         .press = button_next_page_cb,   .next = PAGE_SWRSCAN },
-    { .label = "",                  .press = NULL },
+    { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
 
     /* RTTY */
 
@@ -220,6 +222,13 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
+    /* FT8 */
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
 };
 
 /* Buttons */
@@ -261,6 +270,10 @@ static void button_next_page_cb(lv_event_t * e) {
 
         case PAGE_SWRSCAN:
             dialog = dialog_swrscan(obj);
+            break;
+
+        case PAGE_FT8:
+            dialog = dialog_ft8(obj);
             break;
     }
 }
@@ -491,12 +504,9 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
-void close_dialog(bool destroy) {
-    if (destroy) {
-        main_screen_keys_enable(true);
-        lv_obj_del(dialog);
-    }
-    
+void main_screen_dialog_deleted_cb(lv_event_t * e) {
+    main_screen_keys_enable(true);
+
     dialog = NULL;
     buttons_unload_page();
     buttons_page = PAGE_VOL_1;
@@ -505,7 +515,7 @@ void close_dialog(bool destroy) {
 
 static void apps_disable() {
     if (dialog) {
-        close_dialog(true);
+        lv_obj_del(dialog);
     }
 
     rtty_set_state(RTTY_OFF);
@@ -882,9 +892,7 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case LV_KEY_ESC:
-            if (dialog) {
-                close_dialog(false);
-            } else {
+            if (!dialog) {
                 switch (vol->mode) {
                     case VOL_EDIT:
                         vol->mode = VOL_SELECT;

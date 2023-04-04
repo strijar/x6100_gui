@@ -19,7 +19,6 @@ static void key_cb(lv_event_t * e) {
 
     switch (key) {
         case LV_KEY_ESC:
-            main_screen_keys_enable(true);
             lv_obj_del(obj);
             break;
     }
@@ -34,6 +33,7 @@ lv_obj_t * dialog_init(lv_obj_t *parent) {
     main_screen_keys_enable(false);
 
     lv_obj_add_event_cb(obj, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(obj, main_screen_dialog_deleted_cb, LV_EVENT_DELETE, NULL);
     lv_group_add_obj(keyboard_group(), obj);
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);

@@ -10,9 +10,11 @@ target_sources(${PROJECT_NAME} PUBLIC
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     cat.c rtty.c screenshot.c backlight.c
     dialog.c dialog_settings.c dialog_swrscan.c
+    dialog_ft8.c
 )
 
 add_subdirectory(fonts)
+add_subdirectory(ft8)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
