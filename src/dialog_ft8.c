@@ -60,7 +60,7 @@ static ft8_state_t          state = FT8_OFF;
 static rx_state_t           rx_state = RX_IDLE;
 
 static lv_obj_t             *table;
-static uint16_t             table_lines = 0;
+static int16_t              table_rows;
 
 static pthread_cond_t       audio_cond;
 static pthread_mutex_t      audio_mutex;
@@ -332,12 +332,41 @@ static void deleted_cb(lv_event_t * e) {
 }
 
 static void add_msg_cb(lv_event_t * e) {
-    ft8_msg_t *msg = (ft8_msg_t *) lv_event_get_param(e);
+    ft8_msg_t   *msg = (ft8_msg_t *) lv_event_get_param(e);
+    int16_t     row = 0;
+    int16_t     col = 0;
+    bool        scroll;
+
+    lv_table_get_selected_cell(table, &row, &col);
+    scroll = table_rows == (row + 1);
+
+#ifdef MAX_TABLE_MSG
+    if (table_rows > MAX_TABLE_MSG) {
+        for (uint16_t i = 1; i < table_rows; i++)
+            lv_table_set_cell_value(table, i-1, 0, lv_table_get_cell_value(table, i, 0));
+            
+        table_rows--;
+    }
+#endif
+
+    lv_table_set_cell_value_fmt(table, table_rows, 0, "%02i:%02i:%02i  %s", msg->hour, msg->min, msg->sec, msg->text);
     
-    lv_table_set_cell_value_fmt(table, table_lines, 0, "%02i:%02i:%02i  %s", msg->hour, msg->min, msg->sec, msg->text);
-    table_lines++;
+    if (scroll) {
+        int32_t *c = malloc(sizeof(int32_t));
+        *c = LV_KEY_DOWN;
+        
+        lv_event_send(table, LV_EVENT_KEY, c);
+    }
     
+    table_rows++;
     free(msg->text);
+}
+
+static void selected_msg_cb(lv_event_t * e) {
+    int16_t     row;
+    int16_t     col;
+
+    lv_table_get_selected_cell(table, &row, &col);
 }
 
 static void key_cb(lv_event_t * e) {
@@ -362,6 +391,7 @@ lv_obj_t * dialog_ft8(lv_obj_t *parent) {
     
     lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
+    lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
 
     lv_obj_set_size(table, 775, 325);
@@ -386,7 +416,7 @@ lv_obj_t * dialog_ft8(lv_obj_t *parent) {
     lv_group_set_editing(keyboard_group(), true);
 
     lv_obj_center(table);
-    table_lines = 0;
+    table_rows = 0;
 
     init();
 
