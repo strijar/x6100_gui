@@ -34,7 +34,6 @@ lv_obj_t * dialog_init(lv_obj_t *parent) {
 
     lv_obj_add_event_cb(obj, key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(obj, main_screen_dialog_deleted_cb, LV_EVENT_DELETE, NULL);
-    lv_group_add_obj(keyboard_group(), obj);
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     

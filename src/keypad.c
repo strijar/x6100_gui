@@ -14,6 +14,7 @@
 #include "keypad.h"
 #include "main.h"
 #include "backlight.h"
+#include "keyboard.h"
 
 #define KEYPAD_LONG_TIME 1000
 

@@ -274,7 +274,7 @@ static uint8_t make_backlight(uint8_t row) {
 lv_obj_t * dialog_settings(lv_obj_t *parent) {
     dialog = dialog_init(parent);
     grid = lv_obj_create(dialog);
-    
+
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
     lv_obj_set_size(grid, 780, 330);
     lv_obj_set_layout(grid, LV_LAYOUT_GRID);
