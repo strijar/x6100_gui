@@ -46,13 +46,14 @@ typedef enum {
     RX_PROCESS,
 } rx_state_t;
 
+typedef enum {
+    MSG_RX_INFO = 0,
+    MSG_RX_MSG,
+} ft8_msg_type_t;
+
 typedef struct {
-    uint8_t     hour;
-    uint8_t     min;
-    uint8_t     sec;
-    uint16_t    score;
-    uint16_t    freq;
-    char        *text;
+    ft8_msg_type_t  type;
+    char            *msg;
 } ft8_msg_t;
 
 static lv_obj_t             *dialog;
@@ -182,6 +183,21 @@ static void done() {
     free(rx_window);
 }
 
+static void send_msg(ft8_msg_type_t type, const char * fmt, ...) {
+    va_list     args;
+    char        buf[128];
+    ft8_msg_t   *msg = malloc(sizeof(ft8_msg_t));
+
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+
+    msg->type = type;
+    msg->msg = strdup(buf);
+
+    event_send(table, EVENT_FT8_MSG, msg);
+}
+
 static void decode() {
     uint16_t    num_candidates = ft8_find_sync(&wf, MAX_CANDIDATES, candidate_list, MIN_SCORE);
 
@@ -222,16 +238,7 @@ static void decode() {
             memcpy(&decoded[idx_hash], &message, sizeof(message));
             decoded_hashtable[idx_hash] = &decoded[idx_hash];
 
-            ft8_msg_t   *msg = malloc(sizeof(ft8_msg_t));
-            
-            msg->hour = timestamp.tm_hour;
-            msg->min = timestamp.tm_min;
-            msg->sec = timestamp.tm_sec;
-            msg->score = cand->score;
-            msg->freq = freq_hz;
-            msg->text = strdup(message.text);
-
-            event_send(table, EVENT_FT8_MSG, msg);
+            send_msg(MSG_RX_MSG, "%s", message.text);
         }
     }
 }
@@ -306,7 +313,7 @@ static void * decode_thread(void *arg) {
                 if (tm->tm_sec % 15 == 0) {
                     timestamp = *tm;
                     rx_state = RX_PROCESS;
-                    LV_LOG_INFO("Start %02i:%02i:%02i", timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec);
+                    send_msg(MSG_RX_INFO, "RX %02i:%02i:%02i", timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec);
                 }
             }
         
@@ -349,7 +356,21 @@ static void add_msg_cb(lv_event_t * e) {
     }
 #endif
 
-    lv_table_set_cell_value_fmt(table, table_rows, 0, "%02i:%02i:%02i  %s", msg->hour, msg->min, msg->sec, msg->text);
+    lv_table_set_cell_value(table, table_rows, 0, msg->msg);
+    
+    lv_table_cell_ctrl_t ctrl;
+
+    switch (msg->type) {
+        case MSG_RX_INFO:
+            ctrl = LV_TABLE_CELL_CTRL_CUSTOM_1;
+            break;
+            
+        case MSG_RX_MSG:
+            ctrl = LV_TABLE_CELL_CTRL_CUSTOM_2;
+            break;
+    }
+    
+    lv_table_add_cell_ctrl(table, table_rows, 0, ctrl);
     
     if (scroll) {
         int32_t *c = malloc(sizeof(int32_t));
@@ -359,7 +380,29 @@ static void add_msg_cb(lv_event_t * e) {
     }
     
     table_rows++;
-    free(msg->text);
+}
+
+static void draw_part_event_cb(lv_event_t * e) {
+    lv_obj_t                *obj = lv_event_get_target(e);
+    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+
+    if (dsc->part == LV_PART_ITEMS) {
+        uint32_t row = dsc->id / lv_table_get_col_cnt(obj);
+        uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
+
+        if (lv_table_has_cell_ctrl(obj, row, col, LV_TABLE_CELL_CTRL_CUSTOM_1)) {           /* RX INFO */
+            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
+            dsc->rect_dsc->bg_color = lv_color_white();
+            dsc->rect_dsc->bg_opa = 128;
+        } else if (lv_table_has_cell_ctrl(obj, row, col, LV_TABLE_CELL_CTRL_CUSTOM_2)) {    /* RX MSG */
+            const char *str = lv_table_get_cell_value(obj, row, col);
+            
+            if (strncmp(str, "CQ", 2) == 0) {
+                dsc->rect_dsc->bg_color = lv_color_hex(0x00FF00);
+                dsc->rect_dsc->bg_opa = 64;
+            }
+        }
+    }
 }
 
 static void selected_msg_cb(lv_event_t * e) {
@@ -393,6 +436,7 @@ lv_obj_t * dialog_ft8(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(table, draw_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
 
     lv_obj_set_size(table, 775, 325);
     
