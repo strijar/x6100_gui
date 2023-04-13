@@ -75,10 +75,14 @@ static void vol_update(int16_t diff);
 static void button_next_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
 static void button_mfk_update_cb(lv_event_t * e);
+static void button_mem_load_cb(lv_event_t * e);
 
 static void button_prev_page_cb(void * ptr);
 static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
+static void button_mem_save_cb(void * ptr);
+
+static void main_screen_set_freq();
 
 typedef enum {
     PAGE_VOL_1 = 0,
@@ -89,6 +93,9 @@ typedef enum {
     PAGE_MFK_2,
     PAGE_MFK_3,
     PAGE_MFK_4,
+
+    PAGE_MEM_1,
+    PAGE_MEM_2,
 
     PAGE_KEY_1,
     PAGE_KEY_2,
@@ -110,7 +117,7 @@ typedef enum {
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MFK_4 },
+    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2 },
     { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
     { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
     { .label = "RFG",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_RFG },
@@ -146,11 +153,23 @@ static button_item_t    buttons[] = {
     { .label = "RIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_RIT },
     { .label = "XIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_XIT },
 
-    { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MFK_3 },
+    { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_1, .prev = PAGE_MFK_3 },
     { .label = "AGC\nHang",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_HANG },
     { .label = "AGC\nKnee",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_KNEE },
     { .label = "AGC\nSlope",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_SLOPE },
     { .label = "",                  .press = NULL },
+
+    { .label = "(MEM 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_2, .prev = PAGE_MFK_4 },
+    { .label = "Set 1",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 1 },
+    { .label = "Set 2",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 2 },
+    { .label = "Set 3",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 3 },
+    { .label = "Set 4",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 4 },
+
+    { .label = "(MEM 2:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MEM_1 },
+    { .label = "Set 5",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 5 },
+    { .label = "Set 6",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 6 },
+    { .label = "Set 7",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 7 },
+    { .label = "Set 8",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 8 },
 
     /* CW */
     
@@ -345,9 +364,46 @@ static void button_press(uint8_t n, bool hold) {
     }
 }
 
+static void button_mem_load_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    params_memory_load(item->data);
+
+    params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
+
+    if (params.freq_band) {
+        if (params.freq_band->type != 0) {
+            params.band = params.freq_band->id;
+        }
+    }
+
+    radio_vfo_set();
+    radio_mode_set();
+    spectrum_mode_set();
+    spectrum_band_set();
+    waterfall_band_set();
+
+    radio_load_atu();
+    info_params_set();
+    pannel_visible();
+
+    waterfall_clear();
+    spectrum_clear();
+    main_screen_set_freq();
+
+    msg_set_text_fmt("Loaded from memory %i", item->data);
+}
+
+static void button_mem_save_cb(void * ptr) {
+    button_item_t   *item = (button_item_t*) ptr;
+    
+    params_memory_save(item->data);
+    msg_set_text_fmt("Saved in memory %i", item->data);
+}
+
 /* * */
 
-void main_screen_set_freq() {
+static void main_screen_set_freq() {
     uint64_t    f;
     x6100_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;

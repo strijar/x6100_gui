@@ -43,3 +43,10 @@ CREATE TABLE atu(
     val         INTEGER,
     UNIQUE      (ant, freq) ON CONFLICT REPLACE
 );
+
+CREATE TABLE memory(
+    id          INTEGER,
+    name        TEXT,
+    val         INTEGER,
+    UNIQUE      (id, name) ON CONFLICT REPLACE
+);

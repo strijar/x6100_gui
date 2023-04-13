@@ -229,10 +229,13 @@ void params_init();
 void params_lock();
 void params_unlock(bool *durty);
 
-bool params_band_save();
+void params_band_save();
 void params_band_load();
 
-bool params_mode_save();
+void params_memory_save(uint16_t id);
+void params_memory_load(uint16_t id);
+
+void params_mode_save();
 void params_mode_load();
 
 void params_band_freq_set(uint64_t freq);

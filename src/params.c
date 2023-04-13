@@ -119,12 +119,14 @@ static pthread_mutex_t  params_mux;
 static uint64_t         durty_time;
 static sqlite3          *db = NULL;
 static sqlite3_stmt     *write_stmt;
-static sqlite3_stmt     *write_band_stmt;
+static sqlite3_stmt     *write_mb_stmt;
 static sqlite3_stmt     *write_mode_stmt;
 static sqlite3_stmt     *save_atu_stmt;
 static sqlite3_stmt     *load_atu_stmt;
 
 static bool params_exec(const char *sql);
+static bool params_mb_save(uint16_t id);
+static void params_mb_load(sqlite3_stmt *stmt);
 
 /* Mode params */
 
@@ -173,9 +175,9 @@ static void params_mode_write_int(const char *name, int data, bool *durty) {
     *durty = false;
 }
 
-bool params_mode_save() {
+void params_mode_save() {
     if (!params_exec("BEGIN")) {
-        return false;
+        return;
     }
 
     if (params_mode.durty.filter_low)       params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
@@ -183,20 +185,29 @@ bool params_mode_save() {
     if (params_mode.durty.freq_step)        params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
     if (params_mode.durty.spectrum_factor)  params_mode_write_int("spectrum_factor", params_mode.spectrum_factor, &params_mode.durty.spectrum_factor);
 
-    if (!params_exec("COMMIT")) {
-        return false;
-    }
-
-    return true;
+    params_exec("COMMIT");
 }
 
-/* Bands params */
+/* Memory/Bands params */
+
+void params_memory_load(uint16_t id) {
+    sqlite3_stmt *stmt;
+
+    int rc = sqlite3_prepare_v2(db, "SELECT name,val FROM memory WHERE id = ?", -1, &stmt, 0);
+
+    if (rc != SQLITE_OK) {
+        LV_LOG_ERROR("Prepare");
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    params_mb_load(stmt);
+}
 
 void params_band_load() {
-    sqlite3_stmt    *stmt;
-    int             rc;
+    sqlite3_stmt *stmt;
 
-    rc = sqlite3_prepare_v2(db, "SELECT name,val FROM band_params WHERE bands_id = ?", -1, &stmt, 0);
+    int rc = sqlite3_prepare_v2(db, "SELECT name,val FROM band_params WHERE bands_id = ?", -1, &stmt, 0);
 
     if (rc != SQLITE_OK) {
         LV_LOG_ERROR("Prepare");
@@ -204,7 +215,10 @@ void params_band_load() {
     }
 
     sqlite3_bind_int(stmt, 1, params.band);
+    params_mb_load(stmt);
+}
 
+static void params_mb_load(sqlite3_stmt *stmt) {
     bool copy_freq = true;
     bool copy_att = true;
     bool copy_pre = true;
@@ -258,75 +272,110 @@ void params_band_load() {
     params_mode_load();
 }
 
-static void params_band_write_int(const char *name, int data, bool *durty) {
-    sqlite3_bind_int(write_band_stmt, 1, params.band);
-    sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
-    sqlite3_bind_int(write_band_stmt, 3, data);
-    sqlite3_step(write_band_stmt);
-    sqlite3_reset(write_band_stmt);
-    sqlite3_clear_bindings(write_band_stmt);
+static void params_mb_write_int(uint16_t id, const char *name, int data, bool *durty) {
+    sqlite3_bind_int(write_mb_stmt, 1, id);
+    sqlite3_bind_text(write_mb_stmt, 2, name, strlen(name), 0);
+    sqlite3_bind_int(write_mb_stmt, 3, data);
+    sqlite3_step(write_mb_stmt);
+    sqlite3_reset(write_mb_stmt);
+    sqlite3_clear_bindings(write_mb_stmt);
     
     *durty = false;
 }
 
-static void params_band_write_int64(const char *name, uint64_t data, bool *durty) {
-    sqlite3_bind_int(write_band_stmt, 1, params.band);
-    sqlite3_bind_text(write_band_stmt, 2, name, strlen(name), 0);
-    sqlite3_bind_int64(write_band_stmt, 3, data);
-    sqlite3_step(write_band_stmt);
-    sqlite3_reset(write_band_stmt);
-    sqlite3_clear_bindings(write_band_stmt);
+static void params_mb_write_int64(uint16_t id, const char *name, uint64_t data, bool *durty) {
+    sqlite3_bind_int(write_mb_stmt, 1, id);
+    sqlite3_bind_text(write_mb_stmt, 2, name, strlen(name), 0);
+    sqlite3_bind_int64(write_mb_stmt, 3, data);
+    sqlite3_step(write_mb_stmt);
+    sqlite3_reset(write_mb_stmt);
+    sqlite3_clear_bindings(write_mb_stmt);
     
     *durty = false;
 }
 
-bool params_band_save() {
+void params_band_save() {
     if (!params.freq_band) {
-        return true;
+        return;
     }
 
     if (!params_exec("BEGIN")) {
-        return false;
+        return;
     }
 
+    sqlite3_prepare_v2(db, "INSERT INTO band_params(bands_id, name, val) VALUES(?, ?, ?)", -1, &write_mb_stmt, 0);
+    
+    params_mb_save(params.band);
+    sqlite3_finalize(write_mb_stmt);
+}
+
+void params_memory_save(uint16_t id) {
+    if (!params.freq_band) {
+        return;
+    }
+
+    if (!params_exec("BEGIN")) {
+        return;
+    }
+
+    sqlite3_prepare_v2(db, "INSERT INTO memory(id, name, val) VALUES(?, ?, ?)", -1, &write_mb_stmt, 0);
+
+    params_band.durty.vfo = true;
+    
+    for (uint8_t i = X6100_VFO_A; i <= X6100_VFO_B; i++) {
+        params_band.vfo_x[i].durty.freq = true;
+        params_band.vfo_x[i].durty.att = true;
+        params_band.vfo_x[i].durty.pre = true;
+        params_band.vfo_x[i].durty.mode = true;
+        params_band.vfo_x[i].durty.agc = true;
+    }
+    
+    params_band.durty.grid_min = true;
+    params_band.durty.grid_max = true;
+    
+    params_mb_save(id);
+    sqlite3_finalize(write_mb_stmt);
+}
+
+static bool params_mb_save(uint16_t id) {
     if (params_band.durty.vfo)
-        params_band_write_int("vfo", params_band.vfo, &params_band.durty.vfo);
+        params_mb_write_int(id, "vfo", params_band.vfo, &params_band.durty.vfo);
     
     if (params_band.vfo_x[X6100_VFO_A].durty.freq)
-        params_band_write_int64("vfoa_freq", params_band.vfo_x[X6100_VFO_A].freq, &params_band.vfo_x[X6100_VFO_A].durty.freq);
+        params_mb_write_int64(id, "vfoa_freq", params_band.vfo_x[X6100_VFO_A].freq, &params_band.vfo_x[X6100_VFO_A].durty.freq);
         
     if (params_band.vfo_x[X6100_VFO_A].durty.att)
-        params_band_write_int("vfoa_att", params_band.vfo_x[X6100_VFO_A].att, &params_band.vfo_x[X6100_VFO_A].durty.att);
+        params_mb_write_int(id, "vfoa_att", params_band.vfo_x[X6100_VFO_A].att, &params_band.vfo_x[X6100_VFO_A].durty.att);
         
     if (params_band.vfo_x[X6100_VFO_A].durty.pre)
-        params_band_write_int("vfoa_pre", params_band.vfo_x[X6100_VFO_A].pre, &params_band.vfo_x[X6100_VFO_A].durty.pre);
+        params_mb_write_int(id, "vfoa_pre", params_band.vfo_x[X6100_VFO_A].pre, &params_band.vfo_x[X6100_VFO_A].durty.pre);
         
     if (params_band.vfo_x[X6100_VFO_A].durty.mode)
-        params_band_write_int("vfoa_mode", params_band.vfo_x[X6100_VFO_A].mode, &params_band.vfo_x[X6100_VFO_A].durty.mode);
+        params_mb_write_int(id, "vfoa_mode", params_band.vfo_x[X6100_VFO_A].mode, &params_band.vfo_x[X6100_VFO_A].durty.mode);
         
     if (params_band.vfo_x[X6100_VFO_A].durty.agc)
-        params_band_write_int("vfoa_agc", params_band.vfo_x[X6100_VFO_A].agc, &params_band.vfo_x[X6100_VFO_A].durty.agc);
+        params_mb_write_int(id, "vfoa_agc", params_band.vfo_x[X6100_VFO_A].agc, &params_band.vfo_x[X6100_VFO_A].durty.agc);
 
     if (params_band.vfo_x[X6100_VFO_B].durty.freq)
-        params_band_write_int64("vfob_freq", params_band.vfo_x[X6100_VFO_B].freq, &params_band.vfo_x[X6100_VFO_B].durty.freq);
+        params_mb_write_int64(id, "vfob_freq", params_band.vfo_x[X6100_VFO_B].freq, &params_band.vfo_x[X6100_VFO_B].durty.freq);
         
     if (params_band.vfo_x[X6100_VFO_B].durty.att)
-        params_band_write_int("vfob_att", params_band.vfo_x[X6100_VFO_B].att, &params_band.vfo_x[X6100_VFO_B].durty.att);
+        params_mb_write_int(id, "vfob_att", params_band.vfo_x[X6100_VFO_B].att, &params_band.vfo_x[X6100_VFO_B].durty.att);
         
     if (params_band.vfo_x[X6100_VFO_B].durty.pre)
-        params_band_write_int("vfob_pre", params_band.vfo_x[X6100_VFO_B].pre, &params_band.vfo_x[X6100_VFO_B].durty.pre);
+        params_mb_write_int(id, "vfob_pre", params_band.vfo_x[X6100_VFO_B].pre, &params_band.vfo_x[X6100_VFO_B].durty.pre);
         
     if (params_band.vfo_x[X6100_VFO_B].durty.mode)
-        params_band_write_int("vfob_mode", params_band.vfo_x[X6100_VFO_B].mode, &params_band.vfo_x[X6100_VFO_B].durty.mode);
+        params_mb_write_int(id, "vfob_mode", params_band.vfo_x[X6100_VFO_B].mode, &params_band.vfo_x[X6100_VFO_B].durty.mode);
         
     if (params_band.vfo_x[X6100_VFO_B].durty.agc)
-        params_band_write_int("vfob_agc", params_band.vfo_x[X6100_VFO_B].agc, &params_band.vfo_x[X6100_VFO_B].durty.agc);
+        params_mb_write_int(id, "vfob_agc", params_band.vfo_x[X6100_VFO_B].agc, &params_band.vfo_x[X6100_VFO_B].durty.agc);
 
     if (params_band.durty.grid_min)
-        params_band_write_int("grid_min", params_band.grid_min, &params_band.durty.grid_min);
+        params_mb_write_int(id, "grid_min", params_band.grid_min, &params_band.durty.grid_min);
         
     if (params_band.durty.grid_max)
-        params_band_write_int("grid_max", params_band.grid_max, &params_band.durty.grid_max);
+        params_mb_write_int(id, "grid_max", params_band.grid_max, &params_band.durty.grid_max);
 
     if (!params_exec("COMMIT")) {
         return false;
@@ -494,9 +543,9 @@ static void params_write_int64(const char *name, uint64_t data, bool *durty) {
     *durty = false;
 }
 
-static bool params_save() {
+static void params_save() {
     if (!params_exec("BEGIN")) {
-        return false;
+        return;
     }
 
     if (params.durty.band)                  params_write_int("band", params.band, &params.durty.band);
@@ -561,11 +610,7 @@ static bool params_save() {
     if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);
     if (params.durty.brightness_timeout)     params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
 
-    if (!params_exec("COMMIT")) {
-        return false;
-    }
-
-    return true;
+    params_exec("COMMIT");
 }
 
 /* * */
@@ -605,17 +650,9 @@ static void * params_thread(void *arg) {
             if (d > PARAMS_SAVE_TIMEOUT) {
                 durty_time = 0;
 
-                if (!params_save()) {
-                    LV_LOG_ERROR("Params not saved");
-                }
-
-                if (!params_band_save()) {
-                    LV_LOG_ERROR("Band params not saved");
-                }
-
-                if (!params_mode_save()) {
-                    LV_LOG_ERROR("Mode params not saved");
-                }
+                params_save();
+                params_band_save();
+                params_mode_save();
             }
         }
         
@@ -640,11 +677,6 @@ void params_init() {
             LV_LOG_ERROR("Prepare write");
         }
 
-        rc = sqlite3_prepare_v2(db, "INSERT INTO band_params(bands_id, name, val) VALUES(?, ?, ?)", -1, &write_band_stmt, 0);
-
-        if (rc != SQLITE_OK) {
-            LV_LOG_ERROR("Prepare band write");
-        }
 
         rc = sqlite3_prepare_v2(db, "INSERT INTO mode_params(mode, name, val) VALUES(?, ?, ?)", -1, &write_mode_stmt, 0);
 
