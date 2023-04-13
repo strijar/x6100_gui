@@ -842,19 +842,23 @@ static void spectrum_key_cb(lv_event_t * e) {
         case '+':
             next_freq_step(true);
             break;
-            
+
+        case KEY_VOL_LEFT_EDIT:
         case '[':
             vol_update(-1);
             break;
             
+        case KEY_VOL_RIGHT_EDIT:
         case ']':
             vol_update(+1);
             break;
 
+        case KEY_LEFT_VOL_SELECT:
         case '{':
             vol_press(-1);
             break;
             
+        case KEY_RIGHT_VOL_SELECT:
         case '}':
             vol_press(+1);
             break;
