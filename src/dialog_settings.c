@@ -20,8 +20,9 @@
 #include "styles.h"
 #include "params.h"
 #include "backlight.h"
+#include "radio.h"
+#include "events.h"
 
-static lv_obj_t     *dialog;
 static lv_obj_t     *grid;
 
 #define SMALL_WIDTH     115
@@ -39,6 +40,18 @@ static lv_obj_t     *year;
 static lv_obj_t     *hour;
 static lv_obj_t     *min;
 static lv_obj_t     *sec;
+
+static void construct_cb(lv_obj_t *parent);
+static void key_cb(lv_event_t * e);
+
+static dialog_t     dialog = {
+    .run = false,
+    .construct_cb = construct_cb,
+    .destruct_cb = NULL,
+    .key_cb = key_cb
+};
+
+dialog_t            *dialog_settings = &dialog;
 
 /* Datetime */
 
@@ -87,7 +100,7 @@ static uint8_t make_date(uint8_t row) {
     obj = lv_spinbox_create(grid);
     day = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_mday);
     lv_spinbox_set_range(obj, 1, 31);
@@ -103,7 +116,7 @@ static uint8_t make_date(uint8_t row) {
     obj = lv_spinbox_create(grid);
     month = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_mon + 1);
     lv_spinbox_set_range(obj, 1, 12);
@@ -119,7 +132,7 @@ static uint8_t make_date(uint8_t row) {
     obj = lv_spinbox_create(grid);
     year = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_year + 1900);
     lv_spinbox_set_range(obj, 2020, 2038);
@@ -149,7 +162,7 @@ static uint8_t make_time(uint8_t row) {
     obj = lv_spinbox_create(grid);
     hour = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_hour);
     lv_spinbox_set_range(obj, 0, 23);
@@ -165,7 +178,7 @@ static uint8_t make_time(uint8_t row) {
     obj = lv_spinbox_create(grid);
     min = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_min);
     lv_spinbox_set_range(obj, 0, 59);
@@ -181,7 +194,7 @@ static uint8_t make_time(uint8_t row) {
     obj = lv_spinbox_create(grid);
     sec = obj;
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, ts.tm_sec);
     lv_spinbox_set_range(obj, 0, 59);
@@ -236,7 +249,7 @@ static uint8_t make_backlight(uint8_t row) {
 
     obj = lv_spinbox_create(grid);
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
 
     lv_spinbox_set_value(obj, params.brightness_timeout);
     lv_spinbox_set_range(obj, 5, 120);
@@ -259,7 +272,7 @@ static uint8_t make_backlight(uint8_t row) {
 
     obj = lv_slider_create(obj);
 
-    dialog_item(obj);
+    dialog_item(&dialog, obj);
     
     lv_slider_set_mode(obj, LV_SLIDER_MODE_RANGE);
     lv_slider_set_value(obj, params.brightness_normal, LV_ANIM_OFF);
@@ -271,9 +284,9 @@ static uint8_t make_backlight(uint8_t row) {
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
-lv_obj_t * dialog_settings(lv_obj_t *parent) {
-    dialog = dialog_init(parent);
-    grid = lv_obj_create(dialog);
+static void construct_cb(lv_obj_t *parent) {
+    dialog.obj = dialog_init(parent);
+    grid = lv_obj_create(dialog.obj);
 
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
     lv_obj_set_size(grid, 780, 330);
@@ -297,6 +310,24 @@ lv_obj_t * dialog_settings(lv_obj_t *parent) {
     row = make_date(row);
     row = make_time(row);
     row = make_backlight(row);
+}
 
-    return dialog;
+static void key_cb(lv_event_t * e) {
+    uint32_t key = *((uint32_t *)lv_event_get_param(e));
+
+    switch (key) {
+        case LV_KEY_ESC:
+            dialog_destruct(&dialog);
+            break;
+            
+        case KEY_VOL_LEFT_EDIT:
+        case KEY_VOL_LEFT_SELECT:
+            radio_change_vol(-1);
+            break;
+
+        case KEY_VOL_RIGHT_EDIT:
+        case KEY_VOL_RIGHT_SELECT:
+            radio_change_vol(1);
+            break;
+    }
 }

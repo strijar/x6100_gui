@@ -10,5 +10,21 @@
 
 #include "lvgl/lvgl.h"
 
+typedef void (*dialog_construct_cb_t)(lv_obj_t *);
+typedef void (*dialog_destruct_cb_t)(void);
+
+typedef struct {
+    lv_obj_t                *obj;
+    dialog_construct_cb_t   construct_cb;
+    dialog_destruct_cb_t    destruct_cb;
+    lv_event_cb_t           key_cb;
+    bool                    run;
+} dialog_t;
+
+dialog_t * dialog_construct(dialog_t *dialog, lv_obj_t *parent);
+void dialog_destruct(dialog_t *dialog);
+bool dialog_key(dialog_t *dialog, lv_event_t * e);
+bool dialog_is_run(dialog_t *dialog);
+
 lv_obj_t * dialog_init(lv_obj_t *parent);
-void dialog_item(lv_obj_t *obj);
+void dialog_item(dialog_t *dialog, lv_obj_t *obj);

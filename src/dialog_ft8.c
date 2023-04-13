@@ -23,6 +23,7 @@
 #include "audio.h"
 #include "keyboard.h"
 #include "events.h"
+#include "radio.h"
 
 #include "ft8/unpack.h"
 #include "ft8/ldpc.h"
@@ -56,7 +57,6 @@ typedef struct {
     char            *msg;
 } ft8_msg_t;
 
-static lv_obj_t             *dialog;
 static ft8_state_t          state = FT8_OFF;
 static rx_state_t           rx_state = RX_IDLE;
 
@@ -90,7 +90,19 @@ static message_t*           decoded_hashtable[MAX_DECODED];
 
 static struct tm            timestamp;
 
+static void construct_cb(lv_obj_t *parent);
+static void key_cb(lv_event_t * e);
+static void destruct_cb();
 static void * decode_thread(void *arg);
+
+static dialog_t             dialog = {
+    .run = false,
+    .construct_cb = construct_cb,
+    .destruct_cb = destruct_cb,
+    .key_cb = key_cb
+};
+
+dialog_t                    *dialog_ft8 = &dialog;
 
 static void reset() {
     wf.num_blocks = 0;
@@ -331,13 +343,6 @@ static void * decode_thread(void *arg) {
     }
 }
 
-static void deleted_cb(lv_event_t * e) {
-    done();
-    
-    firdecim_crcf_destroy(decim);
-    free(audio_buf);
-}
-
 static void add_msg_cb(lv_event_t * e) {
     ft8_msg_t   *msg = (ft8_msg_t *) lv_event_get_param(e);
     int16_t     row = 0;
@@ -417,20 +422,35 @@ static void key_cb(lv_event_t * e) {
 
     switch (key) {
         case LV_KEY_ESC:
-            lv_obj_del(dialog);
+            dialog_destruct(&dialog);
+            break;
+            
+        case KEY_VOL_LEFT_EDIT:
+        case KEY_VOL_LEFT_SELECT:
+            radio_change_vol(-1);
+            break;
+
+        case KEY_VOL_RIGHT_EDIT:
+        case KEY_VOL_RIGHT_SELECT:
+            radio_change_vol(1);
             break;
     }
 }
 
-lv_obj_t * dialog_ft8(lv_obj_t *parent) {
-    dialog = dialog_init(parent);
+static void destruct_cb() {
+    done();
+    
+    firdecim_crcf_destroy(decim);
+    free(audio_buf);
+}
 
-    lv_obj_add_event_cb(dialog, deleted_cb, LV_EVENT_DELETE, NULL);
+static void construct_cb(lv_obj_t *parent) {
+    dialog.obj = dialog_init(parent);
 
     decim = firdecim_crcf_create_kaiser(DECIM, 16, 40.0f);
     audio_buf = cbuffercf_create(AUDIO_CAPTURE_RATE);
 
-    table = lv_table_create(dialog);
+    table = lv_table_create(dialog.obj);
     
     lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
@@ -463,8 +483,6 @@ lv_obj_t * dialog_ft8(lv_obj_t *parent) {
     table_rows = 0;
 
     init();
-
-    return dialog;
 }
 
 ft8_state_t dialog_ft8_get_state() {

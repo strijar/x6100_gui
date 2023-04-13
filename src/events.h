@@ -98,8 +98,8 @@ typedef enum {
 //  LV_KEY_END              = 3,
     KEY_VOL_LEFT_EDIT       = 4,
     KEY_VOL_RIGHT_EDIT      = 5,
-    KEY_LEFT_VOL_SELECT     = 6,
-    KEY_RIGHT_VOL_SELECT    = 7
+    KEY_VOL_LEFT_SELECT     = 6,
+    KEY_VOL_RIGHT_SELECT    = 7
 //  LV_KEY_BACKSPACE        = 8,
 //  LV_KEY_NEXT             = 9,
 //  LV_KEY_ENTER            = 10,

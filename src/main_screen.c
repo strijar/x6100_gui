@@ -33,6 +33,7 @@
 #include "rtty.h"
 #include "screenshot.h"
 #include "keyboard.h"
+#include "dialog.h"
 #include "dialog_settings.h"
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
@@ -55,7 +56,8 @@ static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *msg;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
-static lv_obj_t     *dialog = NULL;
+
+static dialog_t     *dialog = NULL;
 
 typedef void (*hold_cb_t)(void *);
 
@@ -265,15 +267,15 @@ static void button_next_page_cb(lv_event_t * e) {
             break;
             
         case PAGE_SETTINGS:
-            dialog = dialog_settings(obj);
+            dialog = dialog_construct(dialog_settings, obj);
             break;
 
         case PAGE_SWRSCAN:
-            dialog = dialog_swrscan(obj);
+            dialog = dialog_construct(dialog_swrscan, obj);
             break;
 
         case PAGE_FT8:
-            dialog = dialog_ft8(obj);
+            dialog = dialog_construct(dialog_ft8, obj);
             break;
     }
 }
@@ -504,19 +506,14 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
-void main_screen_dialog_deleted_cb(lv_event_t * e) {
-    main_screen_keys_enable(true);
-
-    dialog = NULL;
+void main_screen_dialog_deleted_cb() {
     buttons_unload_page();
     buttons_page = PAGE_VOL_1;
     buttons_load_page();
 }
 
 static void apps_disable() {
-    if (dialog) {
-        lv_obj_del(dialog);
-    }
+    dialog_destruct(dialog);
 
     rtty_set_state(RTTY_OFF);
     pannel_visible();
@@ -540,8 +537,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
                 
-                if (dialog) {
-                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run(dialog)) {
+                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -550,8 +547,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
 
-                if (dialog) {
-                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run(dialog)) {
+                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -754,8 +751,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             if (!hkey->pressed) {
                 bands_change(true);
                 
-                if (dialog) {
-                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run(dialog)) {
+                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -764,8 +761,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             if (!hkey->pressed) {
                 bands_change(false);
 
-                if (dialog) {
-                    event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run(dialog)) {
+                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -812,8 +809,8 @@ static void freq_update(int16_t diff) {
     main_screen_set_freq();
     check_cross_band(freq, prev_freq);
     
-    if (dialog) {
-        event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+    if (dialog_is_run(dialog)) {
+        event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
     }
 }
 
@@ -853,12 +850,12 @@ static void spectrum_key_cb(lv_event_t * e) {
             vol_update(+1);
             break;
 
-        case KEY_LEFT_VOL_SELECT:
+        case KEY_VOL_LEFT_SELECT:
         case '{':
             vol_press(-1);
             break;
             
-        case KEY_RIGHT_VOL_SELECT:
+        case KEY_VOL_RIGHT_SELECT:
         case '}':
             vol_press(+1);
             break;
@@ -868,7 +865,7 @@ static void spectrum_key_cb(lv_event_t * e) {
             buttons_page = PAGE_SETTINGS;
             buttons_load_page();
             
-            dialog = dialog_settings(obj);
+            dialog_construct(dialog_settings, obj);
             break;
             
         case LV_KEY_LEFT:
@@ -896,7 +893,7 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case LV_KEY_ESC:
-            if (!dialog) {
+            if (!dialog_is_run(dialog)) {
                 switch (vol->mode) {
                     case VOL_EDIT:
                         vol->mode = VOL_SELECT;
@@ -923,16 +920,16 @@ static void spectrum_key_cb(lv_event_t * e) {
         case KEYBOARD_PGUP:
             bands_change(true);
             
-            if (dialog) {
-                event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+            if (dialog_is_run(dialog)) {
+                event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
             }
             break;
 
         case KEYBOARD_PGDN:
             bands_change(false);
 
-            if (dialog) {
-                event_send(dialog, EVENT_FREQ_UPDATE, NULL);
+            if (dialog_is_run(dialog)) {
+                event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
             }
             break;
             
@@ -982,7 +979,7 @@ lv_obj_t * main_screen() {
     
     spectrum = spectrum_init(obj);
     main_screen_keys_enable(true);
-
+    
     lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     

@@ -19,10 +19,10 @@
 #include "radio.h"
 #include "events.h"
 #include "util.h"
+#include "keyboard.h"
 
 #define STEPS   50
 
-static lv_obj_t             *dialog;
 static lv_obj_t             *chart;
 static float                data[STEPS];
 static float                data_filtered[STEPS];
@@ -40,9 +40,22 @@ static uint64_t             freq_start;
 static uint64_t             freq_center;
 static uint64_t             freq_stop;
 
+static void construct_cb(lv_obj_t *parent);
+static void key_cb(lv_event_t * e);
+
+static dialog_t             dialog = {
+    .run = false,
+    .construct_cb = construct_cb,
+    .destruct_cb = NULL,
+    .key_cb = key_cb
+};
+
+dialog_t                    *dialog_swrscan = &dialog;
+
 static void do_init() {
     for (uint16_t i = 0; i < STEPS; i++) {
         data[i] = 1.0f;
+        data_filtered[i] = 1.0f;
     }
 
     freq_index = 0;
@@ -194,12 +207,12 @@ static void freq_update_cb(lv_event_t * e) {
     lv_obj_invalidate(chart);
 }
 
-lv_obj_t * dialog_swrscan(lv_obj_t *parent) {
-    dialog = dialog_init(parent);
+static void construct_cb(lv_obj_t *parent) {
+    dialog.obj = dialog_init(parent);
 
-    lv_obj_add_event_cb(dialog, freq_update_cb, EVENT_FREQ_UPDATE, NULL);
+    lv_obj_add_event_cb(dialog.obj, freq_update_cb, EVENT_FREQ_UPDATE, NULL);
 
-    chart  = lv_obj_create(dialog);
+    chart  = lv_obj_create(dialog.obj);
 
     w = 780;
     h = 330;
@@ -211,9 +224,30 @@ lv_obj_t * dialog_swrscan(lv_obj_t *parent) {
     lv_obj_set_style_bg_opa(chart, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(chart, 0, LV_PART_MAIN);
 
-    do_init();
+    lv_group_add_obj(keyboard_group(), chart);
+    lv_obj_add_event_cb(chart, key_cb, LV_EVENT_KEY, NULL);
 
-    return dialog;
+    do_init();
+}
+
+static void key_cb(lv_event_t * e) {
+    uint32_t key = *((uint32_t *)lv_event_get_param(e));
+
+    switch (key) {
+        case LV_KEY_ESC:
+            dialog_destruct(&dialog);
+            break;
+            
+        case KEY_VOL_LEFT_EDIT:
+        case KEY_VOL_LEFT_SELECT:
+            radio_change_vol(-1);
+            break;
+
+        case KEY_VOL_RIGHT_EDIT:
+        case KEY_VOL_RIGHT_SELECT:
+            radio_change_vol(1);
+            break;
+    }
 }
 
 void dialog_swrscan_run_cb(lv_event_t * e) {

@@ -10,6 +10,7 @@
 
 #include <liquid/liquid.h>
 #include "lvgl/lvgl.h"
+#include "dialog.h"
 
 typedef enum {
     FT8_OFF = 0,
@@ -17,7 +18,7 @@ typedef enum {
     FT8_TX
 } ft8_state_t;
 
-lv_obj_t * dialog_ft8(lv_obj_t *parent);
+extern dialog_t *dialog_ft8;
 
 ft8_state_t dialog_ft8_get_state();
 void dialog_ft8_put_audio_samples(unsigned int n, float complex *samples);

@@ -26,4 +26,4 @@ lv_obj_t * main_screen();
 void main_screen_band_set();
 
 void main_screen_keys_enable(bool value);
-void main_screen_dialog_deleted_cb(lv_event_t * e);
+void main_screen_dialog_deleted_cb();

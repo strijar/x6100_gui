@@ -9,8 +9,9 @@
 #pragma once
 
 #include "lvgl/lvgl.h"
+#include "dialog.h"
 
-lv_obj_t * dialog_swrscan(lv_obj_t *parent);
+extern dialog_t *dialog_swrscan;
 
 void dialog_swrscan_run_cb(lv_event_t * e);
 void dialog_swrscan_scale_cb(lv_event_t * e);

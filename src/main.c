@@ -82,8 +82,8 @@ int main(void) {
     vol->left[VOL_EDIT] = KEY_VOL_LEFT_EDIT;
     vol->right[VOL_EDIT] = KEY_VOL_RIGHT_EDIT;
 
-    vol->left[VOL_SELECT] = KEY_LEFT_VOL_SELECT;
-    vol->right[VOL_SELECT] = KEY_RIGHT_VOL_SELECT;
+    vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
+    vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
     
     bands_init();
     params_init();

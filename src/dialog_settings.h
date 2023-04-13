@@ -8,6 +8,6 @@
 
 #pragma once
 
-#include "lvgl/lvgl.h"
+#include "dialog.h"
 
-lv_obj_t * dialog_settings(lv_obj_t *parent);
+extern dialog_t *dialog_settings;
