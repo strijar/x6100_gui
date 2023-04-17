@@ -282,6 +282,80 @@ static uint8_t make_backlight(uint8_t row) {
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    return row + 1;
+}
+
+/* Line-in, Line-out */
+
+static void line_in_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    radio_set_line_in(lv_slider_get_value(obj));
+}
+
+static void line_out_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    radio_set_line_out(lv_slider_get_value(obj));
+}
+
+static uint8_t make_line_gain(uint8_t row) {
+    lv_obj_t    *obj;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Line-in");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_slider_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
+    lv_slider_set_value(obj, params.line_in, LV_ANIM_OFF);
+    lv_slider_set_range(obj, 0, 36);
+    lv_obj_set_width(obj, SMALL_WIDTH * 3 - 30);
+    lv_obj_center(obj);
+
+    lv_obj_add_event_cb(obj, line_in_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    row++;
+
+    obj = lv_label_create(grid);
+    
+    lv_label_set_text(obj, "Line-out");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_slider_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
+    lv_slider_set_value(obj, params.line_out, LV_ANIM_OFF);
+    lv_slider_set_range(obj, 0, 36);
+    lv_obj_set_width(obj, SMALL_WIDTH * 3 - 30);
+    lv_obj_center(obj);
+
+    lv_obj_add_event_cb(obj, line_out_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    return row + 1;
 }
 
 static void construct_cb(lv_obj_t *parent) {
@@ -310,6 +384,7 @@ static void construct_cb(lv_obj_t *parent) {
     row = make_date(row);
     row = make_time(row);
     row = make_backlight(row);
+    row = make_line_gain(row);
 }
 
 static void key_cb(lv_event_t * e) {

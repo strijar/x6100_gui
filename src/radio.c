@@ -273,6 +273,8 @@ void radio_init(lv_obj_t *obj) {
 
     x6100_control_cmd(x6100_rit, params.rit);
     x6100_control_cmd(x6100_xit, params.xit);
+    x6100_control_linein_set(params.line_in);
+    x6100_control_lineout_set(params.line_out);
 
     prev_time = get_time();
     idle_time = prev_time;
@@ -1237,4 +1239,24 @@ int16_t radio_change_xit(int16_t d) {
     radio_unlock();
     
     return params.xit;
+}
+
+void radio_set_line_in(uint8_t d) {
+    params_lock();
+    params.line_in = d;
+    params_unlock(&params.durty.line_in);
+    
+    radio_lock();
+    x6100_control_linein_set(d);
+    radio_unlock();
+}
+
+void radio_set_line_out(uint8_t d) {
+    params_lock();
+    params.line_out = d;
+    params_unlock(&params.durty.line_out);
+    
+    radio_lock();
+    x6100_control_lineout_set(d);
+    radio_unlock();
 }

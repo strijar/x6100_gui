@@ -100,6 +100,8 @@ typedef struct {
     uint16_t            bias_final;
     int16_t             rit;
     int16_t             xit;
+    uint8_t             line_in;
+    uint8_t             line_out;
     
     /* DSP */
     
@@ -179,7 +181,9 @@ typedef struct {
         bool    charger;
         bool    rit;
         bool    xit;
-
+        bool    line_in;
+        bool    line_out;
+        
         bool    dnf;
         bool    dnf_center;
         bool    dnf_width;

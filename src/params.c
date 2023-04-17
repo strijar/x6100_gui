@@ -46,6 +46,8 @@ params_t params = {
     .bias_final             = 650,
     .rit                    = 0,
     .xit                    = 0,
+    .line_in                = 10,
+    .line_out               = 10,
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -502,6 +504,10 @@ static bool params_load() {
             params.brightness_idle = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "brightness_timeout") == 0) {
             params.brightness_timeout = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "line_in") == 0) {
+            params.line_in = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "line_out") == 0) {
+            params.line_out = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -606,9 +612,12 @@ static void params_save() {
     if (params.durty.rit)                   params_write_int("rit", params.rit, &params.durty.rit);
     if (params.durty.xit)                   params_write_int("xit", params.xit, &params.durty.xit);
 
+    if (params.durty.line_in)               params_write_int("line_in", params.line_in, &params.durty.line_in);
+    if (params.durty.line_out)              params_write_int("line_out", params.line_out, &params.durty.line_out);
+
     if (params.durty.brightness_normal)     params_write_int("brightness_normal", params.brightness_normal, &params.durty.brightness_normal);
     if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);
-    if (params.durty.brightness_timeout)     params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
+    if (params.durty.brightness_timeout)    params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
 
     params_exec("COMMIT");
 }

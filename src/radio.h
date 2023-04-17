@@ -107,3 +107,6 @@ void radio_set_ptt(bool tx);
 
 int16_t radio_change_xit(int16_t d);
 int16_t radio_change_rit(int16_t d);
+
+void radio_set_line_in(uint8_t d);
+void radio_set_line_out(uint8_t d);
