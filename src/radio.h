@@ -40,6 +40,7 @@ typedef enum {
 } radio_charger_t;
 
 void radio_init(lv_obj_t *obj);
+void radio_bb_reset();
 bool radio_tick();
 radio_state_t radio_get_state();
 

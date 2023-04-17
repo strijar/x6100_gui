@@ -208,12 +208,19 @@ void radio_mode_set() {
     update_agc_time();
 }
 
-void radio_init(lv_obj_t *obj) {
-    if (!x6100_control_init())
-        return;
+void radio_bb_reset() {
+    x6100_gpio_set(x6100_pin_bb_reset, 1);
+    usleep(100000);
+    x6100_gpio_set(x6100_pin_bb_reset, 0);
+}
 
+void radio_init(lv_obj_t *obj) {
     if (!x6100_gpio_init())
         return;
+
+    while (!x6100_control_init()) {
+        usleep(100000);
+    }
 
     if (!x6100_flow_init())
         return;

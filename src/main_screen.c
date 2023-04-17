@@ -776,6 +776,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 freq_lock = !freq_lock;
                 main_screen_set_freq();
             } else if (keypad->state == KEYPAD_LONG) {
+                radio_bb_reset();
                 exit(1);
             }
             break;
