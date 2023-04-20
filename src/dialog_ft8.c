@@ -277,7 +277,7 @@ void static process(float complex *frame) {
                 complex float   freq = freq_buf[src_bin];
                 float           v = crealf(freq * conjf(freq));
                 float           db = 10.0f * log10f(v);
-                int             scaled = (int16_t) ((db + 5.0f) * 10);
+                int             scaled = (int16_t) (db * 2.0f + 240.0f);
                 
                 if (scaled < 0) {
                     scaled = 0;
