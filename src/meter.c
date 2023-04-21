@@ -9,6 +9,7 @@
 #include "meter.h"
 #include "styles.h"
 #include "events.h"
+#include "params.h"
 
 #define NUM_ITEMS   7
 
@@ -66,9 +67,11 @@ static void meter_draw_cb(lv_event_t * e) {
     int16_t db = s_items[0].db;
 
     for (uint16_t i = 0; i < count; i++) {
-        if (db <= -73) {
+        if (db <= params_band.grid_min) {
+            rect_dsc.bg_color = lv_color_hex(0x777777);
+        } else if (db <= -73) {
             rect_dsc.bg_color = lv_color_hex(0xAAAAAA);
-        } else if (db <= -53 ) {
+        } else if (db <= -53) {
             rect_dsc.bg_color = lv_color_hex(0xAAAA00);
         } else {
             rect_dsc.bg_color = lv_color_hex(0xAA0000);
