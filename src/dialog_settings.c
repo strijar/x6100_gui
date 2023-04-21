@@ -29,7 +29,7 @@ static lv_obj_t     *grid;
 #define SMALL_PAD       5
 
 static lv_coord_t   col_dsc[] = { 740 - (SMALL_WIDTH + SMALL_PAD) * 3, SMALL_WIDTH, SMALL_WIDTH, SMALL_WIDTH, LV_GRID_TEMPLATE_LAST };
-static lv_coord_t   row_dsc[] = { 1, 54, 54, 54, 54, 54, 54, LV_GRID_TEMPLATE_LAST };
+static lv_coord_t   row_dsc[64] = { 1 };
 
 static time_t       now;
 struct tm           ts;
@@ -89,6 +89,8 @@ static uint8_t make_date(uint8_t row) {
     uint8_t     col = 0;
 
     /* Label */
+
+    row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
 
@@ -151,6 +153,8 @@ static uint8_t make_time(uint8_t row) {
     uint8_t     col = 0;
 
     /* Label */
+
+    row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
 
@@ -246,6 +250,8 @@ static uint8_t make_backlight(uint8_t row) {
 
     /* Label */
 
+    row_dsc[row] = 54;
+
     obj = lv_label_create(grid);
 
     lv_label_set_text(obj, "Timeout, Brightness");
@@ -290,6 +296,7 @@ static uint8_t make_backlight(uint8_t row) {
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     row++;
+    row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
 
@@ -332,6 +339,8 @@ static void line_out_update_cb(lv_event_t * e) {
 static uint8_t make_line_gain(uint8_t row) {
     lv_obj_t    *obj;
 
+    row_dsc[row] = 54;
+
     obj = lv_label_create(grid);
 
     lv_label_set_text(obj, "Line-in");
@@ -358,6 +367,7 @@ static uint8_t make_line_gain(uint8_t row) {
     lv_obj_add_event_cb(obj, line_in_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     row++;
+    row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
     
@@ -387,12 +397,17 @@ static uint8_t make_line_gain(uint8_t row) {
     return row + 1;
 }
 
+static uint8_t make_delimiter(uint8_t row) {
+    row_dsc[row] = 10;
+    
+    return row + 1;
+}
+
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
     
     grid = lv_obj_create(dialog.obj);
     
-    lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
     lv_obj_set_layout(grid, LV_LAYOUT_GRID);
 
     lv_obj_set_size(grid, 780, 330);
@@ -411,10 +426,15 @@ static void construct_cb(lv_obj_t *parent) {
 
     memcpy(&ts, t, sizeof(ts));
     
-    row = make_date(row);
+    row = make_date(row);       
     row = make_time(row);
+    row = make_delimiter(row);
     row = make_backlight(row);
+    row = make_delimiter(row);
     row = make_line_gain(row);
+    
+    row_dsc[row] = LV_GRID_TEMPLATE_LAST;
+    lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
 }
 
 static void key_cb(lv_event_t * e) {
