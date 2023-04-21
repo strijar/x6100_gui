@@ -29,7 +29,7 @@ static lv_obj_t     *grid;
 #define SMALL_PAD       5
 
 static lv_coord_t   col_dsc[] = { 740 - (SMALL_WIDTH + SMALL_PAD) * 3, SMALL_WIDTH, SMALL_WIDTH, SMALL_WIDTH, LV_GRID_TEMPLATE_LAST };
-static lv_coord_t   row_dsc[] = { 54, 54, 54, 54, 54, 54, 54, 54, LV_GRID_TEMPLATE_LAST };
+static lv_coord_t   row_dsc[] = { 1, 54, 54, 54, 54, 54, 54, LV_GRID_TEMPLATE_LAST };
 
 static time_t       now;
 struct tm           ts;
@@ -234,6 +234,12 @@ static void backlight_brightness_update_cb(lv_event_t * e) {
     backlight_set_brightness(params.brightness_normal);
 }
 
+static void backlight_buttons_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    backlight_set_buttons(lv_dropdown_get_selected(obj));
+}
+
 static uint8_t make_backlight(uint8_t row) {
     lv_obj_t    *obj;
     uint8_t     col = 0;
@@ -282,6 +288,29 @@ static uint8_t make_backlight(uint8_t row) {
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    row++;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Buttons brightness");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_dropdown_create(grid);
+
+    dialog_item(&dialog, obj);
+    
+    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_center(obj);
+    
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+    
+    lv_dropdown_set_options(obj, " Always Off \n Always On \n Temporarily On ");
+    lv_dropdown_set_symbol(obj, NULL);
+    lv_dropdown_set_selected(obj, params.brightness_buttons);
+    lv_obj_add_event_cb(obj, backlight_buttons_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
     
     return row + 1;
 }
@@ -360,12 +389,13 @@ static uint8_t make_line_gain(uint8_t row) {
 
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
-    grid = lv_obj_create(dialog.obj);
-
-    lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
-    lv_obj_set_size(grid, 780, 330);
-    lv_obj_set_layout(grid, LV_LAYOUT_GRID);
     
+    grid = lv_obj_create(dialog.obj);
+    
+    lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
+    lv_obj_set_layout(grid, LV_LAYOUT_GRID);
+
+    lv_obj_set_size(grid, 780, 330);
     lv_obj_set_style_text_color(grid, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(grid, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(grid, 0, LV_PART_MAIN);
@@ -374,7 +404,7 @@ static void construct_cb(lv_obj_t *parent) {
     
     lv_obj_center(grid);
 
-    uint8_t row = 0;
+    uint8_t row = 1;
 
     now = time(NULL);
     struct tm *t = localtime(&now);

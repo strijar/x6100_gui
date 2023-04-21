@@ -11,10 +11,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "params.h"
+
 void backlight_init();
 void backlight_tick();
 
 void backlight_set_brightness(int16_t value);
+void backlight_set_buttons(buttons_light_t value);
 
 void backlight_switch();
 bool backlight_is_on();

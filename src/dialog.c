@@ -59,7 +59,7 @@ lv_obj_t * dialog_init(lv_obj_t *parent) {
     lv_obj_add_style(obj, &dialog_style, 0);
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-    
+
     return obj;
 }
 
@@ -73,6 +73,8 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
     lv_obj_set_style_text_color(obj, lv_color_black(), LV_PART_CURSOR | LV_STATE_FOCUSED);
     lv_obj_set_style_bg_opa(obj, 128, LV_PART_CURSOR | LV_STATE_EDITED);
 
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+    
     lv_group_add_obj(keyboard_group(), obj);
     
     if (dialog->key_cb) {

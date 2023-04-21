@@ -37,7 +37,7 @@ extern uint32_t custom_tick_get(void);
 /*Enable more complex drawing routines to manage screens transparency.
  *Can be used if the UI is above another layer, e.g. an OSD menu or video player.
  *Requires `LV_COLOR_DEPTH = 32` colors and the screen's `bg_opa` should be set to non LV_OPA_COVER value*/
-#define LV_COLOR_SCREEN_TRANSP 0
+#define LV_COLOR_SCREEN_TRANSP 1
 
 /* Adjust color mix functions rounding. GPUs might calculate color mix (blending) differently.
  * 0: round down, 64: round up from x.75, 128: round up from half, 192: round up from x.25, 254: round up */
@@ -607,6 +607,6 @@ extern uint32_t custom_tick_get(void);
 #define LV_USE_MONKEY   0
 
 /*1: Enable grid navigation*/
-#define LV_USE_GRIDNAV  0
+#define LV_USE_GRIDNAV  1
 
 #endif /*LV_CONF_H*/

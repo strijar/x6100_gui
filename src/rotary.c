@@ -44,7 +44,7 @@ rotary_t * rotary_init(char *dev_name) {
     int fd = open(dev_name, O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1) {
-        perror("unable to open rotary interface:");
+        LV_LOG_ERROR("unable to open rotary interface:");
 
         return NULL;
     }
@@ -57,16 +57,13 @@ rotary_t * rotary_init(char *dev_name) {
     rotary->fd = fd;
     
     lv_indev_drv_init(&rotary->indev_drv);
-    
+
     rotary->indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     rotary->indev_drv.read_cb = rotary_input_read;
     rotary->indev_drv.user_data = rotary;
     
     rotary->indev = lv_indev_drv_register(&rotary->indev_drv);
 
-    lv_timer_t *timer = lv_indev_get_read_timer(rotary->indev);
-    
-    lv_timer_set_period(timer, 10);
     lv_indev_set_group(rotary->indev, keyboard_group());
     
     return rotary;

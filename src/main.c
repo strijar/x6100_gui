@@ -75,7 +75,7 @@ int main(void) {
     keypad_t *power = keypad_init("/dev/input/event4");
 
     rotary_t *main = rotary_init("/dev/input/event1");
-    
+
     vol = rotary_init("/dev/input/event2");
     mfk = encoder_init("/dev/input/event3");
 
@@ -88,7 +88,6 @@ int main(void) {
     bands_init();
     params_init();
     styles_init();
-    backlight_init();
     
     lv_obj_t *main_obj = main_screen();
 
@@ -96,6 +95,7 @@ int main(void) {
     dsp_init();
     rtty_init();
     radio_init(main_obj);
+    backlight_init();
     cat_init();
     pannel_visible();
 

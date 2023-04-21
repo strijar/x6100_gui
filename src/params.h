@@ -68,6 +68,12 @@ typedef struct {
     } durty;
 } params_band_t;
 
+typedef enum {
+    BUTTONS_DARK = 0,
+    BUTTONS_LIGHT,
+    BUTTONS_TEMPORARILY
+} buttons_light_t;
+
 typedef struct {
     uint64_t            vol_modes;
     uint64_t            mfk_modes;
@@ -77,6 +83,7 @@ typedef struct {
     int16_t             brightness_normal;
     int16_t             brightness_idle;
     uint16_t            brightness_timeout; /* seconds */
+    buttons_light_t     brightness_buttons;
 
     /* band info */
     
@@ -167,7 +174,8 @@ typedef struct {
         bool    brightness_normal;
         bool    brightness_idle;
         bool    brightness_timeout;
-
+        bool    brightness_buttons;
+        
         bool    band;
         bool    vol;
         bool    rfg;

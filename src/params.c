@@ -27,6 +27,7 @@ params_t params = {
     .brightness_normal      = 9,
     .brightness_idle        = 1,
     .brightness_timeout     = 10,
+    .brightness_buttons     = BUTTONS_TEMPORARILY,
 
     .spectrum_beta          = 70,
     .spectrum_filled        = true,
@@ -504,6 +505,8 @@ static bool params_load() {
             params.brightness_idle = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "brightness_timeout") == 0) {
             params.brightness_timeout = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "brightness_buttons") == 0) {
+            params.brightness_buttons = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "line_in") == 0) {
             params.line_in = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "line_out") == 0) {
@@ -618,6 +621,7 @@ static void params_save() {
     if (params.durty.brightness_normal)     params_write_int("brightness_normal", params.brightness_normal, &params.durty.brightness_normal);
     if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);
     if (params.durty.brightness_timeout)    params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
+    if (params.durty.brightness_buttons)    params_write_int("brightness_buttons", params.brightness_buttons, &params.durty.brightness_buttons);
 
     params_exec("COMMIT");
 }
