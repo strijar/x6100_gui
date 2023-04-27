@@ -804,6 +804,29 @@ static void main_screen_hkey_cb(lv_event_t * e) {
     event_hkey_t *hkey = lv_event_get_param(e);
 
     switch (hkey->key) {
+        case HKEY_SPCH:
+            if (!hkey->pressed) {
+                freq_lock = !freq_lock;
+                main_screen_set_freq();
+            }
+            break;
+            
+        case HKEY_TUNER:
+            if (!hkey->pressed) {
+                radio_start_atu();
+            }
+            break;
+
+        case HKEY_XFC:
+            if (!hkey->pressed) {
+                radio_change_vfo();
+                info_params_set();
+                waterfall_clear();
+                spectrum_clear();
+                main_screen_band_set();
+            }
+            break;
+
         case HKEY_UP:
             if (!hkey->pressed) {
                 bands_change(true);
