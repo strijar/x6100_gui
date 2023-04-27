@@ -129,6 +129,13 @@ typedef struct {
     int8_t              agc_knee;
     uint8_t             agc_slope;
     
+    /* VOX */
+    
+    bool                vox;
+    uint8_t             vox_ag;
+    uint16_t            vox_delay;
+    uint8_t             vox_gain;
+    
     /* main screen */
     
     int16_t             spectrum_beta;
@@ -204,6 +211,11 @@ typedef struct {
         bool    agc_hang;
         bool    agc_knee;
         bool    agc_slope;
+
+        bool    vox;
+        bool    vox_ag;
+        bool    vox_delay;
+        bool    vox_gain;
         
         bool    spectrum_beta;
         bool    spectrum_peak;

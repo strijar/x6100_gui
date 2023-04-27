@@ -25,10 +25,18 @@
 
 static lv_obj_t     *grid;
 
-#define SMALL_WIDTH     115
-#define SMALL_PAD       5
+#define SMALL_PAD   5
 
-static lv_coord_t   col_dsc[] = { 740 - (SMALL_WIDTH + SMALL_PAD) * 3, SMALL_WIDTH, SMALL_WIDTH, SMALL_WIDTH, LV_GRID_TEMPLATE_LAST };
+#define SMALL_1     57
+#define SMALL_2     (SMALL_1 * 2 + SMALL_PAD * 1)
+#define SMALL_3     (SMALL_1 * 3 + SMALL_PAD * 2)
+#define SMALL_4     (SMALL_1 * 4 + SMALL_PAD * 3)
+#define SMALL_5     (SMALL_1 * 5 + SMALL_PAD * 4)
+#define SMALL_6     (SMALL_1 * 6 + SMALL_PAD * 5)
+
+#define SMALL_WIDTH 57
+
+static lv_coord_t   col_dsc[] = { 740 - (SMALL_1 + SMALL_PAD) * 6, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, LV_GRID_TEMPLATE_LAST };
 static lv_coord_t   row_dsc[64] = { 1 };
 
 static time_t       now;
@@ -108,9 +116,9 @@ static uint8_t make_date(uint8_t row) {
     lv_spinbox_set_range(obj, 1, 31);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Month */
@@ -124,9 +132,9 @@ static uint8_t make_date(uint8_t row) {
     lv_spinbox_set_range(obj, 1, 12);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Year */
@@ -140,9 +148,9 @@ static uint8_t make_date(uint8_t row) {
     lv_spinbox_set_range(obj, 2020, 2038);
     lv_spinbox_set_digit_format(obj, 4, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     return row + 1;
@@ -172,9 +180,9 @@ static uint8_t make_time(uint8_t row) {
     lv_spinbox_set_range(obj, 0, 23);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Min */
@@ -188,9 +196,9 @@ static uint8_t make_time(uint8_t row) {
     lv_spinbox_set_range(obj, 0, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Sec */
@@ -204,9 +212,9 @@ static uint8_t make_time(uint8_t row) {
     lv_spinbox_set_range(obj, 0, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, datetime_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     return row + 1;
@@ -267,17 +275,17 @@ static uint8_t make_backlight(uint8_t row) {
     lv_spinbox_set_range(obj, 5, 120);
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_WIDTH, 56);
+    lv_obj_set_size(obj, SMALL_2, 56);
     
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, backlight_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Brightness */
 
     obj = lv_obj_create(grid);
     
-    lv_obj_set_size(obj, SMALL_WIDTH * 2 + SMALL_PAD, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 2, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_size(obj, SMALL_4, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 4, LV_GRID_ALIGN_CENTER, row, 1);   col += 4;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
@@ -290,7 +298,7 @@ static uint8_t make_backlight(uint8_t row) {
     lv_slider_set_value(obj, params.brightness_normal, LV_ANIM_OFF);
     lv_slider_set_left_value(obj, params.brightness_idle, LV_ANIM_OFF);
     lv_slider_set_range(obj, -1, 9);
-    lv_obj_set_width(obj, SMALL_WIDTH * 2 - 30);
+    lv_obj_set_width(obj, SMALL_4 - 30);
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
@@ -307,8 +315,8 @@ static uint8_t make_backlight(uint8_t row) {
 
     dialog_item(&dialog, obj);
     
-    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_center(obj);
     
     lv_obj_t *list = lv_dropdown_get_list(obj);
@@ -348,8 +356,8 @@ static uint8_t make_line_gain(uint8_t row) {
 
     obj = lv_obj_create(grid);
     
-    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
@@ -361,7 +369,7 @@ static uint8_t make_line_gain(uint8_t row) {
     lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
     lv_slider_set_value(obj, params.line_in, LV_ANIM_OFF);
     lv_slider_set_range(obj, 0, 36);
-    lv_obj_set_width(obj, SMALL_WIDTH * 3 - 30);
+    lv_obj_set_width(obj, SMALL_6 - 30);
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, line_in_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
@@ -376,8 +384,8 @@ static uint8_t make_line_gain(uint8_t row) {
 
     obj = lv_obj_create(grid);
     
-    lv_obj_set_size(obj, SMALL_WIDTH * 3 + SMALL_PAD * 2, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
@@ -389,7 +397,7 @@ static uint8_t make_line_gain(uint8_t row) {
     lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
     lv_slider_set_value(obj, params.line_out, LV_ANIM_OFF);
     lv_slider_set_range(obj, 0, 36);
-    lv_obj_set_width(obj, SMALL_WIDTH * 3 - 30);
+    lv_obj_set_width(obj, SMALL_6 - 30);
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, line_out_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
@@ -426,7 +434,7 @@ static void construct_cb(lv_obj_t *parent) {
 
     memcpy(&ts, t, sizeof(ts));
     
-    row = make_date(row);       
+    row = make_date(row);
     row = make_time(row);
     row = make_delimiter(row);
     row = make_backlight(row);

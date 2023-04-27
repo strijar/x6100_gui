@@ -63,6 +63,11 @@ params_t params = {
     .agc_knee               = -60,
     .agc_slope              = 6,
 
+    .vox                    = false,
+    .vox_ag                 = 0,
+    .vox_delay              = 100,
+    .vox_gain               = 50,
+
     .key_speed              = 15,
     .key_mode               = x6100_key_manual,
     .iambic_mode            = x6100_iambic_a,

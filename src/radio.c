@@ -271,6 +271,11 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_agc_knee_set(params.agc_knee);
     x6100_control_agc_slope_set(params.agc_slope);
 
+    x6100_control_vox_set(params.vox);
+    x6100_control_vox_ag_set(params.vox_ag);
+    x6100_control_vox_delay_set(params.vox_delay);
+    x6100_control_vox_gain_set(params.vox_gain);
+
     x6100_control_cmd(x6100_rit, params.rit);
     x6100_control_cmd(x6100_xit, params.xit);
     x6100_control_linein_set(params.line_in);
