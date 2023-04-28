@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "events.h"
 #include "backlight.h"
+#include "keyboard.h"
 
 #define QUEUE_SIZE  32
 
@@ -24,6 +25,7 @@ uint32_t        EVENT_ATU_UPDATE;
 uint32_t        EVENT_MSG_UPDATE;
 uint32_t        EVENT_FREQ_UPDATE;
 uint32_t        EVENT_FT8_MSG;
+uint32_t        EVENT_HMIC_EDIT;
 
 typedef struct {
     lv_obj_t        *obj;
@@ -48,6 +50,7 @@ void event_init() {
     EVENT_MSG_UPDATE = lv_event_register_id();
     EVENT_FREQ_UPDATE = lv_event_register_id();
     EVENT_FT8_MSG = lv_event_register_id();
+    EVENT_HMIC_EDIT = lv_event_register_id();
 
     for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         queue[i] = NULL;
@@ -65,6 +68,10 @@ void event_obj_check() {
             if (backlight_is_on()) {
                 lv_obj_invalidate(item->obj);
             }
+        } else if (item->event_code == EVENT_HMIC_EDIT) {
+            lv_group_t *group = keyboard_group();
+        
+            lv_group_set_editing(group, !lv_group_get_editing((const lv_group_t*) group));
         } else {
             lv_event_send(item->obj, item->event_code, item->param);
         }
@@ -100,4 +107,11 @@ void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
     queue_write = next;
 
     pthread_mutex_unlock(&queue_mux);
+}
+
+void event_send_key(int32_t key) {
+    int32_t *c = malloc(sizeof(int32_t));
+    *c = key;
+        
+    event_send(lv_group_get_focused(keyboard_group()), LV_EVENT_KEY, c);
 }

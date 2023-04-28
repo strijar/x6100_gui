@@ -805,20 +805,23 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 
     switch (hkey->key) {
         case HKEY_SPCH:
-            if (!hkey->pressed) {
+            if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
                 main_screen_set_freq();
             }
             break;
             
         case HKEY_TUNER:
-            if (!hkey->pressed) {
+            if (hkey->state == HKEY_RELEASE) {
+                radio_change_atu();
+                info_params_set();
+            } else if (hkey->state == HKEY_LONG) {
                 radio_start_atu();
             }
             break;
 
         case HKEY_XFC:
-            if (!hkey->pressed) {
+            if (hkey->state == HKEY_RELEASE) {
                 radio_change_vfo();
                 info_params_set();
                 waterfall_clear();
@@ -828,7 +831,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             break;
 
         case HKEY_UP:
-            if (!hkey->pressed) {
+            if (hkey->state == HKEY_RELEASE) {
                 bands_change(true);
                 
                 if (dialog_is_run(dialog)) {
@@ -838,7 +841,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             break;
 
         case HKEY_DOWN:
-            if (!hkey->pressed) {
+            if (hkey->state == HKEY_RELEASE) {
                 bands_change(false);
 
                 if (dialog_is_run(dialog)) {

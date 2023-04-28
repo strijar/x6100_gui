@@ -88,9 +88,16 @@ typedef enum {
     HKEY_FINP
 } hkey_t;
 
+typedef enum {
+    HKEY_PRESS = 0,
+    HKEY_RELEASE,
+    HKEY_LONG,
+    HKEY_LONG_RELEASE
+} hkey_state_t;
+
 typedef struct {
-    hkey_t  key;
-    bool    pressed;
+    hkey_t          key;
+    hkey_state_t    state;
 } event_hkey_t;
 
 typedef enum {
@@ -123,8 +130,10 @@ extern uint32_t EVENT_ATU_UPDATE;
 extern uint32_t EVENT_MSG_UPDATE;
 extern uint32_t EVENT_FREQ_UPDATE;
 extern uint32_t EVENT_FT8_MSG;
+extern uint32_t EVENT_HMIC_EDIT;
 
 void event_init();
 
 void event_obj_check();
 void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param);
+void event_send_key(int32_t key);
