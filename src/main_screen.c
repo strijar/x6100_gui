@@ -71,6 +71,7 @@ typedef struct {
 } button_item_t;
 
 static void vol_update(int16_t diff);
+static void freq_update(int16_t diff);
 
 static void button_next_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
@@ -832,6 +833,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 
         case HKEY_UP:
             if (hkey->state == HKEY_RELEASE) {
+                freq_update(+1);
+            } else if (hkey->state == HKEY_LONG) {
                 bands_change(true);
                 
                 if (dialog_is_run(dialog)) {
@@ -842,6 +845,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 
         case HKEY_DOWN:
             if (hkey->state == HKEY_RELEASE) {
+                freq_update(-1);
+            } else if (hkey->state == HKEY_LONG) {
                 bands_change(false);
 
                 if (dialog_is_run(dialog)) {
