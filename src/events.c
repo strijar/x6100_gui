@@ -54,11 +54,11 @@ void event_init() {
 
     for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         queue[i] = NULL;
+
+    pthread_mutex_init(&queue_mux, NULL);
 }
 
 void event_obj_check() {
-    pthread_mutex_lock(&queue_mux);
-
     while (queue_read != queue_write) {
         queue_read = (queue_read + 1) % QUEUE_SIZE;
         
@@ -83,8 +83,6 @@ void event_obj_check() {
         free(item);
         queue[queue_read] = NULL;
     }
-
-    pthread_mutex_unlock(&queue_mux);
 }
 
 void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
@@ -93,6 +91,7 @@ void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
     uint8_t next = (queue_write + 1) % QUEUE_SIZE;
 
     if (queue[next]) {
+        pthread_mutex_unlock(&queue_mux);
         LV_LOG_ERROR("Overflow");
         return;
     }
