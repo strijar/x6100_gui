@@ -60,28 +60,36 @@ void event_init() {
 
 void event_obj_check() {
     while (queue_read != queue_write) {
+        pthread_mutex_lock(&queue_mux);
         queue_read = (queue_read + 1) % QUEUE_SIZE;
         
         item_t *item = queue[queue_read];
+        pthread_mutex_unlock(&queue_mux);
         
-        if (item->event_code == LV_EVENT_REFRESH) {
-            if (backlight_is_on()) {
-                lv_obj_invalidate(item->obj);
+        if (item) {
+            if (item->event_code == LV_EVENT_REFRESH) {
+                if (backlight_is_on()) {
+                    lv_obj_invalidate(item->obj);
+                }
+            } else if (item->event_code == EVENT_HMIC_EDIT) {
+                lv_group_t *group = keyboard_group();
+        
+                lv_group_set_editing(group, !lv_group_get_editing((const lv_group_t*) group));
+            } else {
+                lv_event_send(item->obj, item->event_code, item->param);
             }
-        } else if (item->event_code == EVENT_HMIC_EDIT) {
-            lv_group_t *group = keyboard_group();
+
+            pthread_mutex_lock(&queue_mux);
+
+            if (item->param != NULL) {
+                free(item->param);
+            }
         
-            lv_group_set_editing(group, !lv_group_get_editing((const lv_group_t*) group));
-        } else {
-            lv_event_send(item->obj, item->event_code, item->param);
+            free(item);
+            queue[queue_read] = NULL;
+
+            pthread_mutex_unlock(&queue_mux);
         }
-        
-        if (item->param != NULL) {
-            free(item->param);
-        }
-        
-        free(item);
-        queue[queue_read] = NULL;
     }
 }
 
