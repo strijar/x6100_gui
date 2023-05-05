@@ -422,7 +422,17 @@ static void main_screen_set_freq() {
     lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
 
     split_freq(f, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
+
+    if (params_band.split) {
+        uint16_t    mhz2, khz2, hz2;
+        uint64_t    f2 = params_band.vfo_x[(vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A].freq;
+
+        split_freq(f2, &mhz2, &khz2, &hz2);
+        
+        lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i / %i.%03i.%03i", color, mhz, khz, hz, mhz2, khz2, hz2);
+    } else {
+        lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
+    }
 
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
@@ -651,6 +661,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_split();
                 info_params_set();
+                waterfall_clear();
+                spectrum_clear();
+                main_screen_band_set();
             }
             break;
 
@@ -1087,33 +1100,26 @@ lv_obj_t * main_screen() {
     
     y += spectrum_height;
     
-    for (uint8_t i = 0; i < 3; i++) {
-        lv_obj_t *f = lv_label_create(obj);
+    lv_obj_t *f;
 
-        switch (i) {
-            case 0:
-                lv_obj_add_style(f, &freq_style, 0);
-                lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_LEFT, 0);
-                break;
+    f = lv_label_create(obj);
+    lv_obj_add_style(f, &freq_style, 0);
+    lv_obj_set_pos(f, 0, y);
+    lv_label_set_recolor(f, true);
+    freq[0] = f;
 
-            case 1:
-                lv_obj_add_style(f, &freq_main_style, 0);
-                lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_CENTER, 0);
-                break;
+    f = lv_label_create(obj);
+    lv_obj_add_style(f, &freq_main_style, 0);
+    lv_obj_set_pos(f, 800/2 - 500/2, y);
+    lv_label_set_recolor(f, true);
+    freq[1] = f;
 
-            case 2:
-                lv_obj_add_style(f, &freq_style, 0);
-                lv_obj_set_style_text_align(f, LV_TEXT_ALIGN_RIGHT, 0);
-                break;
-        }
-        
-        lv_obj_set_pos(f, i * ((800 - 10 * 2) / 3) + 10, y);
-        lv_obj_set_size(f, (800 - 10 * 2) / 3, freq_height);
-        lv_label_set_recolor(f, true);
-        
-        freq[i] = f;
-    }
-    
+    f = lv_label_create(obj);
+    lv_obj_add_style(f, &freq_style, 0);
+    lv_obj_set_pos(f, 800 - 110, y);
+    lv_label_set_recolor(f, true);
+    freq[2] = f;
+
     y += freq_height;
 
     waterfall = waterfall_init(obj);
