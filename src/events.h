@@ -84,8 +84,7 @@ typedef enum {
     HKEY_CE,
     HKEY_MODE,
     HKEY_FIL,
-    HKEY_GENE,
-    HKEY_FINP
+    HKEY_GENE
 } hkey_t;
 
 typedef enum {
@@ -106,11 +105,12 @@ typedef enum {
     KEY_VOL_LEFT_EDIT       = 4,
     KEY_VOL_RIGHT_EDIT      = 5,
     KEY_VOL_LEFT_SELECT     = 6,
-    KEY_VOL_RIGHT_SELECT    = 7
+    KEY_VOL_RIGHT_SELECT    = 7,
 //  LV_KEY_BACKSPACE        = 8,
 //  LV_KEY_NEXT             = 9,
 //  LV_KEY_ENTER            = 10,
 //  LV_KEY_PREV             = 11,
+    HKEY_FINP               = 12
 //  LV_KEY_UP               = 17,
 //  LV_KEY_DOWN             = 18,
 //  LV_KEY_RIGHT            = 19,
@@ -130,7 +130,6 @@ extern uint32_t EVENT_ATU_UPDATE;
 extern uint32_t EVENT_MSG_UPDATE;
 extern uint32_t EVENT_FREQ_UPDATE;
 extern uint32_t EVENT_FT8_MSG;
-extern uint32_t EVENT_HMIC_EDIT;
 
 void event_init();
 

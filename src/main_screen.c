@@ -38,6 +38,7 @@
 #include "dialog_settings.h"
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
+#include "dialog_freq.h"
 #include "backlight.h"
 
 #define BUTTONS     5
@@ -1083,6 +1084,10 @@ static void spectrum_key_cb(lv_event_t * e) {
             if (dialog_is_run(dialog)) {
                 event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
             }
+            break;
+            
+        case HKEY_FINP:
+            dialog = dialog_construct(dialog_freq, obj);
             break;
             
         default:

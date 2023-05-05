@@ -10,7 +10,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     cat.c rtty.c screenshot.c backlight.c
     dialog.c dialog_settings.c dialog_swrscan.c
-    dialog_ft8.c
+    dialog_ft8.c dialog_freq.c
 )
 
 add_subdirectory(fonts)

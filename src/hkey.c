@@ -122,11 +122,7 @@ void hkey_put(uint32_t key) {
             break;
 
         case X6100_HKEY_FINP:
-            if (event.state == HKEY_RELEASE || event.state == HKEY_LONG_RELEASE) {
-                event_send(lv_scr_act(), EVENT_HMIC_EDIT, NULL);
-                event.state = HKEY_PRESS;
-                event.key = HKEY_UNKNOWN;
-            }
+            hkey_key(HKEY_FINP);
             break;
 
         /* * */
