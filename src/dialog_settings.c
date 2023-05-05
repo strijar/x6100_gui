@@ -405,7 +405,7 @@ static uint8_t make_line_gain(uint8_t row) {
     return row + 1;
 }
 
-/* Mag Freq, Info */
+/* Mag Freq, Info, ALC */
 
 static void mag_freq_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
@@ -423,6 +423,14 @@ static void mag_info_update_cb(lv_event_t * e) {
     params_unlock(&params.durty.mag_info);
 }
 
+static void mag_alc_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.mag_alc = lv_obj_has_state(obj, LV_STATE_CHECKED);
+    params_unlock(&params.durty.mag_alc);
+}
+
 static uint8_t make_mag(uint8_t row) {
     lv_obj_t    *obj;
     uint8_t     col = 0;
@@ -431,15 +439,15 @@ static uint8_t make_mag(uint8_t row) {
 
     obj = lv_label_create(grid);
 
-    lv_label_set_text(obj, "Mag Freq, Info");
+    lv_label_set_text(obj, "Mag Freq, Info, ALC");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
     /* Freq */
 
     obj = lv_obj_create(grid);
     
-    lv_obj_set_size(obj, SMALL_3, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 3;
+    lv_obj_set_size(obj, SMALL_2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
@@ -448,7 +456,7 @@ static uint8_t make_mag(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_set_width(obj, SMALL_2 - 30);
     lv_obj_center(obj);
     lv_obj_add_event_cb(obj, mag_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -460,8 +468,8 @@ static uint8_t make_mag(uint8_t row) {
 
     obj = lv_obj_create(grid);
     
-    lv_obj_set_size(obj, SMALL_3, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 3;
+    lv_obj_set_size(obj, SMALL_2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
@@ -470,11 +478,33 @@ static uint8_t make_mag(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_set_width(obj, SMALL_2 - 30);
     lv_obj_center(obj);
     lv_obj_add_event_cb(obj, mag_info_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     if (params.mag_info) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+
+    /* ALC */
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_switch_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_width(obj, SMALL_2 - 30);
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, mag_alc_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    if (params.mag_alc) {
         lv_obj_add_state(obj, LV_STATE_CHECKED);
     }
 

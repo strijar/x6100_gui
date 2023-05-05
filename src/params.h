@@ -145,6 +145,7 @@ typedef struct {
     bool                spectrum_filled;
     bool                mag_freq;
     bool                mag_info;
+    bool                mag_alc;
     
     /* key */
     
@@ -226,6 +227,7 @@ typedef struct {
         bool    spectrum_filled;
         bool    mag_freq;
         bool    mag_info;
+        bool    mag_alc;
 
         bool    key_speed;
         bool    key_mode;

@@ -11,6 +11,8 @@
 #include "tx_info.h"
 #include "styles.h"
 #include "events.h"
+#include "msg_tiny.h"
+#include "params.h"
 
 #define NUM_PWR_ITEMS   6
 #define NUM_VSWR_ITEMS  5
@@ -203,7 +205,7 @@ lv_obj_t * tx_info_init(lv_obj_t *parent) {
 
 void tx_info_update(float p, float s, float a) {
     pwr = p;
-    alc = a;
+    alc = alc * 0.9f + (10.0f - a) * 0.1f;
 
     if (s <= max_swr) {
         vswr = s;
@@ -212,4 +214,8 @@ void tx_info_update(float p, float s, float a) {
     }
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
+    
+    if (params.mag_alc) {
+        msg_tiny_set_text_fmt("ALC: %.1f", alc);
+    }
 }

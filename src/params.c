@@ -36,6 +36,7 @@ params_t params = {
     .spectrum_peak_speed    = 0.5f,
     .mag_freq               = true,
     .mag_info               = true,
+    .mag_alc                = true,
     
     .vol                    = 20,
     .rfg                    = 63,
@@ -522,6 +523,8 @@ static bool params_load() {
             params.mag_freq = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "mag_info") == 0) {
             params.mag_info = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "mag_alc") == 0) {
+            params.mag_alc = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -636,6 +639,7 @@ static void params_save() {
 
     if (params.durty.mag_freq)              params_write_int("mag_freq", params.mag_freq, &params.durty.mag_freq);
     if (params.durty.mag_info)              params_write_int("mag_info", params.mag_info, &params.durty.mag_info);
+    if (params.durty.mag_alc)               params_write_int("mag_alc", params.mag_info, &params.durty.mag_alc);
 
     params_exec("COMMIT");
 }

@@ -57,7 +57,6 @@ lv_obj_t * msg_tiny_init(lv_obj_t *parent) {
     lv_obj_add_style(obj, &msg_tiny_style, 0);
 
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
-//    lv_obj_set_style_bg_opa(obj, 255, 0);
     lv_obj_add_event_cb(obj, msg_update_cb, EVENT_MSG_UPDATE, NULL);
     lv_label_set_recolor(obj, true);
 
