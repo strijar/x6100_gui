@@ -17,6 +17,7 @@ lv_style_t  freq_main_style;
 lv_style_t  waterfall_style;
 lv_style_t  btn_style;
 lv_style_t  msg_style;
+lv_style_t  msg_tiny_style;
 lv_style_t  clock_style;
 lv_style_t  info_style;
 lv_style_t  info_item_style;
@@ -97,6 +98,17 @@ void styles_init() {
     lv_style_set_bg_img_src(&msg_style, PATH "images/msg.bin");
     lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&msg_style, 20);
+
+    lv_style_init(&msg_tiny_style);
+    lv_style_set_text_color(&msg_tiny_style, lv_color_white());
+    lv_style_set_text_font(&msg_tiny_style, &sony_60);
+    lv_style_set_width(&msg_tiny_style, 324);
+    lv_style_set_height(&msg_tiny_style, 66);
+    lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
+    lv_style_set_y(&msg_tiny_style, 160 - 66/2 + 36/2);
+    lv_style_set_radius(&msg_tiny_style, 0);
+    lv_style_set_bg_img_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
+    lv_style_set_pad_ver(&msg_tiny_style, 12);
 
     lv_style_init(&pannel_style);
     lv_style_set_text_color(&pannel_style, lv_color_white());

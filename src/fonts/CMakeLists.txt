@@ -3,4 +3,5 @@ target_sources(${PROJECT_NAME} PUBLIC
     sony_18.c sony_20.c sony_22.c sony_24.c sony_26.c 
     sony_28.c sony_30.c sony_32.c sony_34.c sony_36.c 
     sony_38.c sony_40.c sony_42.c sony_44.c
+    sony_60.c
 )

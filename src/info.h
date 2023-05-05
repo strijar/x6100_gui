@@ -14,3 +14,9 @@
 lv_obj_t * info_init(lv_obj_t * parent);
 void info_params_set();
 void info_atu_update();
+
+const char* info_params_mode();
+const char* info_params_agc();
+const char* info_params_vfo();
+bool info_params_att();
+bool info_params_pre();

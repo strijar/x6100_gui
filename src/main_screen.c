@@ -19,6 +19,7 @@
 #include "radio.h"
 #include "events.h"
 #include "msg.h"
+#include "msg_tiny.h"
 #include "dsp.h"
 #include "params.h"
 #include "bands.h"
@@ -54,6 +55,7 @@ static lv_obj_t     *freq[3];
 static lv_obj_t     *waterfall;
 static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *msg;
+static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
 
@@ -423,6 +425,10 @@ static void main_screen_set_freq() {
 
     split_freq(f, &mhz, &khz, &hz);
 
+    if (params.mag_freq) {
+        msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
+    }
+
     if (params_band.split) {
         uint16_t    mhz2, khz2, hz2;
         uint64_t    f2 = params_band.vfo_x[(vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A].freq;
@@ -595,9 +601,17 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_pre();
                 info_params_set();
+                
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("Pre: %s", info_params_pre() ? "On" : "Off");
+                }
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_att();
                 info_params_set();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("Att: %s", info_params_att() ? "On" : "Off");
+                }
             }
             break;
             
@@ -629,6 +643,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 spectrum_mode_set();
                 info_params_set();
                 pannel_visible();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("%s", info_params_mode());
+                }
             }
             break;
             
@@ -640,6 +658,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 spectrum_mode_set();
                 info_params_set();
                 pannel_visible();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("%s", info_params_mode());
+                }
             }
             break;
 
@@ -651,6 +673,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 spectrum_mode_set();
                 info_params_set();
                 pannel_visible();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("%s", info_params_mode());
+                }
             }
             break;
 
@@ -658,12 +684,20 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_agc();
                 info_params_set();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("AGC: %s", info_params_agc());
+                }
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_split();
                 info_params_set();
                 waterfall_clear();
                 spectrum_clear();
                 main_screen_band_set();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("%s", info_params_vfo());
+                }
             }
             break;
 
@@ -679,6 +713,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_atu();
                 info_params_set();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("ATU: %s", params.atu ? "On" : "Off");
+                }
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_start_atu();
             }
@@ -770,6 +808,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 waterfall_clear();
                 spectrum_clear();
                 main_screen_band_set();
+
+                if (params.mag_info) {
+                    msg_tiny_set_text_fmt("%s", info_params_vfo());
+                }
             } else if (keypad->state == KEYPAD_LONG) {
                 params_band_vfo_clone();
                 radio_vfo_set();
@@ -1157,6 +1199,7 @@ lv_obj_t * main_screen() {
     buttons_load_page();
     pannel_init(obj);
     msg = msg_init(obj);
+    msg_tiny = msg_tiny_init(obj);
 
     clock_init(obj);
     info_init(obj);

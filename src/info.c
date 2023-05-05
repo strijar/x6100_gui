@@ -67,19 +67,9 @@ void info_atu_update() {
     }
 }
 
-void info_params_set() {
+const char* info_params_mode() {
     x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
-    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
-    x6100_att_t     att = params_band.vfo_x[params_band.vfo].att;
-    x6100_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
-
     char            *str;
-
-    if (params_band.split) {
-        lv_label_set_text(items[INFO_VFO], params_band.vfo == X6100_VFO_A ? "SPL-A" : "SPL-B");
-    } else {
-        lv_label_set_text(items[INFO_VFO], params_band.vfo == X6100_VFO_A ? "VFO-A" : "VFO-B");
-    }
 
     switch (mode) {
         case x6100_mode_lsb:
@@ -118,8 +108,13 @@ void info_params_set() {
             str = "?";
             break;
     }
-    
-    lv_label_set_text(items[INFO_MODE], str);
+
+    return str;
+}
+
+const char* info_params_agc() {
+    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
+    char            *str;
 
     switch (agc) {
         case x6100_agc_off:
@@ -144,26 +139,56 @@ void info_params_set() {
 
     }
 
-    lv_label_set_text(items[INFO_AGC], str);
+    return str;
+}
 
-    if (att == x6100_att_off) {
-        lv_obj_set_style_text_color(items[INFO_ATT], lv_color_white(), 0);
-        lv_obj_set_style_bg_color(items[INFO_ATT], lv_color_black(), 0);
-        lv_obj_set_style_bg_opa(items[INFO_ATT], LV_OPA_0, 0);
+const char* info_params_vfo() {
+    char            *str;
+
+    if (params_band.split) {
+        str = params_band.vfo == X6100_VFO_A ? "SPL-A" : "SPL-B";
     } else {
+        str = params_band.vfo == X6100_VFO_A ? "VFO-A" : "VFO-B";
+    }
+    
+    return str;
+}
+
+bool info_params_att() {
+    x6100_att_t     att = params_band.vfo_x[params_band.vfo].att;
+
+    return att == x6100_att_on;
+}
+
+bool info_params_pre() {
+    x6100_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
+    
+    return pre == x6100_pre_on;
+}
+
+void info_params_set() {
+    lv_label_set_text(items[INFO_VFO], info_params_vfo());
+    lv_label_set_text(items[INFO_MODE], info_params_mode());
+    lv_label_set_text(items[INFO_AGC], info_params_agc());
+
+    if (info_params_att()) {
         lv_obj_set_style_text_color(items[INFO_ATT], lv_color_black(), 0);
         lv_obj_set_style_bg_color(items[INFO_ATT], lv_color_white(), 0);
         lv_obj_set_style_bg_opa(items[INFO_ATT], LV_OPA_50, 0);
+    } else {
+        lv_obj_set_style_text_color(items[INFO_ATT], lv_color_white(), 0);
+        lv_obj_set_style_bg_color(items[INFO_ATT], lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(items[INFO_ATT], LV_OPA_0, 0);
     }
 
-    if (pre == x6100_pre_off) {
-        lv_obj_set_style_text_color(items[INFO_PRE], lv_color_white(), 0);
-        lv_obj_set_style_bg_color(items[INFO_PRE], lv_color_black(), 0);
-        lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_0, 0);
-    } else {
+    if (info_params_pre()) {
         lv_obj_set_style_text_color(items[INFO_PRE], lv_color_black(), 0);
         lv_obj_set_style_bg_color(items[INFO_PRE], lv_color_white(), 0);
         lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_50, 0);
+    } else {
+        lv_obj_set_style_text_color(items[INFO_PRE], lv_color_white(), 0);
+        lv_obj_set_style_bg_color(items[INFO_PRE], lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(items[INFO_PRE], LV_OPA_0, 0);
     }
 
     info_atu_update();

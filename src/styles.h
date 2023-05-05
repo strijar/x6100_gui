@@ -20,6 +20,7 @@ extern lv_style_t   freq_main_style;
 extern lv_style_t   waterfall_style;
 extern lv_style_t   btn_style;
 extern lv_style_t   msg_style;
+extern lv_style_t   msg_tiny_style;
 extern lv_style_t   clock_style;
 extern lv_style_t   info_style;
 extern lv_style_t   info_item_style;
@@ -50,5 +51,9 @@ extern lv_font_t    sony_32;
 extern lv_font_t    sony_34;
 extern lv_font_t    sony_36;
 extern lv_font_t    sony_38;
+extern lv_font_t    sony_40;
+extern lv_font_t    sony_42;
+extern lv_font_t    sony_44;
+extern lv_font_t    sony_60;
 
 void styles_init();

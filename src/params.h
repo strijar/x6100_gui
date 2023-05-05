@@ -143,6 +143,8 @@ typedef struct {
     uint16_t            spectrum_peak_hold;
     float               spectrum_peak_speed;
     bool                spectrum_filled;
+    bool                mag_freq;
+    bool                mag_info;
     
     /* key */
     
@@ -222,7 +224,8 @@ typedef struct {
         bool    spectrum_peak_hold;
         bool    spectrum_peak_speed;
         bool    spectrum_filled;
-        bool    freq_step;
+        bool    mag_freq;
+        bool    mag_info;
 
         bool    key_speed;
         bool    key_mode;

@@ -4,7 +4,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     main.c main_screen.c 
     styles.c spectrum.c radio.c dsp.c util.c 
     waterfall.c rotary.c keyboard.c encoder.c
-    events.c msg.c keypad.c params.c
+    events.c msg.c msg_tiny.c keypad.c params.c
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c

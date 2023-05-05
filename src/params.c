@@ -34,6 +34,8 @@ params_t params = {
     .spectrum_peak          = true,
     .spectrum_peak_hold     = 5000,
     .spectrum_peak_speed    = 0.5f,
+    .mag_freq               = true,
+    .mag_info               = true,
     
     .vol                    = 20,
     .rfg                    = 63,
@@ -516,6 +518,10 @@ static bool params_load() {
             params.line_in = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "line_out") == 0) {
             params.line_out = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "mag_freq") == 0) {
+            params.mag_freq = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "mag_info") == 0) {
+            params.mag_info = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -627,6 +633,9 @@ static void params_save() {
     if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);
     if (params.durty.brightness_timeout)    params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
     if (params.durty.brightness_buttons)    params_write_int("brightness_buttons", params.brightness_buttons, &params.durty.brightness_buttons);
+
+    if (params.durty.mag_freq)              params_write_int("mag_freq", params.mag_freq, &params.durty.mag_freq);
+    if (params.durty.mag_info)              params_write_int("mag_info", params.mag_info, &params.durty.mag_info);
 
     params_exec("COMMIT");
 }
