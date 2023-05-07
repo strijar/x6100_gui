@@ -10,11 +10,13 @@
 
 #include "keyboard.h"
 
+lv_group_t *keyboard_group;
+
 static lv_indev_drv_t       indev_drv_2;
 static lv_group_t           *group;
 
 void keyboard_init() {
-    group = lv_group_create();
+    keyboard_group = lv_group_create();
 
     if (!evdev_set_file("/dev/input/event5")) {
         return;
@@ -27,9 +29,5 @@ void keyboard_init() {
 
     lv_indev_t *keyboard_indev = lv_indev_drv_register(&indev_drv_2);
 
-    lv_indev_set_group(keyboard_indev, group);
-}
-
-lv_group_t * keyboard_group() {
-    return group;
+    lv_indev_set_group(keyboard_indev, keyboard_group);
 }

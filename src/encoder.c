@@ -60,7 +60,7 @@ encoder_t * encoder_init(char *dev_name) {
     
     encoder->indev = lv_indev_drv_register(&encoder->indev_drv);
 
-    lv_indev_set_group(encoder->indev, keyboard_group());
+    lv_indev_set_group(encoder->indev, keyboard_group);
 
     return encoder;
 }

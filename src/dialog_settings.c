@@ -22,6 +22,7 @@
 #include "backlight.h"
 #include "radio.h"
 #include "events.h"
+#include "keyboard.h"
 
 static lv_obj_t     *grid;
 
@@ -555,11 +556,10 @@ static void construct_cb(lv_obj_t *parent) {
 
 static void key_cb(lv_event_t * e) {
     uint32_t    key = *((uint32_t *)lv_event_get_param(e));
-    lv_group_t  *group = keyboard_group();
 
     switch (key) {
         case HKEY_FINP:
-             lv_group_set_editing(group, !lv_group_get_editing((const lv_group_t*) group));
+             lv_group_set_editing(keyboard_group, !lv_group_get_editing((const lv_group_t*) keyboard_group));
              break;
 
         case LV_KEY_ESC:

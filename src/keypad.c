@@ -211,7 +211,7 @@ keypad_t * keypad_init(char *dev_name) {
     
     keypad->indev = lv_indev_drv_register(&keypad->indev_drv);
 
-    lv_indev_set_group(keypad->indev, keyboard_group());
+    lv_indev_set_group(keypad->indev, keyboard_group);
 
     return keypad;
 }

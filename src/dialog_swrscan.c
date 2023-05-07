@@ -224,7 +224,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_bg_opa(chart, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(chart, 0, LV_PART_MAIN);
 
-    lv_group_add_obj(keyboard_group(), chart);
+    lv_group_add_obj(keyboard_group, chart);
     lv_obj_add_event_cb(chart, key_cb, LV_EVENT_KEY, NULL);
 
     do_init();

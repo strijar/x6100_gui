@@ -74,47 +74,91 @@ void hkey_put(uint32_t key) {
         /* * */
 
         case X6100_HKEY_1:
-            hkey_key('1');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_1;
+            } else {
+                hkey_key('1');
+            }
             break;
 
         case X6100_HKEY_2:
-            hkey_key('2');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_2;
+            } else {
+                hkey_key('2');
+            }
             break;
 
         case X6100_HKEY_3:
-            hkey_key('3');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_3;
+            } else {
+                hkey_key('3');
+            }
             break;
 
         case X6100_HKEY_4:
-            hkey_key('4');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_4;
+            } else {
+                hkey_key('4');
+            }
             break;
 
         case X6100_HKEY_5:
-            hkey_key('5');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_5;
+            } else {
+                hkey_key('5');
+            }
             break;
 
         case X6100_HKEY_6:
-            hkey_key('6');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_6;
+            } else {
+                hkey_key('6');
+            }
             break;
 
         case X6100_HKEY_7:
-            hkey_key('7');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_7;
+            } else {
+                hkey_key('7');
+            }
             break;
 
         case X6100_HKEY_8:
-            hkey_key('8');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_8;
+            } else {
+                hkey_key('8');
+            }
             break;
 
         case X6100_HKEY_9:
-            hkey_key('9');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_9;
+            } else {
+                hkey_key('9');
+            }
             break;
 
         case X6100_HKEY_DOT:
-            hkey_key('.');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_DOT;
+            } else {
+                hkey_key('.');
+            }
             break;
 
         case X6100_HKEY_0:
-            hkey_key('0');
+            if (lv_group_get_editing(keyboard_group)) {
+                event.key = HKEY_0;
+            } else {
+                hkey_key('0');
+            }
             break;
 
         case X6100_HKEY_CE:

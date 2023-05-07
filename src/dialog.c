@@ -75,7 +75,7 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
 
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     
-    lv_group_add_obj(keyboard_group(), obj);
+    lv_group_add_obj(keyboard_group, obj);
     
     if (dialog->key_cb) {
         lv_obj_add_event_cb(obj, dialog->key_cb, LV_EVENT_KEY, NULL);

@@ -369,10 +369,8 @@ static void button_press(uint8_t n, bool hold) {
     }
 }
 
-static void button_mem_load_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    params_memory_load(item->data);
+static void mem_load(uint8_t x) {
+    params_memory_load(x);
 
     params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
 
@@ -396,14 +394,24 @@ static void button_mem_load_cb(lv_event_t * e) {
     spectrum_clear();
     main_screen_set_freq();
 
-    msg_set_text_fmt("Loaded from memory %i", item->data);
+    msg_set_text_fmt("Loaded from memory %i", x);
+}
+
+static void button_mem_load_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    mem_load(item->data);
+}
+
+static void mem_save(uint8_t x) {
+    params_memory_save(x);
+    msg_set_text_fmt("Saved in memory %i", x);
 }
 
 static void button_mem_save_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
-    
-    params_memory_save(item->data);
-    msg_set_text_fmt("Saved in memory %i", item->data);
+ 
+    mem_save(item->data);
 }
 
 /* * */
@@ -862,6 +870,21 @@ static void main_screen_hkey_cb(lv_event_t * e) {
     event_hkey_t *hkey = lv_event_get_param(e);
 
     switch (hkey->key) {
+        case HKEY_1:
+        case HKEY_2:
+        case HKEY_3:
+        case HKEY_4:
+        case HKEY_5:
+        case HKEY_6:
+        case HKEY_7:
+        case HKEY_8:
+            if (hkey->state == HKEY_RELEASE) {
+                mem_load(hkey->key - HKEY_1 + 1);
+            } else if (hkey->state == HKEY_LONG) {
+                mem_save(hkey->key - HKEY_1 + 1);
+            }
+            break;
+            
         case HKEY_SPCH:
             if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
@@ -1110,11 +1133,11 @@ static void spectrum_pressed_cb(lv_event_t * e) {
 
 void main_screen_keys_enable(bool value) {
     if (value) {
-        lv_group_add_obj(keyboard_group(), spectrum);
-        lv_group_set_editing(keyboard_group(), true);
+        lv_group_add_obj(keyboard_group, spectrum);
+        lv_group_set_editing(keyboard_group, true);
     } else {
         lv_group_remove_obj(spectrum);
-        lv_group_set_editing(keyboard_group(), false);
+        lv_group_set_editing(keyboard_group, false);
     }
 }
 

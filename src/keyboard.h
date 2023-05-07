@@ -30,5 +30,6 @@
 #define KEYBOARD_PGUP       (0xFF55)
 #define KEYBOARD_PGDN       (0xFF56)
 
+extern lv_group_t *keyboard_group;
+
 void keyboard_init();
-lv_group_t * keyboard_group();

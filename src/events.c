@@ -114,5 +114,5 @@ void event_send_key(int32_t key) {
     int32_t *c = malloc(sizeof(int32_t));
     *c = key;
         
-    event_send(lv_group_get_focused(keyboard_group()), LV_EVENT_KEY, c);
+    event_send(lv_group_get_focused(keyboard_group), LV_EVENT_KEY, c);
 }

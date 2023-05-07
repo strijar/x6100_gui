@@ -476,8 +476,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_bg_color(table, lv_color_white(), LV_PART_ITEMS | LV_STATE_EDITED);
     lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
 
-    lv_group_add_obj(keyboard_group(), table);
-    lv_group_set_editing(keyboard_group(), true);
+    lv_group_add_obj(keyboard_group, table);
+    lv_group_set_editing(keyboard_group, true);
 
     lv_obj_center(table);
     table_rows = 0;
