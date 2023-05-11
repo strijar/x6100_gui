@@ -143,6 +143,8 @@ void styles_init() {
     lv_style_init(&dialog_item_focus_style);
     lv_style_set_bg_opa(&dialog_item_focus_style, 128);
     lv_style_set_text_color(&dialog_item_focus_style, lv_color_black());
+    lv_style_set_border_color(&dialog_item_focus_style, lv_color_white());
+    lv_style_set_border_width(&dialog_item_focus_style, 2);
 
     lv_style_init(&dialog_item_edited_style);
     lv_style_set_bg_opa(&dialog_item_edited_style, LV_OPA_COVER);
