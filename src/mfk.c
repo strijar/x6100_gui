@@ -341,7 +341,20 @@ void mfk_update(int16_t diff) {
 
 void mfk_press(int16_t dir) {
     while (true) {
-        mfk_mode = (mfk_mode + dir) % MFK_LAST;
+        if (dir > 0) {
+            if (mfk_mode == MFK_LAST-1) {
+                mfk_mode = 0;
+            } else {
+                mfk_mode++;
+            }
+        } else {
+            if (mfk_mode == 0) {
+                mfk_mode = MFK_LAST-1;
+            } else {
+                mfk_mode--;
+            }
+        }
+        
         uint64_t mask = (uint64_t) 1L << mfk_mode;
         
         if (params.mfk_modes & mask) {

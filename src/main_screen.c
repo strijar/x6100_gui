@@ -547,7 +547,19 @@ static void vol_update(int16_t diff) {
 
 static void vol_press(int16_t dir) {
     while (true) {
-        vol_mode = (vol_mode + dir) % VOL_LAST;
+        if (dir > 0) {
+            if (vol_mode == VOL_LAST-1) {
+                vol_mode = 0;
+            } else {
+                vol_mode++;
+            }
+        } else {
+            if (vol_mode == 0) {
+                vol_mode = VOL_LAST-1;
+            } else {
+                vol_mode--;
+            }
+        }
         
         if (params.vol_modes & (1 << vol_mode)) {
             break;
