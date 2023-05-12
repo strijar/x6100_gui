@@ -230,7 +230,7 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     for (uint16_t i = 0; i < nsamples; i++)
         firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
 
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
     
     if (rtty_get_state() == RTTY_RX) {
         rtty_put_audio_samples(nsamples, audio);

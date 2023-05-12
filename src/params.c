@@ -152,7 +152,7 @@ void params_mode_load() {
         return;
     }
 
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     sqlite3_bind_int(stmt, 1, mode);
 
@@ -174,7 +174,7 @@ void params_mode_load() {
 }
 
 static void params_mode_write_int(const char *name, int data, bool *durty) {
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     sqlite3_bind_int(write_mode_stmt, 1, mode);
     sqlite3_bind_text(write_mode_stmt, 2, name, strlen(name), 0);

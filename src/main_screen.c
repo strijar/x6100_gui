@@ -863,10 +863,24 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             switch (keypad->state) {
                 case KEYPAD_PRESS:
                     radio_set_ptt(true);
+
+                    switch (radio_current_mode()) {
+                        case x6100_mode_cw:
+                        case x6100_mode_cwr:
+                            radio_set_morse_key(true);
+                            break;
+                    }
                     break;
                     
                 case KEYPAD_RELEASE:
                 case KEYPAD_LONG_RELEASE:
+                    switch (radio_current_mode()) {
+                        case x6100_mode_cw:
+                        case x6100_mode_cwr:
+                            radio_set_morse_key(false);
+                            break;
+                    }
+
                     radio_set_ptt(false);
                     break;
             }

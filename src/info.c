@@ -68,7 +68,7 @@ void info_atu_update() {
 }
 
 const char* info_params_mode() {
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
     char            *str;
 
     switch (mode) {

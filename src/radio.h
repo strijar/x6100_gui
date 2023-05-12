@@ -49,6 +49,7 @@ uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
 
 void radio_set_mode(x6100_vfo_t vfo,  x6100_mode_t mode);
 void radio_change_mode(radio_mode_t select);
+x6100_mode_t radio_current_mode();
 
 x6100_vfo_t radio_set_vfo(x6100_vfo_t vfo);
 x6100_vfo_t radio_change_vfo();
@@ -110,3 +111,5 @@ int16_t radio_change_rit(int16_t d);
 
 void radio_set_line_in(uint8_t d);
 void radio_set_line_out(uint8_t d);
+
+void radio_set_morse_key(bool on);

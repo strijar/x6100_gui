@@ -242,7 +242,7 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
 
     cbuffercf_write(rx_buf, samples, n);
     
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     while (cbuffercf_size(rx_buf) > symbol_samples) {
         unsigned int    symbol;

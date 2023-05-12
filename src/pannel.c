@@ -95,7 +95,7 @@ void pannel_add_text(const char * text) {
 }
 
 void pannel_visible() {
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
     bool            on = false;
 
     switch (mode) {

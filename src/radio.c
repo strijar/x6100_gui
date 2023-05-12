@@ -189,7 +189,7 @@ void radio_vfo_set() {
 }
 
 void radio_mode_set() {
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     radio_lock();
     
@@ -393,7 +393,7 @@ bool radio_change_att() {
 }
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     switch (mode) {
         case x6100_mode_lsb:
@@ -442,7 +442,7 @@ void radio_set_mode(x6100_vfo_t vfo,  x6100_mode_t mode) {
 void radio_change_mode(radio_mode_t select) {
     params_lock();
 
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     switch (select) {
         case RADIO_MODE_AM:
@@ -509,12 +509,16 @@ void radio_change_mode(radio_mode_t select) {
     radio_set_mode(params_band.vfo, mode);
 }
 
+x6100_mode_t radio_current_mode() {
+    return params_band.vfo_x[params_band.vfo].mode;
+}
+
 uint32_t radio_change_filter_low(int32_t df) {
     if (df == 0) {
         return params_mode.filter_low;
     }
 
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
     
     if (mode == x6100_mode_am || mode == x6100_mode_nfm) {
         return 0;
@@ -546,7 +550,7 @@ uint32_t radio_change_filter_high(int32_t df) {
         return params_mode.filter_high;
     }
 
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
 
     params_lock();
     params_mode.filter_high = align_int(params_mode.filter_high + df * 50, 50);
@@ -576,7 +580,7 @@ uint32_t radio_change_filter_high(int32_t df) {
 
 static void update_agc_time() {
     x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
-    x6100_mode_t    mode = params_band.vfo_x[params_band.vfo].mode;
+    x6100_mode_t    mode = radio_current_mode();
     uint16_t        agc_time = 500;
 
     switch (agc) {
@@ -685,7 +689,7 @@ bool radio_start_swrscan() {
     } else if (state == RADIO_SWRSCAN) {
         x6100_control_swrscan_set(false);
         x6100_control_txpwr_set(params.pwr);
-        x6100_control_vfo_mode_set(params_band.vfo, params_band.vfo_x[params_band.vfo].mode);
+        x6100_control_vfo_mode_set(params_band.vfo, radio_current_mode());
         radio_set_freq(freq_save);
 
         state = RADIO_RX;
@@ -1264,4 +1268,8 @@ void radio_set_line_out(uint8_t d) {
     radio_lock();
     x6100_control_lineout_set(d);
     radio_unlock();
+}
+
+void radio_set_morse_key(bool on) {
+    x6100_gpio_set(x6100_pin_morse_key, on ? 0 : 1);
 }
