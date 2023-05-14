@@ -37,7 +37,11 @@ params_t params = {
     .mag_freq               = true,
     .mag_info               = true,
     .mag_alc                = true,
-    
+    .clock_view             = CLOCK_TIME_POWER,
+    .clock_time_timeout     = 5,
+    .clock_power_timeout    = 3,
+    .clock_tx_timeout       = 1,
+
     .vol                    = 20,
     .rfg                    = 63,
     .ant                    = 1,
@@ -525,6 +529,14 @@ static bool params_load() {
             params.mag_info = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "mag_alc") == 0) {
             params.mag_alc = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "clock_view") == 0) {
+            params.clock_view = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "clock_time_timeout") == 0) {
+            params.clock_time_timeout = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "clock_power_timeout") == 0) {
+            params.clock_power_timeout = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "clock_tx_timeout") == 0) {
+            params.clock_tx_timeout = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -640,6 +652,11 @@ static void params_save() {
     if (params.durty.mag_freq)              params_write_int("mag_freq", params.mag_freq, &params.durty.mag_freq);
     if (params.durty.mag_info)              params_write_int("mag_info", params.mag_info, &params.durty.mag_info);
     if (params.durty.mag_alc)               params_write_int("mag_alc", params.mag_info, &params.durty.mag_alc);
+
+    if (params.durty.clock_view)            params_write_int("clock_view", params.clock_view, &params.durty.clock_view);
+    if (params.durty.clock_time_timeout)    params_write_int("clock_time_timeout", params.clock_time_timeout, &params.durty.clock_time_timeout);
+    if (params.durty.clock_power_timeout)   params_write_int("clock_power_timeout", params.clock_power_timeout, &params.durty.clock_power_timeout);
+    if (params.durty.clock_tx_timeout)      params_write_int("clock_tx_timeout", params.clock_tx_timeout, &params.durty.clock_tx_timeout);
 
     params_exec("COMMIT");
 }

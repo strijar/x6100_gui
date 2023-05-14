@@ -16,10 +16,6 @@
 #include "util.h"
 #include "backlight.h"
 
-#define TIME_TIMEOUT    5000
-#define POWER_TIMEOUT   3000
-#define TX_TIMEOUT      1000
-
 typedef enum {
     CLOCK_TIME = 0,
     CLOCK_POWER
@@ -54,33 +50,40 @@ static void set_state(clock_state_t new_state) {
 }
 
 static void show_time() {
+    time_t      now;
+    struct tm   *t;
+
     if (!backlight_is_on()) {
         return;
     }
 
-    time_t      now;
-    struct tm   *t;
-    uint64_t    ms = get_time();
-    
-    if (radio_get_state() == RADIO_RX) {
-        if (ms > timeout) {
-            switch (state) {
-                case CLOCK_TIME:
-                    set_state(CLOCK_POWER);
-                    timeout = ms + POWER_TIMEOUT;
-                    break;
-                    
-                case CLOCK_POWER:
-                    set_state(CLOCK_TIME);
-                    timeout = ms + TIME_TIMEOUT;
-                    break;
-            }
-        }
-    } else {
+    if (params.clock_view == CLOCK_TIME_ALLWAYS) {
+        set_state(CLOCK_TIME);
+    } else if (params.clock_view == CLOCK_POWER_ALLWAYS) {
         set_state(CLOCK_POWER);
-        timeout = ms + TX_TIMEOUT;
+    } else if (params.clock_view == CLOCK_TIME_POWER) {
+        uint64_t    ms = get_time();
+
+        if (radio_get_state() == RADIO_RX) {
+            if (ms > timeout) {
+                switch (state) {
+                    case CLOCK_TIME:
+                        set_state(CLOCK_POWER);
+                        timeout = ms + params.clock_power_timeout * 1000;
+                        break;
+
+                    case CLOCK_POWER:
+                        set_state(CLOCK_TIME);
+                        timeout = ms + params.clock_time_timeout * 1000;
+                        break;
+                }
+            }
+        } else {
+            set_state(CLOCK_POWER);
+            timeout = ms + params.clock_tx_timeout * 1000;
+        }
     }
-    
+        
     switch (state) {
         case CLOCK_TIME:
             now = time(NULL);
@@ -114,10 +117,10 @@ lv_obj_t * clock_init(lv_obj_t * parent) {
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
 
     set_state(CLOCK_TIME);
-    timeout = get_time() + TIME_TIMEOUT;
+    timeout = get_time() + params.clock_time_timeout * 1000;
 
     show_time();
-    lv_timer_create(show_time, 1000, NULL);
+    lv_timer_create(show_time, 500, NULL);
 }
 
 void clock_update_power(float ext, float bat, uint8_t cap) {
@@ -126,4 +129,32 @@ void clock_update_power(float ext, float bat, uint8_t cap) {
     v_bat = bat;
     cap_bat = cap;
     pthread_mutex_unlock(&power_mux);
+}
+
+void clock_set_view(clock_view_t x) {
+    params_lock();
+    params.clock_view = x;
+    params_unlock(&params.durty.clock_view);
+    timeout = get_time();
+}
+
+void clock_set_time_timeout(uint8_t sec) {
+    params_lock();
+    params.clock_time_timeout = sec;
+    params_unlock(&params.durty.clock_time_timeout);
+    timeout = get_time();
+}
+
+void clock_set_power_timeout(uint8_t sec) {
+    params_lock();
+    params.clock_power_timeout = sec;
+    params_unlock(&params.durty.clock_power_timeout);
+    timeout = get_time();
+}
+
+void clock_set_tx_timeout(uint8_t sec) {
+    params_lock();
+    params.clock_tx_timeout = sec;
+    params_unlock(&params.durty.clock_tx_timeout);
+    timeout = get_time();
 }

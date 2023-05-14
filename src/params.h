@@ -14,6 +14,7 @@
 #include <aether_radio/x6100_control/control.h>
 #include "bands.h"
 #include "radio.h"
+#include "clock.h"
 
 typedef struct {
     int32_t         filter_low;
@@ -146,6 +147,10 @@ typedef struct {
     bool                mag_freq;
     bool                mag_info;
     bool                mag_alc;
+    clock_view_t        clock_view;
+    uint8_t             clock_time_timeout;     /* seconds */
+    uint8_t             clock_power_timeout;    /* seconds */
+    uint8_t             clock_tx_timeout;       /* seconds */
     
     /* key */
     
@@ -228,7 +233,11 @@ typedef struct {
         bool    mag_freq;
         bool    mag_info;
         bool    mag_alc;
-
+        bool    clock_view;
+        bool    clock_time_timeout;
+        bool    clock_power_timeout;
+        bool    clock_tx_timeout;
+        
         bool    key_speed;
         bool    key_mode;
         bool    iambic_mode;
