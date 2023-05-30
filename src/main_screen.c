@@ -39,6 +39,7 @@
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
 #include "dialog_freq.h"
+#include "dialog_gps.h"
 #include "backlight.h"
 
 #define BUTTONS     5
@@ -112,11 +113,13 @@ typedef enum {
     PAGE_DFN_3,
     
     PAGE_APP_1,
+    PAGE_APP_2,
     
     PAGE_RTTY,
     PAGE_SETTINGS,
     PAGE_SWRSCAN,
     PAGE_FT8,
+    PAGE_GPS,
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -218,11 +221,17 @@ static button_item_t    buttons[] = {
 
     /* APP */
 
-    { .label = "(APP 1:1)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
+    { .label = "(APP 1:2)",         .press = button_next_page_cb,   .next = PAGE_APP_2 },
     { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
     { .label = "FT8",               .press = button_next_page_cb,   .next = PAGE_FT8 },
     { .label = "SWR\nScan",         .press = button_next_page_cb,   .next = PAGE_SWRSCAN },
+    { .label = "GPS",               .press = button_next_page_cb,   .next = PAGE_GPS },
+
+    { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
     { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
 
     /* RTTY */
 
@@ -249,6 +258,14 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
 
     /* FT8 */
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* GPS */
 
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
@@ -300,6 +317,10 @@ static void button_next_page_cb(lv_event_t * e) {
 
         case PAGE_FT8:
             dialog = dialog_construct(dialog_ft8, obj);
+            break;
+
+        case PAGE_GPS:
+            dialog = dialog_construct(dialog_gps, obj);
             break;
     }
 }

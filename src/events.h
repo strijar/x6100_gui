@@ -130,6 +130,7 @@ extern uint32_t EVENT_ATU_UPDATE;
 extern uint32_t EVENT_MSG_UPDATE;
 extern uint32_t EVENT_FREQ_UPDATE;
 extern uint32_t EVENT_FT8_MSG;
+extern uint32_t EVENT_GPS;
 
 void event_init();
 

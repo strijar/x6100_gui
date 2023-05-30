@@ -8,9 +8,9 @@ target_sources(${PROJECT_NAME} PUBLIC
     bands.c hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c
-    cat.c rtty.c screenshot.c backlight.c
+    cat.c rtty.c screenshot.c backlight.c gps.c
     dialog.c dialog_settings.c dialog_swrscan.c
-    dialog_ft8.c dialog_freq.c
+    dialog_ft8.c dialog_freq.c dialog_gps.c
 )
 
 add_subdirectory(fonts)
@@ -32,3 +32,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE liquid m)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
 target_link_libraries(${PROJECT_NAME} PRIVATE png)
+target_link_libraries(${PROJECT_NAME} PRIVATE gps)

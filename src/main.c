@@ -32,6 +32,7 @@
 #include "rtty.h"
 #include "backlight.h"
 #include "events.h"
+#include "gps.h"
 
 #define DISP_BUF_SIZE (128 * 1024)
 
@@ -98,6 +99,7 @@ int main(void) {
     backlight_init();
     cat_init();
     pannel_visible();
+    gps_init();
 
     uint64_t prev_time = get_time();
 
