@@ -282,3 +282,8 @@ void params_atu_save(uint32_t val);
 uint32_t params_atu_load(bool *loaded);
 
 void params_band_vfo_clone();
+
+void params_msg_cw_load();
+void params_msg_cw_new(const char *val);
+void params_msg_cw_edit(uint32_t id, const char *val);
+void params_msg_cw_delete(uint32_t id);

@@ -94,6 +94,10 @@ void pannel_add_text(const char * text) {
     event_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
 }
 
+void pannel_hide() {
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
+
 void pannel_visible() {
     x6100_mode_t    mode = radio_current_mode();
     bool            on = false;

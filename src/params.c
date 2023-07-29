@@ -17,6 +17,7 @@
 #include "bands.h"
 #include "main_screen.h"
 #include "mfk.h"
+#include "dialog_msg_cw.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
@@ -842,4 +843,72 @@ void params_band_vfo_clone() {
         a->durty.mode = true;
         a->durty.agc = true;
     }
+}
+
+void params_msg_cw_load() {
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    rc = sqlite3_prepare_v2(db, "SELECT id,val FROM msg_cw", -1, &stmt, 0);
+    
+    if (rc != SQLITE_OK) {
+        return;
+    }
+    
+    while (sqlite3_step(stmt) != SQLITE_DONE) {
+        int         id = sqlite3_column_int(stmt, 0);
+        const char  *val = sqlite3_column_text(stmt, 1);
+        
+        dialog_msg_cw_append(id, val);
+    }
+    
+    sqlite3_finalize(stmt);
+}
+
+void params_msg_cw_new(const char *val) {
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    rc = sqlite3_prepare_v2(db, "INSERT INTO msg_cw (val) VALUES(?)", -1, &stmt, 0);
+    
+    if (rc != SQLITE_OK) {
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, val, strlen(val), 0);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    dialog_msg_cw_append(sqlite3_last_insert_rowid(db), val);
+}
+
+void params_msg_cw_edit(uint32_t id, const char *val) {
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    rc = sqlite3_prepare_v2(db, "UPDATE msg_cw SET val = ? WHERE id = ?", -1, &stmt, 0);
+    
+    if (rc != SQLITE_OK) {
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, val, strlen(val), 0);
+    sqlite3_bind_int(stmt, 2, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
+void params_msg_cw_delete(uint32_t id) {
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    rc = sqlite3_prepare_v2(db, "DELETE FROM msg_cw WHERE id = ?", -1, &stmt, 0);
+    
+    if (rc != SQLITE_OK) {
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
 }

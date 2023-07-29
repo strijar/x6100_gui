@@ -40,6 +40,7 @@
 #include "dialog_ft8.h"
 #include "dialog_freq.h"
 #include "dialog_gps.h"
+#include "dialog_msg_cw.h"
 #include "backlight.h"
 
 #define BUTTONS     5
@@ -120,6 +121,8 @@ typedef enum {
     PAGE_SWRSCAN,
     PAGE_FT8,
     PAGE_GPS,
+    PAGE_MSG_CW_1,
+    PAGE_MSG_CW_2,
 } button_page_t;
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -271,6 +274,20 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* Msg CW */
+
+    { .label = "(MSG 1:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_2 },
+    { .label = "Send",              .press = dialog_msg_cw_send_cb },
+    { .label = "Beacon",            .press = dialog_msg_cw_beacon_cb },
+    { .label = "Beacon\nPeriod",    .press = dialog_msg_cw_period_cb },
+    { .label = "",                  .press = NULL },
+
+    { .label = "(MSG 2:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_1 },
+    { .label = "New",               .press = dialog_msg_cw_new_cb },
+    { .label = "Edit",              .press = dialog_msg_cw_edit_cb },
+    { .label = "Delete",            .press = dialog_msg_cw_delete_cb },
     { .label = "",                  .press = NULL },
 };
 
@@ -830,6 +847,24 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_page = PAGE_KEY_1;
+                buttons_load_page();
+            }
+            break;
+
+        case KEYPAD_MSG:
+            if (keypad->state == KEYPAD_RELEASE) {
+                apps_disable();
+                buttons_unload_page();
+                
+                switch (radio_current_mode()) {
+                    case x6100_mode_cw:
+                    case x6100_mode_cwr:
+                        pannel_hide();
+                        buttons_page = PAGE_MSG_CW_1;
+                        dialog = dialog_construct(dialog_msg_cw, obj);
+                        break;
+                }
+
                 buttons_load_page();
             }
             break;

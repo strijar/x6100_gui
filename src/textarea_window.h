@@ -13,8 +13,9 @@
 
 #include "lvgl/lvgl.h"
 
-lv_obj_t * pannel_init(lv_obj_t *parent);
+typedef void (*textarea_window_cb_t)(void);
 
-void pannel_hide();
-void pannel_visible();
-void pannel_add_text(const char * text);
+void textarea_window_open(textarea_window_cb_t ok_cb, textarea_window_cb_t cancel_cb);
+
+const char* textarea_window_get();
+void textarea_window_set(const char *text);
