@@ -50,3 +50,8 @@ CREATE TABLE memory(
     val         INTEGER,
     UNIQUE      (id, name) ON CONFLICT REPLACE
 );
+
+CREATE TABLE msg_cw(
+    id          INTEGER PRIMARY KEY,
+    val         INTEGER
+);

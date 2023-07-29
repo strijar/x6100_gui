@@ -5,3 +5,4 @@ cmake_install.cmake
 lv_drivers/
 lvgl/
 src/
+*.db
