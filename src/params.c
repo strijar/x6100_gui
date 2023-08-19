@@ -328,10 +328,6 @@ void params_band_save() {
 }
 
 void params_memory_save(uint16_t id) {
-    if (!params.freq_band) {
-        return;
-    }
-
     if (!params_exec("BEGIN")) {
         return;
     }
