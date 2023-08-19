@@ -52,12 +52,7 @@ static bool     character_step = false;
 static bool     word_step = false;
 static char     elements[128];
 
-typedef struct {
-    char    *morse;
-    char    *character;
-} characters_t;
-
-static characters_t characters[] = {
+cw_characters_t cw_characters[] = {
     { .morse = ".-",        .character = "A" },
     { .morse = "-...",      .character = "B" },
     { .morse = "-.-.",      .character = "C" },
@@ -140,7 +135,7 @@ static void cw_decoder_wpm(uint16_t wpm) {
 }
 
 static void cw_decoder_dict() {
-    characters_t *character = &characters[0];
+    cw_characters_t *character = &cw_characters[0];
 
     while (character->morse) {
         if (strcmp(elements, character->morse) == 0) {

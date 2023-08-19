@@ -171,6 +171,10 @@ typedef struct {
     float               cw_decoder_peak_beta;
     float               cw_decoder_noise_beta;
 
+    /* Msg CW */
+    
+    uint16_t            cw_encoder_period;  /* seconds */
+
     /* RTTY */
     
     uint16_t            rtty_center;
@@ -251,6 +255,8 @@ typedef struct {
         bool    cw_decoder_snr;
         bool    cw_decoder_peak_beta;
         bool    cw_decoder_noise_beta;
+        
+        bool    cw_encoder_period;
 
         bool    rtty_center;
         bool    rtty_shift;

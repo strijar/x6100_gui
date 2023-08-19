@@ -19,17 +19,35 @@ static lv_obj_t             *keyboard;
 static textarea_window_cb_t ok_cb = NULL;
 static textarea_window_cb_t cancel_cb = NULL;
 
+static void ok() {
+    if (ok_cb) {
+        ok_cb();
+    }
+            
+    lv_obj_del(keyboard);
+    lv_obj_del(window);
+ }
+
+static void cancel() {
+    if (cancel_cb) {
+        cancel_cb();
+    }
+
+    lv_obj_del(keyboard);
+    lv_obj_del(window);
+}
+
 static void text_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
+        case HKEY_FINP:
+        case LV_KEY_ENTER:
+            ok();
+            break;
+            
         case LV_KEY_ESC:
-            if (cancel_cb) {
-                cancel_cb();
-            }
-
-            lv_obj_del(keyboard);
-            lv_obj_del(window);
+            cancel();
             break;
             
         case KEY_VOL_LEFT_EDIT:
@@ -43,6 +61,7 @@ static void text_cb(lv_event_t * e) {
             break;
     }
 }
+
 
 static void keyboard_cb(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
@@ -64,24 +83,13 @@ static void keyboard_cb(lv_event_t * e) {
             break;
 
         case LV_EVENT_READY:
-            if (ok_cb) {
-                ok_cb();
-            }
-            
-            lv_obj_del(keyboard);
-            lv_obj_del(window);
+            ok();
             break;
 
         case LV_EVENT_CANCEL:
-            if (cancel_cb) {
-                cancel_cb();
-            }
-
-            lv_obj_del(keyboard);
-            lv_obj_del(window);
+            cancel();
             break;
     }
-
 }
 
 void textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t cancel) {

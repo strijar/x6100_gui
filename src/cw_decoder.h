@@ -10,5 +10,12 @@
 
 #include <stdbool.h>
 
+typedef struct {
+    char    *morse;
+    char    *character;
+} cw_characters_t;
+
+extern cw_characters_t cw_characters[];
+
 void cw_decoder_init();
 void cw_decoder_signal(bool on, float ms);

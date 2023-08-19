@@ -35,7 +35,8 @@ static void fade_ready(lv_anim_t * a) {
 
 static void msg_update_cb(lv_event_t * e) {
     lv_label_set_text(obj, buf);
-
+    lv_obj_move_foreground(obj);
+    
     if (!fade_run) {
         fade_run = true;
         lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
