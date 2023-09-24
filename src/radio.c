@@ -280,6 +280,7 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_cmd(x6100_xit, params.xit);
     x6100_control_linein_set(params.line_in);
     x6100_control_lineout_set(params.line_out);
+    x6100_control_cmd(x6100_monilevel, params.moni);
 
     prev_time = get_time();
     idle_time = prev_time;
@@ -330,6 +331,22 @@ uint16_t radio_change_vol(int16_t df) {
     radio_unlock();
     
     return params.vol;
+}
+
+uint16_t radio_change_moni(int16_t df) {
+    if (df == 0) {
+        return params.moni;
+    }
+    
+    params_lock();
+    params.moni = limit(params.moni + df, 0, 100);
+    params_unlock(&params.durty.moni);
+
+    radio_lock();
+    x6100_control_cmd(x6100_monilevel, params.moni);
+    radio_unlock();
+    
+    return params.moni;
 }
 
 uint16_t radio_change_rfg(int16_t df) {

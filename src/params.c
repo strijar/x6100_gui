@@ -57,6 +57,7 @@ params_t params = {
     .xit                    = 0,
     .line_in                = 10,
     .line_out               = 10,
+    .moni                   = 59,
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -524,6 +525,8 @@ static bool params_load() {
             params.line_in = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "line_out") == 0) {
             params.line_out = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "moni") == 0) {
+            params.moni = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "mag_freq") == 0) {
             params.mag_freq = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "mag_info") == 0) {
@@ -646,6 +649,8 @@ static void params_save() {
 
     if (params.durty.line_in)               params_write_int("line_in", params.line_in, &params.durty.line_in);
     if (params.durty.line_out)              params_write_int("line_out", params.line_out, &params.durty.line_out);
+
+    if (params.durty.moni)                  params_write_int("moni", params.moni, &params.durty.moni);
 
     if (params.durty.brightness_normal)     params_write_int("brightness_normal", params.brightness_normal, &params.durty.brightness_normal);
     if (params.durty.brightness_idle)       params_write_int("brightness_idle", params.brightness_idle, &params.durty.brightness_idle);

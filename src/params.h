@@ -110,6 +110,7 @@ typedef struct {
     int16_t             xit;
     uint8_t             line_in;
     uint8_t             line_out;
+    int16_t             moni;
     
     /* DSP */
     
@@ -210,6 +211,7 @@ typedef struct {
         bool    xit;
         bool    line_in;
         bool    line_out;
+        bool    moni;
         
         bool    dnf;
         bool    dnf_center;

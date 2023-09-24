@@ -144,7 +144,7 @@ static button_item_t    buttons[] = {
     { .label = "MIC\nSelect",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MIC },
     { .label = "H-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_HMIC },
     { .label = "I-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_IMIC },
-    { .label = "",                  .press = NULL },
+    { .label = "Moni\nLevel",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MONI },
     
     { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_3 },
     { .label = "Min\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MIN_LEVEL },
@@ -576,6 +576,11 @@ static void vol_update(int16_t diff) {
         case VOL_IMIC:
             x = radio_change_imic(diff);
             msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
+            break;
+
+        case VOL_MONI:
+            x = radio_change_moni(diff);
+            msg_set_text_fmt("#%3X Moni level: %i", color, x);
             break;
             
         default:
