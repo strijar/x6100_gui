@@ -15,8 +15,8 @@
 #include "params.h"
 #include "util.h"
 #include "bands.h"
-#include "main_screen.h"
 #include "mfk.h"
+#include "vol.h"
 #include "dialog_msg_cw.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)

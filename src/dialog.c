@@ -11,32 +11,39 @@
 #include "styles.h"
 #include "main_screen.h"
 #include "keyboard.h"
+#include "events.h"
 
 static lv_obj_t     *obj;
+static dialog_t     *current_dialog = NULL;
 
-dialog_t * dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
+void dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
     if (dialog && !dialog->run) {
         main_screen_keys_enable(false);
         dialog->construct_cb(parent);
         
         dialog->run = true;
     }
-    
-    return dialog;
+
+    current_dialog = dialog;    
 }
 
-void dialog_destruct(dialog_t *dialog) {
-    if (dialog && dialog->run) {
-        dialog->run = false;
+void dialog_destruct() {
+    if (current_dialog && current_dialog->run) {
+        current_dialog->run = false;
         
-        if (dialog->destruct_cb) {
-            dialog->destruct_cb();
+        if (current_dialog->destruct_cb) {
+            current_dialog->destruct_cb();
         }
 
-        lv_obj_del(dialog->obj);
+        lv_obj_del(current_dialog->obj);
         main_screen_dialog_deleted_cb();
         main_screen_keys_enable(true);
+        current_dialog = NULL;
     }
+}
+
+void dialog_send(lv_event_code_t event_code, void *param) {
+    event_send(current_dialog->obj, event_code, param);
 }
 
 bool dialog_key(dialog_t *dialog, lv_event_t * e) {
@@ -48,8 +55,8 @@ bool dialog_key(dialog_t *dialog, lv_event_t * e) {
     return false;
 }
 
-bool dialog_is_run(dialog_t *dialog) {
-    return (dialog != NULL) && dialog->run;
+bool dialog_is_run() {
+    return (current_dialog != NULL) && current_dialog->run;
 }
 
 lv_obj_t * dialog_init(lv_obj_t *parent) {

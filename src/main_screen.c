@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "lvgl/lvgl.h"
 #include "main_screen.h"
 #include "styles.h"
 #include "spectrum.h"
@@ -29,6 +28,7 @@
 #include "band_info.h"
 #include "tx_info.h"
 #include "mfk.h"
+#include "vol.h"
 #include "main.h"
 #include "pannel.h"
 #include "rtty.h"
@@ -36,378 +36,30 @@
 #include "keyboard.h"
 #include "dialog.h"
 #include "dialog_settings.h"
-#include "dialog_swrscan.h"
-#include "dialog_ft8.h"
 #include "dialog_freq.h"
-#include "dialog_gps.h"
 #include "dialog_msg_cw.h"
 #include "backlight.h"
-
-#define BUTTONS     5
-
-static vol_mode_t   vol_mode = VOL_VOL;
+#include "buttons.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
-static uint8_t      btn_height = 62;
 static lv_obj_t     *obj;
 static bool         freq_lock = false;
 
 static lv_obj_t     *spectrum;
 static lv_obj_t     *freq[3];
 static lv_obj_t     *waterfall;
-static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *msg;
 static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
 
-static dialog_t     *dialog = NULL;
-
-typedef void (*hold_cb_t)(void *);
-
-typedef struct {
-    char            *label;
-    lv_event_cb_t   press;
-    hold_cb_t       hold;
-    uint16_t        data;
-    uint16_t        next;
-    uint16_t        prev;
-} button_item_t;
-
-static void vol_update(int16_t diff);
 static void freq_update(int16_t diff);
 static void next_freq_step(bool up);
 
-static void button_next_page_cb(lv_event_t * e);
-static void button_vol_update_cb(lv_event_t * e);
-static void button_mfk_update_cb(lv_event_t * e);
-static void button_mem_load_cb(lv_event_t * e);
-
-static void button_prev_page_cb(void * ptr);
-static void button_vol_hold_cb(void * ptr);
-static void button_mfk_hold_cb(void * ptr);
-static void button_mem_save_cb(void * ptr);
-
 static void main_screen_set_freq();
 
-typedef enum {
-    PAGE_VOL_1 = 0,
-    PAGE_VOL_2,
-    PAGE_VOL_3,
-
-    PAGE_MFK_1,
-    PAGE_MFK_2,
-    PAGE_MFK_3,
-    PAGE_MFK_4,
-
-    PAGE_MEM_1,
-    PAGE_MEM_2,
-
-    PAGE_KEY_1,
-    PAGE_KEY_2,
-    
-    PAGE_CW_DECODER_1,
-
-    PAGE_DFN_1,
-    PAGE_DFN_2,
-    PAGE_DFN_3,
-    
-    PAGE_APP_1,
-    PAGE_APP_2,
-    
-    PAGE_RTTY,
-    PAGE_SETTINGS,
-    PAGE_SWRSCAN,
-    PAGE_FT8,
-    PAGE_GPS,
-    PAGE_MSG_CW_1,
-    PAGE_MSG_CW_2,
-} button_page_t;
-
-static button_page_t    buttons_page = PAGE_VOL_1;
-
-static button_item_t    buttons[] = {
-    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2 },
-    { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
-    { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
-    { .label = "RFG",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_RFG },
-    { .label = "TX\nPower",         .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_PWR },
-
-    { .label = "(VOL 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1 },
-    { .label = "Filter\nLow",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_LOW },
-    { .label = "Filter\nHigh",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_HIGH },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(VOL 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_1, .prev = PAGE_VOL_2 },
-    { .label = "MIC\nSelect",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MIC },
-    { .label = "H-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_HMIC },
-    { .label = "I-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_IMIC },
-    { .label = "Moni\nLevel",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MONI },
-    
-    { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_3 },
-    { .label = "Min\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MIN_LEVEL },
-    { .label = "Max\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MAX_LEVEL },
-    { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
-    { .label = "Spectrum\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_BETA },
-
-    { .label = "(MFK 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_3, .prev = PAGE_MFK_1 },
-    { .label = "Spectrum\nFill",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FILL },
-    { .label = "Spectrum\nPeak",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_PEAK },
-    { .label = "Peaks\nHold",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_HOLD },
-    { .label = "Peaks\nSpeed",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_SPEED },
-
-    { .label = "(MFK 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_4, .prev = PAGE_MFK_2 },
-    { .label = "Charger",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CHARGER },
-    { .label = "Antenna",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_ANT },
-    { .label = "RIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_RIT },
-    { .label = "XIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_XIT },
-
-    { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_1, .prev = PAGE_MFK_3 },
-    { .label = "AGC\nHang",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_HANG },
-    { .label = "AGC\nKnee",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_KNEE },
-    { .label = "AGC\nSlope",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_SLOPE },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(MEM 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_2, .prev = PAGE_MFK_4 },
-    { .label = "Set 1",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 1 },
-    { .label = "Set 2",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 2 },
-    { .label = "Set 3",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 3 },
-    { .label = "Set 4",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 4 },
-
-    { .label = "(MEM 2:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MEM_1 },
-    { .label = "Set 5",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 5 },
-    { .label = "Set 6",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 6 },
-    { .label = "Set 7",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 7 },
-    { .label = "Set 8",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 8 },
-
-    /* CW */
-    
-    { .label = "(KEY 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_KEY_2, .prev = PAGE_CW_DECODER_1 },
-    { .label = "Speed",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_SPEED },
-    { .label = "Volume",            .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_VOL },
-    { .label = "Train",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TRAIN },
-    { .label = "Tone",              .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TONE },
-    
-    { .label = "(KEY 2:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_CW_DECODER_1, .prev = PAGE_KEY_1 },
-    { .label = "Key\nMode",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_MODE },
-    { .label = "Iambic\nMode",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_IAMBIC_MODE },
-    { .label = "QSK\nTime",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_QSK_TIME },
-    { .label = "Ratio",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_RATIO },
-
-    { .label = "(CW 1:1)",          .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_KEY_1, .prev = PAGE_KEY_2 },
-    { .label = "CW\nDecoder",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER },
-    { .label = "CW\nSNR",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_SNR },
-    { .label = "CW Peak\nBeta",     .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_PEAK_BETA },
-    { .label = "CW Noise\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_NOISE_BETA },
-    
-    /* DSP */
-
-    { .label = "(DFN 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_2, .prev = PAGE_DFN_3 },
-    { .label = "DNF",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF },
-    { .label = "DNF\nCenter",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF_CENTER },
-    { .label = "DNF\nWidth",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF_WIDTH },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(DFN 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_3, .prev = PAGE_DFN_1 },
-    { .label = "NB",                .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB },
-    { .label = "NB\nLevel",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB_LEVEL },
-    { .label = "NB\nWidth",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB_WIDTH },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(DFN 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_1, .prev = PAGE_DFN_2 },
-    { .label = "NR",                .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NR },
-    { .label = "NR\nLevel",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NR_LEVEL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* APP */
-
-    { .label = "(APP 1:2)",         .press = button_next_page_cb,   .next = PAGE_APP_2 },
-    { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
-    { .label = "FT8",               .press = button_next_page_cb,   .next = PAGE_FT8 },
-    { .label = "SWR\nScan",         .press = button_next_page_cb,   .next = PAGE_SWRSCAN },
-    { .label = "GPS",               .press = button_next_page_cb,   .next = PAGE_GPS },
-
-    { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
-    { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* RTTY */
-
-    { .label = "(RTTY 1:1)",        .press = NULL },
-    { .label = "Rate",              .press = button_mfk_update_cb,  .data = MFK_RTTY_RATE },
-    { .label = "Shift",             .press = button_mfk_update_cb,  .data = MFK_RTTY_SHIFT },
-    { .label = "Center",            .press = button_mfk_update_cb,  .data = MFK_RTTY_CENTER },
-    { .label = "Reverse",           .press = button_mfk_update_cb,  .data = MFK_RTTY_REVERSE },
-
-    /* Settings */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* SWR Scan */
-
-    { .label = "Run",               .press = dialog_swrscan_run_cb },
-    { .label = "Scale",             .press = dialog_swrscan_scale_cb },
-    { .label = "Span",              .press = dialog_swrscan_span_cb },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* FT8 */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* GPS */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* Msg CW */
-
-    { .label = "(MSG 1:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_2 },
-    { .label = "Send",              .press = dialog_msg_cw_send_cb },
-    { .label = "Beacon",            .press = dialog_msg_cw_beacon_cb },
-    { .label = "Beacon\nPeriod",    .press = dialog_msg_cw_period_cb },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(MSG 2:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_1 },
-    { .label = "New",               .press = dialog_msg_cw_new_cb },
-    { .label = "Edit",              .press = dialog_msg_cw_edit_cb },
-    { .label = "Delete",            .press = dialog_msg_cw_delete_cb },
-    { .label = "",                  .press = NULL },
-};
-
-/* Buttons */
-
-static void buttons_load_page() {
-    for (uint8_t i = 0; i < BUTTONS; i++) {
-        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
-        lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
-
-        lv_obj_add_event_cb(btn[i], item->press, LV_EVENT_PRESSED, item);
-        lv_label_set_text(label, item->label);
-    }
-}
-
-static void buttons_unload_page() {
-    for (uint8_t i = 0; i < BUTTONS; i++) {
-        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
-
-        lv_obj_remove_event_cb_with_user_data(btn[i], NULL, item);
-    }
-}
-
-static void button_next_page_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    buttons_unload_page();
-    buttons_page = item->next;
-    buttons_load_page();
-
-    switch (item->next) {
-        case PAGE_RTTY:
-            rtty_set_state(RTTY_RX);
-            pannel_visible();
-            break;
-            
-        case PAGE_SETTINGS:
-            dialog = dialog_construct(dialog_settings, obj);
-            break;
-
-        case PAGE_SWRSCAN:
-            dialog = dialog_construct(dialog_swrscan, obj);
-            break;
-
-        case PAGE_FT8:
-            dialog = dialog_construct(dialog_ft8, obj);
-            break;
-
-        case PAGE_GPS:
-            dialog = dialog_construct(dialog_gps, obj);
-            break;
-    }
-}
-
-static void button_vol_update_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    vol_mode = item->data;
-    vol_update(0);
-}
-
-static void button_mfk_update_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    mfk_set_mode(item->data);
-    mfk_update(0);
-}
-
-static void button_prev_page_cb(void * ptr) {
-    button_item_t *item = (button_item_t*) ptr;
-    
-    buttons_unload_page();
-    buttons_page = item->prev;
-    buttons_load_page();
-}
-
-static void button_vol_hold_cb(void * ptr) {
-    button_item_t   *item = (button_item_t*) ptr;
-    uint64_t        mask = (uint64_t) 1L << item->data;
-
-    params_lock();
-    params.vol_modes ^= mask;
-    params_unlock(&params.durty.vol_modes);
-    
-    if (params.vol_modes & mask) {
-        msg_set_text_fmt("Added to VOL encoder");
-    } else {
-        msg_set_text_fmt("Removed from VOL encoder");
-    }
-}
-
-static void button_mfk_hold_cb(void * ptr) {
-    button_item_t   *item = (button_item_t*) ptr;
-    uint64_t        mask = (uint64_t) 1L << item->data;
-
-    params_lock();
-    params.mfk_modes ^= mask;
-    params_unlock(&params.durty.mfk_modes);
-    
-    if (params.mfk_modes & mask) {
-        msg_set_text_fmt("Added to MFK encoder");
-    } else {
-        msg_set_text_fmt("Removed from MFK encoder");
-    }
-}
-
-static void button_press(uint8_t n, bool hold) {
-    if (hold) {
-        button_item_t *item = &buttons[buttons_page * BUTTONS + n];
-        
-        if (item->hold) {
-            item->hold(item);
-        }
-    } else {
-        lv_event_send(btn[n], LV_EVENT_PRESSED, NULL);
-        lv_event_send(btn[n], LV_EVENT_RELEASED, NULL);
-    }
-}
-
-static void mem_load(uint8_t x) {
+void mem_load(uint8_t x) {
     params_memory_load(x);
 
     params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
@@ -435,21 +87,9 @@ static void mem_load(uint8_t x) {
     msg_set_text_fmt("Loaded from memory %i", x);
 }
 
-static void button_mem_load_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    mem_load(item->data);
-}
-
-static void mem_save(uint8_t x) {
+void mem_save(uint8_t x) {
     params_memory_save(x);
     msg_set_text_fmt("Saved in memory %i", x);
-}
-
-static void button_mem_save_cb(void * ptr) {
-    button_item_t   *item = (button_item_t*) ptr;
- 
-    mem_save(item->data);
 }
 
 /* * */
@@ -510,108 +150,6 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
     }
 }
 
-static void vol_update(int16_t diff) {
-    int32_t     x;
-    float       f;
-    char        *s;
-
-    uint32_t    color = vol->mode == VOL_EDIT ? 0xFFFFFF : 0xBBBBBB;
-
-    switch (vol_mode) {
-        case VOL_VOL:
-            x = radio_change_vol(diff);
-            msg_set_text_fmt("#%3X Volume: %i", color, x);
-            break;
-            
-        case VOL_RFG:
-            x = radio_change_rfg(diff);
-            msg_set_text_fmt("#%3X RF gain: %i", color, x);
-            break;
-
-        case VOL_SQL:
-            x = radio_change_sql(diff);
-            msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
-            break;
-
-        case VOL_FILTER_LOW:
-            x = radio_change_filter_low(diff);
-            msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
-            break;
-
-        case VOL_FILTER_HIGH:
-            x = radio_change_filter_high(diff);
-            msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
-            break;
-
-        case VOL_PWR:
-            f = radio_change_pwr(diff);
-            msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
-            break;
-
-        case VOL_MIC:
-            x = radio_change_mic(diff);
-            
-            switch (x) {
-                case x6100_mic_builtin:
-                    s = "Built-In";
-                    break;
-
-                case x6100_mic_handle:
-                    s = "Handle";
-                    break;
-                    
-                case x6100_mic_auto:
-                    s = "Auto";
-                    break;
-            }
-            
-            msg_set_text_fmt("#%3X MIC: %s", color, s);
-            break;
-
-        case VOL_HMIC:
-            x = radio_change_hmic(diff);
-            msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
-            break;
-
-        case VOL_IMIC:
-            x = radio_change_imic(diff);
-            msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
-            break;
-
-        case VOL_MONI:
-            x = radio_change_moni(diff);
-            msg_set_text_fmt("#%3X Moni level: %i", color, x);
-            break;
-            
-        default:
-            break;
-    }
-}
-
-static void vol_press(int16_t dir) {
-    while (true) {
-        if (dir > 0) {
-            if (vol_mode == VOL_LAST-1) {
-                vol_mode = 0;
-            } else {
-                vol_mode++;
-            }
-        } else {
-            if (vol_mode == 0) {
-                vol_mode = VOL_LAST-1;
-            } else {
-                vol_mode--;
-            }
-        }
-        
-        if (params.vol_modes & (1 << vol_mode)) {
-            break;
-        }
-    }
-
-    vol_update(0);
-}
-
 static void next_freq_step(bool up) {
     params_lock();
     
@@ -646,12 +184,11 @@ static void next_freq_step(bool up) {
 
 void main_screen_dialog_deleted_cb() {
     buttons_unload_page();
-    buttons_page = PAGE_VOL_1;
-    buttons_load_page();
+    buttons_load_page(PAGE_VOL_1);
 }
 
 static void apps_disable() {
-    dialog_destruct(dialog);
+    dialog_destruct();
 
     rtty_set_state(RTTY_OFF);
     pannel_visible();
@@ -683,8 +220,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
                 
-                if (dialog_is_run(dialog)) {
-                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run()) {
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -693,8 +230,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
 
-                if (dialog_is_run(dialog)) {
-                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run()) {
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -788,41 +325,41 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_F1:
             if (keypad->state == KEYPAD_RELEASE) {
-                button_press(0, false);
+                buttons_press(0, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                button_press(0, true);
+                buttons_press(0, true);
             }
             break;
 
         case KEYPAD_F2:
             if (keypad->state == KEYPAD_RELEASE) {
-                button_press(1, false);
+                buttons_press(1, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                button_press(1, true);
+                buttons_press(1, true);
             }
             break;
 
         case KEYPAD_F3:
             if (keypad->state == KEYPAD_RELEASE) {
-                button_press(2, false);
+                buttons_press(2, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                button_press(2, true);
+                buttons_press(2, true);
             }
             break;
 
         case KEYPAD_F4:
             if (keypad->state == KEYPAD_RELEASE) {
-                button_press(3, false);
+                buttons_press(3, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                button_press(3, true);
+                buttons_press(3, true);
             }
             break;
 
         case KEYPAD_F5:
             if (keypad->state == KEYPAD_RELEASE) {
-                button_press(4, false);
+                buttons_press(4, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                button_press(4, true);
+                buttons_press(4, true);
             }
             break;
 
@@ -831,8 +368,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 mfk_set_mode(MFK_MIN_LEVEL);
                 buttons_unload_page();
-                buttons_page = PAGE_VOL_1;
-                buttons_load_page();
+                buttons_load_page(PAGE_VOL_1);
             } else if (keypad->state == KEYPAD_LONG) {
                 screenshot_take();
             }
@@ -842,8 +378,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 apps_disable();
                 buttons_unload_page();
-                buttons_page = PAGE_APP_1;
-                buttons_load_page();
+                buttons_load_page(PAGE_APP_1);
             }
             break;
 
@@ -851,26 +386,24 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 apps_disable();
                 buttons_unload_page();
-                buttons_page = PAGE_KEY_1;
-                buttons_load_page();
+                buttons_load_page(PAGE_KEY_1);
             }
             break;
 
         case KEYPAD_MSG:
             if (keypad->state == KEYPAD_RELEASE) {
-                apps_disable();
-                buttons_unload_page();
-                
                 switch (radio_current_mode()) {
                     case x6100_mode_cw:
                     case x6100_mode_cwr:
+                        apps_disable();
+                        buttons_unload_page();
+
                         pannel_hide();
-                        buttons_page = PAGE_MSG_CW_1;
-                        dialog = dialog_construct(dialog_msg_cw, obj);
+                        dialog_construct(dialog_msg_cw, obj);
+                        buttons_load_page(PAGE_MSG_CW_1);
                         break;
                 }
 
-                buttons_load_page();
             }
             break;
 
@@ -878,8 +411,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 apps_disable();
                 buttons_unload_page();
-                buttons_page = PAGE_DFN_1;
-                buttons_load_page();
+                buttons_load_page(PAGE_DFN_1);
             }
             break;
 
@@ -1004,8 +536,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             } else if (hkey->state == HKEY_LONG) {
                 bands_change(true);
                 
-                if (dialog_is_run(dialog)) {
-                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run()) {
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -1016,8 +548,8 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             } else if (hkey->state == HKEY_LONG) {
                 bands_change(false);
 
-                if (dialog_is_run(dialog)) {
-                    event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+                if (dialog_is_run()) {
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -1072,8 +604,8 @@ static void freq_update(int16_t diff) {
     main_screen_set_freq();
     check_cross_band(freq, prev_freq);
     
-    if (dialog_is_run(dialog)) {
-        event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+    if (dialog_is_run()) {
+        dialog_send(EVENT_FREQ_UPDATE, NULL);
     }
 }
 
@@ -1125,8 +657,7 @@ static void spectrum_key_cb(lv_event_t * e) {
             
         case KEYBOARD_F9:
             buttons_unload_page();
-            buttons_page = PAGE_SETTINGS;
-            buttons_load_page();
+            buttons_load_page(PAGE_SETTINGS);
             
             dialog_construct(dialog_settings, obj);
             break;
@@ -1156,7 +687,7 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case LV_KEY_ESC:
-            if (!dialog_is_run(dialog)) {
+            if (!dialog_is_run()) {
                 switch (vol->mode) {
                     case VOL_EDIT:
                         vol->mode = VOL_SELECT;
@@ -1183,21 +714,21 @@ static void spectrum_key_cb(lv_event_t * e) {
         case KEYBOARD_PGUP:
             bands_change(true);
             
-            if (dialog_is_run(dialog)) {
-                event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+            if (dialog_is_run()) {
+                dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
             break;
 
         case KEYBOARD_PGDN:
             bands_change(false);
 
-            if (dialog_is_run(dialog)) {
-                event_send(dialog->obj, EVENT_FREQ_UPDATE, NULL);
+            if (dialog_is_run()) {
+                dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
             break;
             
         case HKEY_FINP:
-            dialog = dialog_construct(dialog_freq, obj);
+            dialog_construct(dialog_freq, obj);
             break;
             
         default:
@@ -1286,32 +817,9 @@ lv_obj_t * main_screen() {
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
     
-    y = 480 - btn_height;
-    
-    uint16_t x = 0;
-    uint16_t width = 152;
+    buttons_init(obj);
+    buttons_load_page(PAGE_VOL_1);
 
-    for (uint8_t i = 0; i < 5; i++) {
-        lv_obj_t *f = lv_btn_create(obj);
-        
-        lv_obj_remove_style_all(f); 
-        lv_obj_add_style(f, &btn_style, 0);
-
-        lv_obj_set_pos(f, x, y);
-        lv_obj_set_size(f, width, btn_height);
-
-        x += width + 10;
-        
-        lv_obj_t *label = lv_label_create(f);
-        
-        lv_obj_center(label);
-        lv_obj_set_user_data(f, label);
-        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-
-        btn[i] = f;
-    }
-
-    buttons_load_page();
     pannel_init(obj);
     msg = msg_init(obj);
     msg_tiny = msg_tiny_init(obj);

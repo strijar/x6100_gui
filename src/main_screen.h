@@ -8,23 +8,13 @@
 
 #pragma once
 
-typedef enum {
-    VOL_VOL = 0,
-    VOL_SQL,
-    VOL_RFG,
-    VOL_FILTER_LOW,
-    VOL_FILTER_HIGH,
-    VOL_PWR,
-    VOL_HMIC,
-    VOL_MIC,
-    VOL_IMIC,
-    VOL_MONI,
-    
-    VOL_LAST
-} vol_mode_t;
+#include "lvgl/lvgl.h"
 
 lv_obj_t * main_screen();
 void main_screen_band_set();
 
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();
+
+void mem_load(uint8_t x);
+void mem_save(uint8_t x);
