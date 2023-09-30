@@ -100,6 +100,9 @@ params_t params = {
     .rtty_reverse           = false,
     .rtty_bits              = 5,
     .rtty_snr               = 3.0f,
+
+    .swrscan_linear         = true,
+    .swrscan_span           = 200000,
 };
 
 params_band_t params_band = {
@@ -541,6 +544,10 @@ static bool params_load() {
             params.clock_power_timeout = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "clock_tx_timeout") == 0) {
             params.clock_tx_timeout = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "swrscan_linear") == 0) {
+            params.swrscan_linear = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "swrscan_span") == 0) {
+            params.swrscan_span = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -665,6 +672,9 @@ static void params_save() {
     if (params.durty.clock_time_timeout)    params_write_int("clock_time_timeout", params.clock_time_timeout, &params.durty.clock_time_timeout);
     if (params.durty.clock_power_timeout)   params_write_int("clock_power_timeout", params.clock_power_timeout, &params.durty.clock_power_timeout);
     if (params.durty.clock_tx_timeout)      params_write_int("clock_tx_timeout", params.clock_tx_timeout, &params.durty.clock_tx_timeout);
+
+    if (params.durty.swrscan_linear)        params_write_int("swrscan_linear", params.swrscan_linear, &params.durty.swrscan_linear);
+    if (params.durty.swrscan_span)          params_write_int("swrscan_span", params.swrscan_span, &params.durty.swrscan_span);
 
     params_exec("COMMIT");
 }

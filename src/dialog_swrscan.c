@@ -32,9 +32,6 @@ static lv_coord_t           h;
 
 static bool                 run = false;
 
-static uint32_t             span = 200000;
-static bool                 linear = true;
-
 static uint16_t             freq_index;
 static uint64_t             freq_start;
 static uint64_t             freq_center;
@@ -61,8 +58,8 @@ static void do_init() {
     freq_index = 0;
     freq_center = params_band.vfo_x[params_band.vfo].freq;
         
-    freq_start = freq_center - span / 2;
-    freq_stop = freq_center + span / 2;
+    freq_start = freq_center - params.swrscan_span / 2;
+    freq_stop = freq_center + params.swrscan_span / 2;
 }
 
 static void do_step(float vswr) {
@@ -100,7 +97,7 @@ static void do_step(float vswr) {
 static lv_coord_t calc_y(float vswr) {
     float x;
 
-    if (linear) {
+    if (params.swrscan_linear) {
         x = (vswr - 1.0f) / (5.0f - 1.0f);
     } else {
         float c = 1.0f / logf(10.0);
@@ -162,13 +159,13 @@ static void draw_cb(lv_event_t * e) {
         lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
     }
     
-    uint64_t    freq = freq_center - span / 4;
+    uint64_t    freq = freq_center - params.swrscan_span / 4;
     uint16_t    mhz, khz, hz;
 
     a.y = y1;
     b.y = y1 + h;
     
-    for (int16_t x = -1; x <= 1; x++, freq += span / 4) {
+    for (int16_t x = -1; x <= 1; x++, freq += params.swrscan_span / 4) {
         a.x = x1 + w / 2 + (w / 4) * x;
         b.x = a.x;
 
@@ -260,7 +257,10 @@ void dialog_swrscan_run_cb(lv_event_t * e) {
 }
 
 void dialog_swrscan_scale_cb(lv_event_t * e) {
-    linear = !linear;
+    params_lock();
+    params.swrscan_linear = !params.swrscan_linear;
+    params_unlock(&params.durty.swrscan_linear);
+
     event_send(chart, LV_EVENT_REFRESH, NULL);
 }
 
@@ -269,24 +269,27 @@ void dialog_swrscan_span_cb(lv_event_t * e) {
         return;
     }
 
-    switch (span) {
+    params_lock();
+
+    switch (params.swrscan_span) {
         case 50000:
-            span = 100000;
+            params.swrscan_span = 100000;
             break;
     
         case 100000:
-            span = 200000;
+            params.swrscan_span = 200000;
             break;
             
         case 200000:
-            span = 500000;
+            params.swrscan_span = 500000;
             break;
 
         case 500000:
-            span = 50000;
+            params.swrscan_span = 50000;
             break;
     }
 
+    params_unlock(&params.durty.swrscan_span);
     do_init();
     event_send(chart, LV_EVENT_REFRESH, NULL);
 }

@@ -184,6 +184,11 @@ typedef struct {
     bool                rtty_reverse;
     uint8_t             rtty_bits;
     float               rtty_snr;
+
+    /* SWR Scan */
+
+    bool                swrscan_linear;
+    uint32_t            swrscan_span;
     
     /* durty flags */
     
@@ -264,6 +269,9 @@ typedef struct {
         bool    rtty_shift;
         bool    rtty_rate;
         bool    rtty_reverse;
+
+        bool    swrscan_linear;
+        bool    swrscan_span;
     } durty;
 } params_t;
 
