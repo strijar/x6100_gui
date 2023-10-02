@@ -21,6 +21,7 @@
 #include "cw.h"
 #include "rtty.h"
 #include "dialog_ft8.h"
+#include "dialog_msg_voice.h"
 
 static int32_t          nfft = 400;
 static iirfilt_cccf     dc_block;
@@ -162,6 +163,10 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     /* S-Meter */
 
+    if (dialog_msg_voice_get_state() == MSG_VOICE_RECORD) {
+        return;
+    }
+
     int32_t filter_from, filter_to;
     int32_t from, to;
     
@@ -178,8 +183,8 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
     for (int32_t i = from; i <= to; i++)
         if (waterfall_psd[i] > peak_db)
             peak_db = waterfall_psd[i];
-    
-    meter_update(peak_db);
+
+    meter_update(peak_db, 0.8f);
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
@@ -224,6 +229,11 @@ void dsp_set_spectrum_beta(float x) {
 
 void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     if (!ready) {
+        return;
+    }
+
+    if (dialog_msg_voice_get_state() == MSG_VOICE_RECORD) {
+        dialog_msg_voice_put_audio_samples(nsamples, samples);
         return;
     }
 

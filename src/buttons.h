@@ -42,6 +42,8 @@ typedef enum {
     PAGE_GPS,
     PAGE_MSG_CW_1,
     PAGE_MSG_CW_2,
+    PAGE_MSG_VOICE_1,
+    PAGE_MSG_VOICE_2,
 } button_page_t;
 
 typedef void (*hold_cb_t)(void *);

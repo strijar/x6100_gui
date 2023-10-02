@@ -10,7 +10,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     cat.c rtty.c screenshot.c backlight.c gps.c
     dialog.c dialog_settings.c dialog_swrscan.c
-    dialog_ft8.c dialog_freq.c dialog_gps.c dialog_msg_cw.c
+    dialog_ft8.c dialog_freq.c dialog_gps.c dialog_msg_cw.c dialog_msg_voice.c
     textarea_window.c cw_encoder.c buttons.c vol.c
 )
 
@@ -34,3 +34,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
 target_link_libraries(${PROJECT_NAME} PRIVATE png)
 target_link_libraries(${PROJECT_NAME} PRIVATE gps)
+target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)

@@ -22,6 +22,7 @@
 #include "dialog_freq.h"
 #include "dialog_gps.h"
 #include "dialog_msg_cw.h"
+#include "dialog_msg_voice.h"
 
 #define BUTTONS     5
 
@@ -202,6 +203,20 @@ static button_item_t    buttons[] = {
     { .label = "New",               .press = dialog_msg_cw_new_cb },
     { .label = "Edit",              .press = dialog_msg_cw_edit_cb },
     { .label = "Delete",            .press = dialog_msg_cw_delete_cb },
+    { .label = "",                  .press = NULL },
+
+    /* Msg Voice */
+
+    { .label = "(MSG 1:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_VOICE_2 },
+    { .label = "Send",              .press = dialog_msg_voice_send_cb },
+    { .label = "Beacon",            .press = dialog_msg_voice_beacon_cb },
+    { .label = "Beacon\nPeriod",    .press = dialog_msg_voice_period_cb },
+    { .label = "",                  .press = NULL },
+
+    { .label = "(MSG 2:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_VOICE_1 },
+    { .label = "Rec",               .press = dialog_msg_voice_rec_cb },
+    { .label = "Rename",            .press = dialog_msg_voice_rename_cb },
+    { .label = "Delete",            .press = dialog_msg_voice_delete_cb },
     { .label = "",                  .press = NULL },
 };
 

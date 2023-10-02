@@ -38,6 +38,7 @@
 #include "dialog_settings.h"
 #include "dialog_freq.h"
 #include "dialog_msg_cw.h"
+#include "dialog_msg_voice.h"
 #include "backlight.h"
 #include "buttons.h"
 
@@ -402,8 +403,19 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         dialog_construct(dialog_msg_cw, obj);
                         buttons_load_page(PAGE_MSG_CW_1);
                         break;
-                }
+                        
+                    case x6100_mode_lsb:
+                    case x6100_mode_usb:
+                    case x6100_mode_am:
+                    case x6100_mode_nfm:
+                        apps_disable();
+                        buttons_unload_page();
 
+                        pannel_hide();
+                        dialog_construct(dialog_msg_voice, obj);
+                        buttons_load_page(PAGE_MSG_VOICE_1);
+                        break;
+                }
             }
             break;
 

@@ -137,13 +137,13 @@ lv_obj_t * meter_init(lv_obj_t * parent) {
     return obj;
 }
 
-void meter_update(int16_t db) {
+void meter_update(int16_t db, float beta) {
     if (db < min_db) {
         db = min_db;
     } else if (db > max_db) {
         db = max_db;
     }
 
-    meter_db = meter_db * 0.8 + db * 0.2;
+    meter_db = meter_db * beta + db * (1.0f - beta);
     event_send(obj, LV_EVENT_REFRESH, NULL);
 }
