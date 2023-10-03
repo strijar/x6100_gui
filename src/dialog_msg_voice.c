@@ -15,6 +15,7 @@
 #include <math.h>
 #include <sndfile.h>
 #include <dirent.h>
+#include <pthread.h>
 
 #include <aether_radio/x6100_control/control.h>
 
@@ -32,7 +33,16 @@
 #include "msg.h"
 #include "meter.h"
 
+#define BUF_SIZE 1024
+
+typedef enum {
+    VOICE_BEACON_OFF = 0,
+    VOICE_BEACON_PLAY,
+    VOICE_BEACON_IDLE,
+} voice_beacon_t;
+
 static msg_voice_state_t    state = MSG_VOICE_OFF;
+static voice_beacon_t       beacon = VOICE_BEACON_OFF;
 static char                 *path = "/mnt/msg";
 
 static lv_obj_t             *table;
@@ -40,6 +50,8 @@ static int16_t              table_rows = 0;
 static SNDFILE              *file = NULL;
 
 static char                 *prev_filename;
+static pthread_t            thread;
+static int16_t              samples_buf[BUF_SIZE];
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
@@ -77,31 +89,32 @@ static void load_table() {
     }
 }
 
-static bool open_file() {
+static bool create_file() {
     SF_INFO sfinfo;
 
-    memset (&sfinfo, 0, sizeof(sfinfo));
+    memset(&sfinfo, 0, sizeof(sfinfo));
 
     sfinfo.samplerate = AUDIO_CAPTURE_RATE;
     sfinfo.channels = 1;
-    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+    sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
     
     char        filename[64];
     time_t      now = time(NULL);
     struct tm   *t = localtime(&now);
 
-    snprintf(filename, sizeof(filename), 
-        "%s/MSG_%04i%02i%02i_%02i%02i%02i.wav", 
+    snprintf(filename, sizeof(filename),
+        "%s/MSG_%04i%02i%02i_%02i%02i%02i.mp3", 
         path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
     );
     
     file = sf_open(filename, SFM_WRITE, &sfinfo);
     
-    if (file) {
-        return true;
+    if (file == NULL) {
+        LV_LOG_ERROR("Problem with create file");
+        return false;
     }
-    
-    return false;
+
+    return true;
 }
 
 static void close_file() {
@@ -123,6 +136,100 @@ static const char* get_item() {
     }
     
     return lv_table_get_cell_value(table, row, col);
+}
+
+static void play_item() {
+    const char *item = get_item();
+
+    if (!item) {
+        return;
+    }
+    
+    char filename[64];
+        
+    strcpy(filename, path);
+    strcat(filename, "/");
+    strcat(filename, item);
+
+    SF_INFO sfinfo;
+
+    memset(&sfinfo, 0, sizeof(sfinfo));
+
+    SNDFILE *file = sf_open(filename, SFM_READ, &sfinfo);
+
+    if (!file) {
+        return;
+    }
+
+    state = MSG_VOICE_PLAY;
+
+    while (state == MSG_VOICE_PLAY) {
+        int res = sf_read_short(file, samples_buf, BUF_SIZE);
+            
+        if (res > 0) {
+            audio_play(samples_buf, res);
+        } else {
+            state = MSG_VOICE_OFF;
+        }
+    }
+
+    sf_close(file);
+    audio_play_wait();
+}
+
+static void * play_thread(void *arg) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
+    x6100_control_record_set(true);
+    play_item();
+    x6100_control_record_set(false);
+}
+
+static void * send_thread(void *arg) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
+    msg_set_text_fmt("Sending message");
+
+    radio_set_ptt(true);
+    play_item();
+    radio_set_ptt(false);
+}
+
+static void * beacon_thread(void *arg) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
+    while (true) {
+        switch (beacon) {
+            case VOICE_BEACON_OFF:
+                msg_set_text_fmt("Beacon is turned off");
+                return;
+        
+            case VOICE_BEACON_PLAY:
+                msg_set_text_fmt("Sending message");
+                radio_set_ptt(true);
+                play_item();
+                radio_set_ptt(false);
+                break;
+            
+            case VOICE_BEACON_IDLE:
+                msg_set_text_fmt("Beacon pause: %i s", params.voice_msg_period);
+                sleep(params.voice_msg_period);
+                break;
+        }
+        
+        switch (beacon) {
+            case VOICE_BEACON_PLAY:
+                beacon = VOICE_BEACON_IDLE;
+                break;
+
+            case VOICE_BEACON_IDLE:
+                beacon = VOICE_BEACON_PLAY;
+                break;
+        }
+    }
 }
 
 static void textarea_window_close_cb() {
@@ -153,8 +260,19 @@ static void textarea_window_edit_ok_cb() {
     }
 }
 
+static void tx_cb(lv_event_t * e) {
+    if (beacon == VOICE_BEACON_IDLE) {
+        msg_set_text_fmt("Beacon is turned off");
+        pthread_cancel(thread);
+        pthread_join(thread, NULL);
+        beacon = VOICE_BEACON_OFF;
+    }
+}
+
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
+
+    lv_obj_add_event_cb(dialog.obj, tx_cb, EVENT_RADIO_TX, NULL);
 
     table = lv_table_create(dialog.obj);
     
@@ -190,6 +308,13 @@ static void construct_cb(lv_obj_t *parent) {
 
 static void destruct_cb() {
     x6100_control_record_set(false);
+    
+    if (beacon == VOICE_BEACON_IDLE) {
+        pthread_cancel(thread);
+        pthread_join(thread, NULL);
+    }
+    
+    beacon = VOICE_BEACON_OFF;
     state = MSG_VOICE_OFF;
 }
 
@@ -210,18 +335,82 @@ static void key_cb(lv_event_t * e) {
 }
 
 void dialog_msg_voice_send_cb(lv_event_t * e) {
+    switch (state) {
+        case MSG_VOICE_OFF:
+            pthread_create(&thread, NULL, send_thread, NULL);
+            break;
+
+        case MSG_VOICE_PLAY:
+            state = MSG_VOICE_OFF;
+            break;
+
+        default:
+            break;
+    }
 }
 
 void dialog_msg_voice_beacon_cb(lv_event_t * e) {
+    switch (state) {
+        case MSG_VOICE_OFF:
+            switch (beacon) {
+                case VOICE_BEACON_OFF:
+                    if (get_item()) {
+                        beacon = VOICE_BEACON_PLAY;
+                        pthread_create(&thread, NULL, beacon_thread, NULL);
+                    }
+                    break;
+                   
+                case VOICE_BEACON_IDLE:
+                    msg_set_text_fmt("Beacon is turned off");
+                    pthread_cancel(thread);
+                    pthread_join(thread, NULL);
+                    beacon = VOICE_BEACON_OFF;
+                    break;
+            }
+            break;
+
+        case MSG_VOICE_PLAY:
+            if (beacon != VOICE_BEACON_OFF) {
+                beacon = VOICE_BEACON_OFF;
+            }
+
+            state = MSG_VOICE_OFF;
+            break;
+
+        default:
+            break;
+    }
 }
 
 void dialog_msg_voice_period_cb(lv_event_t * e) {
+    params_lock();
+
+    switch (params.voice_msg_period) {
+        case 10:
+            params.voice_msg_period = 30;
+            break;
+            
+        case 30:
+            params.voice_msg_period = 60;
+            break;
+            
+        case 60:
+            params.voice_msg_period = 120;
+            break;
+            
+        case 120:
+            params.voice_msg_period = 10;
+            break;
+    }
+
+    params_unlock(&params.durty.voice_msg_period);
+    msg_set_text_fmt("Beacon period: %i s", params.voice_msg_period);
 }
 
 void dialog_msg_voice_rec_cb(lv_event_t * e) {
     switch (state) {
         case MSG_VOICE_OFF:
-            if (open_file()) {
+            if (create_file()) {
                 x6100_control_record_set(true);
                 state = MSG_VOICE_RECORD;
             }
@@ -232,6 +421,21 @@ void dialog_msg_voice_rec_cb(lv_event_t * e) {
             state = MSG_VOICE_OFF;
             close_file();
             load_table();
+            break;
+
+        default:
+            break;
+    }
+}
+
+void dialog_msg_voice_play_cb(lv_event_t * e) {
+    switch (state) {
+        case MSG_VOICE_OFF:
+            pthread_create(&thread, NULL, play_thread, NULL);
+            break;
+
+        case MSG_VOICE_PLAY:
+            state = MSG_VOICE_OFF;
             break;
 
         default:

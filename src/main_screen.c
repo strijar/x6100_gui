@@ -589,6 +589,8 @@ static void main_screen_radio_cb(lv_event_t * e) {
     lv_event_send(meter, code, NULL);
     lv_event_send(tx_info, code, NULL);
     lv_event_send(spectrum, code, NULL);
+    
+    dialog_send(code, NULL);
 }
 
 static void main_screen_update_cb(lv_event_t * e) {

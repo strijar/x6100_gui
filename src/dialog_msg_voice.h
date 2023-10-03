@@ -24,6 +24,7 @@ void dialog_msg_voice_beacon_cb(lv_event_t * e);
 void dialog_msg_voice_period_cb(lv_event_t * e);
 
 void dialog_msg_voice_rec_cb(lv_event_t * e);
+void dialog_msg_voice_play_cb(lv_event_t * e);
 void dialog_msg_voice_rename_cb(lv_event_t * e);
 void dialog_msg_voice_delete_cb(lv_event_t * e);
 

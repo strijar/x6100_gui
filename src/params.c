@@ -93,6 +93,7 @@ params_t params = {
     .cw_decoder_noise_beta  = 0.80f,
 
     .cw_encoder_period      = 10,
+    .voice_msg_period       = 10,
     
     .rtty_center            = 800,
     .rtty_shift             = 170,
@@ -498,6 +499,8 @@ static bool params_load() {
             params.cw_decoder_noise_beta = sqlite3_column_int(stmt, 1) * 0.01f;
         } else if (strcmp(name, "cw_encoder_period") == 0) {
             params.cw_encoder_period = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "voice_msg_period") == 0) {
+            params.voice_msg_period = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vol_modes") == 0) {
             params.vol_modes = sqlite3_column_int64(stmt, 1);
         } else if (strcmp(name, "mfk_modes") == 0) {
@@ -641,6 +644,7 @@ static void params_save() {
     if (params.durty.cw_decoder_noise_beta) params_write_int("cw_decoder_noise_beta", params.cw_decoder_noise_beta * 100, &params.durty.cw_decoder_noise_beta);
 
     if (params.durty.cw_encoder_period)     params_write_int("cw_encoder_period", params.cw_encoder_period, &params.durty.cw_encoder_period);
+    if (params.durty.voice_msg_period)      params_write_int("voice_msg_period", params.voice_msg_period, &params.durty.voice_msg_period);
 
     if (params.durty.vol_modes)             params_write_int64("vol_modes", params.vol_modes, &params.durty.vol_modes);
     if (params.durty.mfk_modes)             params_write_int64("mfk_modes", params.mfk_modes, &params.durty.mfk_modes);

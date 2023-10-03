@@ -36,20 +36,6 @@ static void on_state_change(pa_context *c, void *userdata) {
     pa_threaded_mainloop_signal(mloop, 0);
 }
 
-static void write_callback(pa_stream *s, size_t nbytes, void *udata) {
-    /*
-    int16_t *buf = NULL;
-
-    int res = pa_stream_begin_write(play_stm, &buf, &nbytes);
-    
-    if (res != 0 || buf == NULL) {
-        return;
-    }
-
-    pa_stream_write(play_stm, buf, nbytes, NULL, 0, PA_SEEK_RELATIVE);
-    */
-}
-
 static void read_callback(pa_stream *s, size_t nbytes, void *udata) {
     int16_t *buf = NULL;
 
@@ -76,7 +62,6 @@ void audio_init() {
     
     LV_LOG_INFO("Conected");
     
-    pa_operation    *op;
     pa_buffer_attr  attr;
 
     pa_sample_spec  spec = {
@@ -95,7 +80,6 @@ void audio_init() {
     play_stm = pa_stream_new(ctx, "X6100 GUI Play", &spec, NULL);
 
     pa_threaded_mainloop_lock(mloop);
-    pa_stream_set_write_callback(play_stm, write_callback, NULL);
     pa_stream_connect_playback(play_stm, play_device, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
     pa_threaded_mainloop_unlock(mloop);
     
@@ -110,4 +94,53 @@ void audio_init() {
     pa_stream_set_read_callback(capture_stm, read_callback, NULL);
     pa_stream_connect_record(capture_stm, capture_device, &attr, PA_STREAM_ADJUST_LATENCY);
     pa_threaded_mainloop_unlock(mloop);
+}
+
+int audio_play(int16_t *samples_buf, size_t samples) {
+    while (true) {
+        size_t size;
+    
+        pa_threaded_mainloop_lock(mloop);
+        size = pa_stream_writable_size(play_stm);
+        pa_threaded_mainloop_unlock(mloop);
+        
+        if (size >= (samples * 2)) {
+            break;
+        }
+        
+        usleep(1000);
+    }
+
+    pa_threaded_mainloop_lock(mloop);
+    int res = pa_stream_write(play_stm, samples_buf, samples * 2, NULL, 0, PA_SEEK_RELATIVE);
+    pa_threaded_mainloop_unlock(mloop);
+    
+    if (res < 0) {
+        LV_LOG_ERROR("pa_stream_write() failed: %s", pa_strerror(pa_context_errno(ctx)));
+    }
+    
+    return res;
+}
+
+void audio_play_wait() {
+    pa_operation *op;
+    int r;
+
+    pa_threaded_mainloop_lock(mloop);
+    op = pa_stream_drain(play_stm, NULL, NULL);
+    pa_threaded_mainloop_unlock(mloop);
+
+    while (true) {
+        pa_threaded_mainloop_lock(mloop);
+        r = pa_operation_get_state(op);
+        pa_threaded_mainloop_unlock(mloop);
+      
+        if (r == PA_OPERATION_DONE || r == PA_OPERATION_CANCELLED) {
+            break;
+        }
+
+        usleep(1000);
+    }
+
+    pa_operation_unref(op);
 }

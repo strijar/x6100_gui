@@ -217,7 +217,7 @@ static button_item_t    buttons[] = {
     { .label = "Rec",               .press = dialog_msg_voice_rec_cb },
     { .label = "Rename",            .press = dialog_msg_voice_rename_cb },
     { .label = "Delete",            .press = dialog_msg_voice_delete_cb },
-    { .label = "",                  .press = NULL },
+    { .label = "Play",              .press = dialog_msg_voice_play_cb },
 };
 
 void buttons_init(lv_obj_t *parent) {
