@@ -32,6 +32,7 @@
 #include "textarea_window.h"
 #include "msg.h"
 #include "meter.h"
+#include "buttons.h"
 
 #define BUF_SIZE 1024
 
@@ -56,6 +57,15 @@ static int16_t              samples_buf[BUF_SIZE];
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
 static void key_cb(lv_event_t * e);
+static void rec_stop_cb(lv_event_t * e);
+static void play_stop_cb(lv_event_t * e);
+static void send_stop_cb(lv_event_t * e);
+static void beacon_stop_cb(lv_event_t * e);
+
+static button_item_t button_rec_stop = { .label = "Rec\nStop", .press = rec_stop_cb };
+static button_item_t button_play_stop = { .label = "Play\nStop", .press = play_stop_cb };
+static button_item_t button_send_stop = { .label = "Send\nStop", .press = send_stop_cb };
+static button_item_t button_beacon_stop = { .label = "Beacon\nStop", .press = beacon_stop_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -184,6 +194,9 @@ static void * play_thread(void *arg) {
     x6100_control_record_set(true);
     play_item();
     x6100_control_record_set(false);
+
+    buttons_unload_page();
+    buttons_load_page(PAGE_MSG_VOICE_2);
 }
 
 static void * send_thread(void *arg) {
@@ -195,6 +208,9 @@ static void * send_thread(void *arg) {
     radio_set_ptt(true);
     play_item();
     radio_set_ptt(false);
+
+    buttons_unload_page();
+    buttons_load_page(PAGE_MSG_VOICE_1);
 }
 
 static void * beacon_thread(void *arg) {
@@ -204,7 +220,8 @@ static void * beacon_thread(void *arg) {
     while (true) {
         switch (beacon) {
             case VOICE_BEACON_OFF:
-                msg_set_text_fmt("Beacon is turned off");
+                buttons_unload_page();
+                buttons_load_page(PAGE_MSG_VOICE_1);
                 return;
         
             case VOICE_BEACON_PLAY:
@@ -262,10 +279,12 @@ static void textarea_window_edit_ok_cb() {
 
 static void tx_cb(lv_event_t * e) {
     if (beacon == VOICE_BEACON_IDLE) {
-        msg_set_text_fmt("Beacon is turned off");
         pthread_cancel(thread);
         pthread_join(thread, NULL);
         beacon = VOICE_BEACON_OFF;
+
+        buttons_unload_page();
+        buttons_load_page(PAGE_MSG_VOICE_1);
     }
 }
 
@@ -335,45 +354,43 @@ static void key_cb(lv_event_t * e) {
 }
 
 void dialog_msg_voice_send_cb(lv_event_t * e) {
-    switch (state) {
-        case MSG_VOICE_OFF:
-            pthread_create(&thread, NULL, send_thread, NULL);
-            break;
+    if (state == MSG_VOICE_OFF) {
+        pthread_create(&thread, NULL, send_thread, NULL);
 
-        case MSG_VOICE_PLAY:
-            state = MSG_VOICE_OFF;
-            break;
-
-        default:
-            break;
+        buttons_unload_page();
+        buttons_load(1, &button_send_stop);
     }
 }
 
+static void send_stop_cb(lv_event_t * e) {
+    state = MSG_VOICE_OFF;
+}
+
 void dialog_msg_voice_beacon_cb(lv_event_t * e) {
+    if (state == MSG_VOICE_OFF) {
+        if (get_item()) {
+            beacon = VOICE_BEACON_PLAY;
+            pthread_create(&thread, NULL, beacon_thread, NULL);
+
+            buttons_unload_page();
+            buttons_load(2, &button_beacon_stop);
+        }
+    }
+}
+
+static void beacon_stop_cb(lv_event_t * e) {
     switch (state) {
         case MSG_VOICE_OFF:
-            switch (beacon) {
-                case VOICE_BEACON_OFF:
-                    if (get_item()) {
-                        beacon = VOICE_BEACON_PLAY;
-                        pthread_create(&thread, NULL, beacon_thread, NULL);
-                    }
-                    break;
-                   
-                case VOICE_BEACON_IDLE:
-                    msg_set_text_fmt("Beacon is turned off");
-                    pthread_cancel(thread);
-                    pthread_join(thread, NULL);
-                    beacon = VOICE_BEACON_OFF;
-                    break;
-            }
+            pthread_cancel(thread);
+            pthread_join(thread, NULL);
+            beacon = VOICE_BEACON_OFF;
+
+            buttons_unload_page();
+            buttons_load_page(PAGE_MSG_VOICE_1);
             break;
 
         case MSG_VOICE_PLAY:
-            if (beacon != VOICE_BEACON_OFF) {
-                beacon = VOICE_BEACON_OFF;
-            }
-
+            beacon = VOICE_BEACON_OFF;
             state = MSG_VOICE_OFF;
             break;
 
@@ -408,39 +425,38 @@ void dialog_msg_voice_period_cb(lv_event_t * e) {
 }
 
 void dialog_msg_voice_rec_cb(lv_event_t * e) {
-    switch (state) {
-        case MSG_VOICE_OFF:
-            if (create_file()) {
-                x6100_control_record_set(true);
-                state = MSG_VOICE_RECORD;
-            }
-            break;
+    if (state == MSG_VOICE_OFF) {
+        if (create_file()) {
+            x6100_control_record_set(true);
+            state = MSG_VOICE_RECORD;
 
-        case MSG_VOICE_RECORD:
-            x6100_control_record_set(false);
-            state = MSG_VOICE_OFF;
-            close_file();
-            load_table();
-            break;
-
-        default:
-            break;
+            buttons_unload_page();
+            buttons_load(1, &button_rec_stop);
+        }
     }
 }
 
+static void rec_stop_cb(lv_event_t * e) {
+    buttons_unload_page();
+    buttons_load_page(PAGE_MSG_VOICE_2);
+
+    x6100_control_record_set(false);
+    state = MSG_VOICE_OFF;
+    close_file();
+    load_table();
+}
+
 void dialog_msg_voice_play_cb(lv_event_t * e) {
-    switch (state) {
-        case MSG_VOICE_OFF:
-            pthread_create(&thread, NULL, play_thread, NULL);
-            break;
+    if (state == MSG_VOICE_OFF) {
+        pthread_create(&thread, NULL, play_thread, NULL);
 
-        case MSG_VOICE_PLAY:
-            state = MSG_VOICE_OFF;
-            break;
-
-        default:
-            break;
+        buttons_unload_page();
+        buttons_load(4, &button_play_stop);
     }
+}
+
+void play_stop_cb(lv_event_t * e) {
+    state = MSG_VOICE_OFF;
 }
 
 void dialog_msg_voice_rename_cb(lv_event_t * e) {

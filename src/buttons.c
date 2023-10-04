@@ -248,23 +248,27 @@ void buttons_init(lv_obj_t *parent) {
     parent_obj = parent;
 }
 
+void buttons_load(uint8_t n, button_item_t *item) {
+    lv_obj_t        *label = lv_obj_get_user_data(btn[n]);
+
+    lv_obj_add_event_cb(btn[n], item->press, LV_EVENT_PRESSED, item);
+    lv_label_set_text(label, item->label);
+}
+
 void buttons_load_page(button_page_t page) {
     buttons_page = page;
 
     for (uint8_t i = 0; i < BUTTONS; i++) {
-        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
-        lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
-
-        lv_obj_add_event_cb(btn[i], item->press, LV_EVENT_PRESSED, item);
-        lv_label_set_text(label, item->label);
+        buttons_load(i, &buttons[buttons_page * BUTTONS + i]);
     }
 }
 
 void buttons_unload_page() {
     for (uint8_t i = 0; i < BUTTONS; i++) {
-        button_item_t   *item = &buttons[buttons_page * BUTTONS + i];
+        lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
 
-        lv_obj_remove_event_cb_with_user_data(btn[i], NULL, item);
+        lv_obj_remove_event_cb(btn[i], NULL);
+        lv_label_set_text(label, "");
     }
 }
 

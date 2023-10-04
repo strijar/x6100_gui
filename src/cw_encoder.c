@@ -17,6 +17,7 @@
 #include "params.h"
 #include "radio.h"
 #include "msg.h"
+#include "buttons.h"
 
 static cw_encoder_state_t   state = CW_ENCODER_IDLE;
 static pthread_t            thread;
@@ -97,6 +98,9 @@ static void * endecode_thread(void *arg) {
         if (*current_char == 0) {
             if (state == CW_ENCODER_SEND) {
                 state = CW_ENCODER_IDLE;
+                
+                buttons_unload_page();
+                buttons_load_page(PAGE_MSG_CW_1);
                 break;
             } else {
                 state = CW_ENCODER_BEACON_IDLE;

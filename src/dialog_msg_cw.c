@@ -23,6 +23,7 @@
 #include "textarea_window.h"
 #include "cw_encoder.h"
 #include "msg.h"
+#include "buttons.h"
 
 static uint32_t         *ids = NULL;
 
@@ -33,6 +34,11 @@ static void init();
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
 static void key_cb(lv_event_t * e);
+static void send_stop_cb(lv_event_t * e);
+static void beacon_stop_cb(lv_event_t * e);
+
+static button_item_t button_send_stop = { .label = "Send\nStop", .press = send_stop_cb };
+static button_item_t button_beacon_stop = { .label = "Beacon\nStop", .press = beacon_stop_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -51,8 +57,18 @@ static void reset() {
     lv_table_set_row_cnt(table, 0);
 }
 
+static void tx_cb(lv_event_t * e) {
+    if (cw_encoder_state() == CW_ENCODER_BEACON_IDLE) {
+        cw_encoder_stop();
+        buttons_unload_page();
+        buttons_load_page(PAGE_MSG_CW_1);
+    }
+}
+
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
+
+    lv_obj_add_event_cb(dialog.obj, tx_cb, EVENT_RADIO_TX, NULL);
 
     table = lv_table_create(dialog.obj);
     
@@ -166,23 +182,29 @@ void dialog_msg_cw_append(uint32_t id, const char *val) {
 void dialog_msg_cw_send_cb(lv_event_t * e) {
     const char *msg = get_msg();
 
-    if (cw_encoder_state() != CW_ENCODER_IDLE) {
-        cw_encoder_stop();
-        msg_set_text_fmt("Transmit interrupted");
-    } else if (msg) {
-        cw_encoder_send(msg, false);
-    }
+    cw_encoder_send(msg, false);
+    buttons_unload_page();
+    buttons_load(1, &button_send_stop);
+}
+
+static void send_stop_cb(lv_event_t * e) {
+    cw_encoder_stop();
+    buttons_unload_page();
+    buttons_load_page(PAGE_MSG_CW_1);
 }
 
 void dialog_msg_cw_beacon_cb(lv_event_t * e) {
     const char *msg = get_msg();
 
-    if (cw_encoder_state() != CW_ENCODER_IDLE) {
-        cw_encoder_stop();
-        msg_set_text_fmt("Transmit interrupted");
-    } else if (msg) {
-        cw_encoder_send(msg, true);
-    }
+    cw_encoder_send(msg, true);
+    buttons_unload_page();
+    buttons_load(2, &button_beacon_stop);
+}
+
+static void beacon_stop_cb(lv_event_t * e) {
+    cw_encoder_stop();
+    buttons_unload_page();
+    buttons_load_page(PAGE_MSG_CW_1);
 }
 
 void dialog_msg_cw_period_cb(lv_event_t * e) {
