@@ -621,6 +621,102 @@ static uint8_t make_clock(uint8_t row) {
     return row + 1;
 }
 
+/* Long press actions */
+
+static void long_action_update_cb(lv_event_t * e) {
+    lv_obj_t    *obj = lv_event_get_target(e);
+    uint32_t    *i = lv_event_get_user_data(e);
+    uint8_t     val = lv_dropdown_get_selected(obj);
+
+    params_lock();
+
+    switch (*i) {
+        case 0:
+            params.long_gen = val;
+            params_unlock(&params.durty.long_gen);
+            break;
+        
+        case 1:
+            params.long_app = val;
+            params_unlock(&params.durty.long_app);
+            break;
+
+        case 2:
+            params.long_key = val;
+            params_unlock(&params.durty.long_key);
+            break;
+
+        case 3:
+            params.long_msg = val;
+            params_unlock(&params.durty.long_msg);
+            break;
+
+        case 4:
+            params.long_dfn = val;
+            params_unlock(&params.durty.long_dfn);
+            break;
+
+        case 5:
+            params.long_dfl = val;
+            params_unlock(&params.durty.long_dfl);
+            break;
+    }
+}
+
+static uint8_t make_long_action(uint8_t row) {
+    char        *labels[] = { "GEN long press", "APP long press", "KEY long press", "MSG long press", "DFN long press", "DFL long press" };
+    lv_obj_t    *obj;
+
+    for (uint8_t i = 0; i < 6; i++) {
+        row_dsc[row] = 54;
+
+        obj = lv_label_create(grid);
+        
+        lv_label_set_text(obj, labels[i]);
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+        obj = lv_dropdown_create(grid);
+
+        dialog_item(&dialog, obj);
+    
+        lv_obj_set_size(obj, SMALL_6, 56);
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+        lv_obj_center(obj);
+    
+        lv_obj_t *list = lv_dropdown_get_list(obj);
+        lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+    
+        lv_dropdown_set_options(obj, " None \n Screenshot \n APP RTTY \n APP FT8 \n APP SWR Scan \n APP GPS \n APP Settings");
+        lv_dropdown_set_symbol(obj, NULL);
+        
+        uint8_t x;
+        
+        switch (i) {
+            case 0: x = params.long_gen;    break;
+            case 1: x = params.long_app;    break;
+            case 2: x = params.long_key;    break;
+            case 3: x = params.long_msg;    break;
+            case 4: x = params.long_dfn;    break;
+            case 5: x = params.long_dfl;    break;
+                
+            default:
+                x = LONG_ACTION_NONE;
+                break;
+        }
+        
+        lv_dropdown_set_selected(obj, x);
+        
+        uint32_t *param = malloc(sizeof(uint32_t));
+        *param = i;
+        
+        lv_obj_add_event_cb(obj, long_action_update_cb, LV_EVENT_VALUE_CHANGED, param);
+        
+        row++;
+    }
+    
+    return row;
+}
+
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
     
@@ -664,6 +760,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_clock(row);
+
+    row = make_delimiter(row);
+    row = make_long_action(row);
     
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);

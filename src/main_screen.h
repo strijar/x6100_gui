@@ -15,6 +15,7 @@ void main_screen_band_set();
 
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();
+void main_screen_app(uint8_t page_app);
 
 void mem_load(uint8_t x);
 void mem_save(uint8_t x);

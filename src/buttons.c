@@ -31,6 +31,7 @@ static lv_obj_t     *btn[BUTTONS];
 static lv_obj_t     *parent_obj = NULL;
 
 static void button_next_page_cb(lv_event_t * e);
+static void button_app_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
 static void button_mfk_update_cb(lv_event_t * e);
 static void button_mem_load_cb(lv_event_t * e);
@@ -140,13 +141,13 @@ static button_item_t    buttons[] = {
     /* APP */
 
     { .label = "(APP 1:2)",         .press = button_next_page_cb,   .next = PAGE_APP_2 },
-    { .label = "RTTY",              .press = button_next_page_cb,   .next = PAGE_RTTY },
-    { .label = "FT8",               .press = button_next_page_cb,   .next = PAGE_FT8 },
-    { .label = "SWR\nScan",         .press = button_next_page_cb,   .next = PAGE_SWRSCAN },
-    { .label = "GPS",               .press = button_next_page_cb,   .next = PAGE_GPS },
+    { .label = "RTTY",              .press = button_app_page_cb,    .data = PAGE_RTTY },
+    { .label = "FT8",               .press = button_app_page_cb,    .data = PAGE_FT8 },
+    { .label = "SWR\nScan",         .press = button_app_page_cb,    .data = PAGE_SWRSCAN },
+    { .label = "GPS",               .press = button_app_page_cb,    .data = PAGE_GPS },
 
     { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
-    { .label = "Settings",          .press = button_next_page_cb,   .next = PAGE_SETTINGS },
+    { .label = "Settings",          .press = button_app_page_cb,    .data = PAGE_SETTINGS },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
@@ -277,29 +278,12 @@ static void button_next_page_cb(lv_event_t * e) {
 
     buttons_unload_page();
     buttons_load_page(item->next);
+}
 
-    switch (item->next) {
-        case PAGE_RTTY:
-            rtty_set_state(RTTY_RX);
-            pannel_visible();
-            break;
-            
-        case PAGE_SETTINGS:
-            dialog_construct(dialog_settings, parent_obj);
-            break;
+static void button_app_page_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
 
-        case PAGE_SWRSCAN:
-            dialog_construct(dialog_swrscan, parent_obj);
-            break;
-
-        case PAGE_FT8:
-            dialog_construct(dialog_ft8, parent_obj);
-            break;
-
-        case PAGE_GPS:
-            dialog_construct(dialog_gps, parent_obj);
-            break;
-    }
+    main_screen_app(item->data);
 }
 
 static void button_vol_update_cb(lv_event_t * e) {

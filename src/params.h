@@ -75,6 +75,16 @@ typedef enum {
     BUTTONS_TEMPORARILY
 } buttons_light_t;
 
+typedef enum {
+    LONG_ACTION_NONE = 0,
+    LONG_ACTION_SCREENSHOT,
+    LONG_ACTION_APP_RTTY,
+    LONG_ACTION_APP_FT8,
+    LONG_ACTION_APP_SWRSCAN,
+    LONG_ACTION_APP_GPS,
+    LONG_ACTION_APP_SETTINGS,
+} longpress_action_t;
+
 typedef struct {
     uint64_t            vol_modes;
     uint64_t            mfk_modes;
@@ -191,6 +201,15 @@ typedef struct {
     bool                swrscan_linear;
     uint32_t            swrscan_span;
     
+    /* Long press actions */
+    
+    uint8_t             long_gen;
+    uint8_t             long_app;
+    uint8_t             long_key;
+    uint8_t             long_msg;
+    uint8_t             long_dfn;
+    uint8_t             long_dfl;
+    
     /* durty flags */
     
     struct {
@@ -274,6 +293,13 @@ typedef struct {
 
         bool    swrscan_linear;
         bool    swrscan_span;
+
+        bool    long_gen;
+        bool    long_app;
+        bool    long_key;
+        bool    long_msg;
+        bool    long_dfn;
+        bool    long_dfl;
     } durty;
 } params_t;
 

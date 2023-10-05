@@ -104,6 +104,13 @@ params_t params = {
 
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
+
+    .long_gen               = LONG_ACTION_SCREENSHOT,
+    .long_app               = LONG_ACTION_NONE,
+    .long_key               = LONG_ACTION_NONE,
+    .long_msg               = LONG_ACTION_NONE,
+    .long_dfn               = LONG_ACTION_NONE,
+    .long_dfl               = LONG_ACTION_NONE,
 };
 
 params_band_t params_band = {
@@ -551,6 +558,18 @@ static bool params_load() {
             params.swrscan_linear = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "swrscan_span") == 0) {
             params.swrscan_span = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_gen") == 0) {
+            params.long_gen = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_app") == 0) {
+            params.long_app = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_key") == 0) {
+            params.long_key = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_msg") == 0) {
+            params.long_msg = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_dfn") == 0) {
+            params.long_dfn = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_dfl") == 0) {
+            params.long_dfl = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -679,6 +698,13 @@ static void params_save() {
 
     if (params.durty.swrscan_linear)        params_write_int("swrscan_linear", params.swrscan_linear, &params.durty.swrscan_linear);
     if (params.durty.swrscan_span)          params_write_int("swrscan_span", params.swrscan_span, &params.durty.swrscan_span);
+
+    if (params.durty.long_gen)              params_write_int("long_gen", params.long_gen, &params.durty.long_gen);
+    if (params.durty.long_app)              params_write_int("long_app", params.long_app, &params.durty.long_app);
+    if (params.durty.long_key)              params_write_int("long_key", params.long_key, &params.durty.long_key);
+    if (params.durty.long_msg)              params_write_int("long_msg", params.long_msg, &params.durty.long_msg);
+    if (params.durty.long_dfn)              params_write_int("long_dfn", params.long_dfn, &params.durty.long_dfn);
+    if (params.durty.long_dfl)              params_write_int("long_dfl", params.long_dfl, &params.durty.long_dfl);
 
     params_exec("COMMIT");
 }

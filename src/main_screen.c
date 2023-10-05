@@ -39,6 +39,9 @@
 #include "dialog_freq.h"
 #include "dialog_msg_cw.h"
 #include "dialog_msg_voice.h"
+#include "dialog_swrscan.h"
+#include "dialog_ft8.h"
+#include "dialog_gps.h"
 #include "backlight.h"
 #include "buttons.h"
 
@@ -183,16 +186,80 @@ static void next_freq_step(bool up) {
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
 }
 
-void main_screen_dialog_deleted_cb() {
-    buttons_unload_page();
-    buttons_load_page(PAGE_VOL_1);
-}
-
 static void apps_disable() {
     dialog_destruct();
 
     rtty_set_state(RTTY_OFF);
     pannel_visible();
+}
+
+void main_screen_dialog_deleted_cb() {
+    buttons_unload_page();
+    buttons_load_page(PAGE_VOL_1);
+}
+
+void main_screen_app(uint8_t page_app) {
+    apps_disable();
+    buttons_unload_page();
+    buttons_load_page(page_app);
+
+    switch (page_app) {
+        case PAGE_RTTY:
+            rtty_set_state(RTTY_RX);
+            pannel_visible();
+            break;
+            
+        case PAGE_SETTINGS:
+            dialog_construct(dialog_settings, obj);
+            break;
+
+        case PAGE_SWRSCAN:
+            dialog_construct(dialog_swrscan, obj);
+            break;
+
+        case PAGE_FT8:
+            dialog_construct(dialog_ft8, obj);
+            break;
+
+        case PAGE_GPS:
+            dialog_construct(dialog_gps, obj);
+            break;
+            
+        default:
+            break;
+    }
+}
+
+
+static void long_press_action(longpress_action_t action) {
+    switch (action) {
+        case LONG_ACTION_NONE:
+            break;
+
+        case LONG_ACTION_SCREENSHOT:
+            screenshot_take();
+            break;
+            
+        case LONG_ACTION_APP_RTTY:
+            main_screen_app(PAGE_RTTY);
+            break;
+            
+        case LONG_ACTION_APP_FT8:
+            main_screen_app(PAGE_FT8);
+            break;
+            
+        case LONG_ACTION_APP_SWRSCAN:
+            main_screen_app(PAGE_SWRSCAN);
+            break;
+            
+        case LONG_ACTION_APP_GPS:
+            main_screen_app(PAGE_GPS);
+            break;
+            
+        case LONG_ACTION_APP_SETTINGS:
+            main_screen_app(PAGE_SETTINGS);
+            break;
+    }
 }
 
 static void main_screen_keypad_cb(lv_event_t * e) {
@@ -371,7 +438,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_VOL_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                screenshot_take();
+                long_press_action(params.long_gen);
             }
             break;
 
@@ -380,6 +447,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_APP_1);
+            } else if (keypad->state == KEYPAD_LONG) {
+                long_press_action(params.long_app);
             }
             break;
 
@@ -388,6 +457,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_KEY_1);
+            } else if (keypad->state == KEYPAD_LONG) {
+                long_press_action(params.long_key);
             }
             break;
 
@@ -416,6 +487,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         buttons_load_page(PAGE_MSG_VOICE_1);
                         break;
                 }
+            } else if (keypad->state == KEYPAD_LONG) {
+                long_press_action(params.long_msg);
             }
             break;
 
@@ -424,6 +497,14 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_DFN_1);
+            } else if (keypad->state == KEYPAD_LONG) {
+                long_press_action(params.long_dfn);
+            }
+            break;
+
+        case KEYPAD_DFL:
+            if (keypad->state == KEYPAD_LONG) {
+                long_press_action(params.long_dfl);
             }
             break;
 
