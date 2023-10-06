@@ -623,10 +623,25 @@ static uint8_t make_clock(uint8_t row) {
 
 /* Long press actions */
 
+typedef struct {
+    char                *label;
+    longpress_action_t  action;
+} long_action_items_t;
+
+static long_action_items_t long_action_items[] = {
+    { .label = " None ", .action = LONG_ACTION_NONE },
+    { .label = " Screenshot ", .action = LONG_ACTION_SCREENSHOT },
+    { .label = " APP RTTY ", .action = LONG_ACTION_APP_RTTY },
+    { .label = " APP FT8 ", .action = LONG_ACTION_APP_FT8 },
+    { .label = " APP SWR Scan ", .action = LONG_ACTION_APP_SWRSCAN },
+    { .label = " APP GPS ", .action = LONG_ACTION_APP_GPS },
+    { .label = " APP Settings", .action = LONG_ACTION_APP_SETTINGS }
+};
+
 static void long_action_update_cb(lv_event_t * e) {
     lv_obj_t    *obj = lv_event_get_target(e);
     uint32_t    *i = lv_event_get_user_data(e);
-    uint8_t     val = lv_dropdown_get_selected(obj);
+    uint8_t     val = long_action_items[lv_dropdown_get_selected(obj)].action;
 
     params_lock();
 
@@ -686,7 +701,6 @@ static uint8_t make_long_action(uint8_t row) {
         lv_obj_t *list = lv_dropdown_get_list(obj);
         lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
     
-        lv_dropdown_set_options(obj, " None \n Screenshot \n APP RTTY \n APP FT8 \n APP SWR Scan \n APP GPS \n APP Settings");
         lv_dropdown_set_symbol(obj, NULL);
         
         uint8_t x;
@@ -704,7 +718,15 @@ static uint8_t make_long_action(uint8_t row) {
                 break;
         }
         
-        lv_dropdown_set_selected(obj, x);
+        lv_dropdown_clear_options(obj);
+        
+        for (uint8_t i = 0; i < 7; i++) {
+            lv_dropdown_add_option(obj, long_action_items[i].label, LV_DROPDOWN_POS_LAST);
+            
+            if (long_action_items[i].action == x) {
+                lv_dropdown_set_selected(obj, i);
+            }
+        }
         
         uint32_t *param = malloc(sizeof(uint32_t));
         *param = i;
