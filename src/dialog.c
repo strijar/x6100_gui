@@ -43,7 +43,9 @@ void dialog_destruct() {
 }
 
 void dialog_send(lv_event_code_t event_code, void *param) {
-    event_send(current_dialog->obj, event_code, param);
+    if (dialog_is_run()) {
+        event_send(current_dialog->obj, event_code, param);
+    }
 }
 
 bool dialog_key(dialog_t *dialog, lv_event_t * e) {

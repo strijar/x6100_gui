@@ -83,7 +83,7 @@ bool radio_tick() {
             case RADIO_TX:
                 if (!pack->flag.tx) {
                     state = RADIO_RX;
-                    event_send(lv_scr_act(), EVENT_RADIO_RX, NULL);
+                    event_send(main_obj, EVENT_RADIO_RX, NULL);
                 } else {
                     tx_info_update(pack->tx_power * 0.1f, pack->vswr * 0.1f, pack->alc_level * 0.1f);
                 }

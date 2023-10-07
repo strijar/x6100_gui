@@ -127,6 +127,7 @@ void textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t cancel) 
     keyboard = lv_keyboard_create(lv_scr_act());
 
     lv_keyboard_set_textarea(keyboard, text);
+    lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_UPPER);
     lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_READY, NULL);
     lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_CANCEL, NULL);
     lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_KEY, NULL);
