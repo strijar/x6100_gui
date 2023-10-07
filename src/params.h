@@ -78,12 +78,14 @@ typedef enum {
 typedef enum {
     LONG_ACTION_NONE = 0,
     LONG_ACTION_SCREENSHOT,
+    LONG_ACTION_RECORDER,
 
     LONG_ACTION_APP_RTTY = 100,
     LONG_ACTION_APP_FT8,
     LONG_ACTION_APP_SWRSCAN,
     LONG_ACTION_APP_GPS,
     LONG_ACTION_APP_SETTINGS,
+    LONG_ACTION_APP_RECORDER
 } longpress_action_t;
 
 typedef struct {

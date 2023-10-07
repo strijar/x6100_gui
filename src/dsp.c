@@ -22,6 +22,7 @@
 #include "rtty.h"
 #include "dialog_ft8.h"
 #include "dialog_msg_voice.h"
+#include "recorder.h"
 
 static int32_t          nfft = 400;
 static iirfilt_cccf     dc_block;
@@ -235,6 +236,10 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     if (dialog_msg_voice_get_state() == MSG_VOICE_RECORD) {
         dialog_msg_voice_put_audio_samples(nsamples, samples);
         return;
+    }
+
+    if (recorder_is_on()) {
+        recorder_put_audio_samples(nsamples, samples);
     }
 
     for (uint16_t i = 0; i < nsamples; i++)

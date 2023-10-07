@@ -23,6 +23,7 @@
 #include "dialog_gps.h"
 #include "dialog_msg_cw.h"
 #include "dialog_msg_voice.h"
+#include "dialog_recorder.h"
 
 #define BUTTONS     5
 
@@ -147,8 +148,8 @@ static button_item_t    buttons[] = {
     { .label = "GPS",               .press = button_app_page_cb,    .data = PAGE_GPS },
 
     { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
+    { .label = "Recorder",          .press = button_app_page_cb,    .data = PAGE_RECORDER },
     { .label = "Settings",          .press = button_app_page_cb,    .data = PAGE_SETTINGS },
-    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
@@ -219,6 +220,14 @@ static button_item_t    buttons[] = {
     { .label = "Rename",            .press = dialog_msg_voice_rename_cb },
     { .label = "Delete",            .press = dialog_msg_voice_delete_cb },
     { .label = "Play",              .press = dialog_msg_voice_play_cb },
+    
+    /* Recorder */
+
+    { .label = "(REC 1:1)",         .press = NULL },
+    { .label = "Rec",               .press = dialog_recorder_rec_cb },
+    { .label = "Rename",            .press = dialog_recorder_rename_cb },
+    { .label = "Delete",            .press = dialog_recorder_delete_cb },
+    { .label = "Play",              .press = dialog_recorder_play_cb },
 };
 
 void buttons_init(lv_obj_t *parent) {

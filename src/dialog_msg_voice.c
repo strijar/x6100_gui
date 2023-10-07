@@ -195,8 +195,10 @@ static void * play_thread(void *arg) {
     play_item();
     x6100_control_record_set(false);
 
-    buttons_unload_page();
-    buttons_load_page(PAGE_MSG_VOICE_2);
+    if (dialog.run) {
+        buttons_unload_page();
+        buttons_load_page(PAGE_MSG_VOICE_2);
+    }
 }
 
 static void * send_thread(void *arg) {
@@ -209,8 +211,10 @@ static void * send_thread(void *arg) {
     play_item();
     radio_set_ptt(false);
 
-    buttons_unload_page();
-    buttons_load_page(PAGE_MSG_VOICE_1);
+    if (dialog.run) {
+        buttons_unload_page();
+        buttons_load_page(PAGE_MSG_VOICE_1);
+    }
 }
 
 static void * beacon_thread(void *arg) {

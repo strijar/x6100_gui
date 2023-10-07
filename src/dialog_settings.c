@@ -631,11 +631,14 @@ typedef struct {
 static long_action_items_t long_action_items[] = {
     { .label = " None ", .action = LONG_ACTION_NONE },
     { .label = " Screenshot ", .action = LONG_ACTION_SCREENSHOT },
+    { .label = " Recorder on/off ", .action = LONG_ACTION_RECORDER },
     { .label = " APP RTTY ", .action = LONG_ACTION_APP_RTTY },
     { .label = " APP FT8 ", .action = LONG_ACTION_APP_FT8 },
     { .label = " APP SWR Scan ", .action = LONG_ACTION_APP_SWRSCAN },
     { .label = " APP GPS ", .action = LONG_ACTION_APP_GPS },
-    { .label = " APP Settings", .action = LONG_ACTION_APP_SETTINGS }
+    { .label = " APP Settings", .action = LONG_ACTION_APP_SETTINGS },
+    { .label = " APP Recorder", .action = LONG_ACTION_APP_RECORDER },
+    { .label = NULL, .action = LONG_ACTION_NONE }
 };
 
 static void long_action_update_cb(lv_event_t * e) {
@@ -720,12 +723,16 @@ static uint8_t make_long_action(uint8_t row) {
         
         lv_dropdown_clear_options(obj);
         
-        for (uint8_t i = 0; i < 7; i++) {
-            lv_dropdown_add_option(obj, long_action_items[i].label, LV_DROPDOWN_POS_LAST);
+        uint8_t n = 0;
+        
+        while (long_action_items[n].label) {
+            lv_dropdown_add_option(obj, long_action_items[n].label, LV_DROPDOWN_POS_LAST);
             
-            if (long_action_items[i].action == x) {
-                lv_dropdown_set_selected(obj, i);
+            if (long_action_items[n].action == x) {
+                lv_dropdown_set_selected(obj, n);
             }
+
+            n++;
         }
         
         uint32_t *param = malloc(sizeof(uint32_t));

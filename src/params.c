@@ -106,9 +106,9 @@ params_t params = {
     .swrscan_span           = 200000,
 
     .long_gen               = LONG_ACTION_SCREENSHOT,
-    .long_app               = LONG_ACTION_NONE,
+    .long_app               = LONG_ACTION_APP_RECORDER,
     .long_key               = LONG_ACTION_NONE,
-    .long_msg               = LONG_ACTION_NONE,
+    .long_msg               = LONG_ACTION_RECORDER,
     .long_dfn               = LONG_ACTION_NONE,
     .long_dfl               = LONG_ACTION_NONE,
 };

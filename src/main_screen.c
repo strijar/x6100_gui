@@ -42,8 +42,10 @@
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
 #include "dialog_gps.h"
+#include "dialog_recorder.h"
 #include "backlight.h"
 #include "buttons.h"
+#include "recorder.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -224,6 +226,10 @@ void main_screen_app(uint8_t page_app) {
         case PAGE_GPS:
             dialog_construct(dialog_gps, obj);
             break;
+
+        case PAGE_RECORDER:
+            dialog_construct(dialog_recorder, obj);
+            break;
             
         default:
             break;
@@ -238,6 +244,10 @@ static void long_press_action(longpress_action_t action) {
 
         case LONG_ACTION_SCREENSHOT:
             screenshot_take();
+            break;
+
+        case LONG_ACTION_RECORDER:
+            recorder_set_on(!recorder_is_on());
             break;
             
         case LONG_ACTION_APP_RTTY:
@@ -258,6 +268,10 @@ static void long_press_action(longpress_action_t action) {
             
         case LONG_ACTION_APP_SETTINGS:
             main_screen_app(PAGE_SETTINGS);
+            break;
+
+        case LONG_ACTION_APP_RECORDER:
+            main_screen_app(PAGE_RECORDER);
             break;
     }
 }

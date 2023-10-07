@@ -44,6 +44,7 @@ typedef enum {
     PAGE_MSG_CW_2,
     PAGE_MSG_VOICE_1,
     PAGE_MSG_VOICE_2,
+    PAGE_RECORDER,
 } button_page_t;
 
 typedef void (*hold_cb_t)(void *);
