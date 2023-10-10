@@ -22,6 +22,7 @@ static textarea_window_cb_t cancel_cb = NULL;
 static void ok() {
     if (ok_cb) {
         ok_cb();
+        ok_cb = NULL;
     }
 
     textarea_window_close();
@@ -30,6 +31,7 @@ static void ok() {
 static void cancel() {
     if (cancel_cb) {
         cancel_cb();
+        cancel_cb = NULL;
     }
 
     textarea_window_close();
@@ -148,8 +150,10 @@ void textarea_window_close() {
         keyboard = NULL;
     }
 
-    lv_obj_del(window);
-    window = NULL;
+    if (window) {
+        lv_obj_del(window);
+        window = NULL;
+    }
 }
 
 const char* textarea_window_get() {

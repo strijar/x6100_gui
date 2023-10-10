@@ -18,6 +18,7 @@
 #include "util.h"
 #include "meter.h"
 #include "rtty.h"
+#include "recorder.h"
 
 static lv_obj_t         *obj;
 
@@ -194,6 +195,10 @@ static void spectrum_draw_cb(lv_event_t * e) {
     main_a.y = y1 + h - visor_height;
     main_b.x = main_a.x;
     main_b.y = y1 + h;
+
+    if (recorder_is_on()) {
+        main_line_dsc.color = lv_color_hex(0xFF0000);
+    }
 
     lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
 }
