@@ -105,12 +105,17 @@ params_t params = {
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
 
-    .long_gen               = LONG_ACTION_SCREENSHOT,
-    .long_app               = LONG_ACTION_APP_RECORDER,
-    .long_key               = LONG_ACTION_NONE,
-    .long_msg               = LONG_ACTION_RECORDER,
-    .long_dfn               = LONG_ACTION_NONE,
-    .long_dfl               = LONG_ACTION_NONE,
+    .long_gen               = ACTION_SCREENSHOT,
+    .long_app               = ACTION_APP_RECORDER,
+    .long_key               = ACTION_NONE,
+    .long_msg               = ACTION_RECORDER,
+    .long_dfn               = ACTION_NONE,
+    .long_dfl               = ACTION_NONE,
+    
+    .press_f1               = ACTION_STEP_UP,
+    .press_f2               = ACTION_NONE,
+    .long_f1                = ACTION_STEP_DOWN,
+    .long_f2                = ACTION_NONE,
 };
 
 params_band_t params_band = {
@@ -570,6 +575,14 @@ static bool params_load() {
             params.long_dfn = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_dfl") == 0) {
             params.long_dfl = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "press_f1") == 0) {
+            params.press_f1 = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "press_f2") == 0) {
+            params.press_f2 = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_f1") == 0) {
+            params.long_f1 = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "long_f2") == 0) {
+            params.long_f2 = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -705,6 +718,11 @@ static void params_save() {
     if (params.durty.long_msg)              params_write_int("long_msg", params.long_msg, &params.durty.long_msg);
     if (params.durty.long_dfn)              params_write_int("long_dfn", params.long_dfn, &params.durty.long_dfn);
     if (params.durty.long_dfl)              params_write_int("long_dfl", params.long_dfl, &params.durty.long_dfl);
+
+    if (params.durty.press_f1)              params_write_int("press_f1", params.press_f1, &params.durty.press_f1);
+    if (params.durty.press_f2)              params_write_int("press_f2", params.press_f2, &params.durty.press_f2);
+    if (params.durty.long_f1)               params_write_int("long_f1", params.long_f1, &params.durty.long_f1);
+    if (params.durty.long_f2)               params_write_int("long_f2", params.long_f2, &params.durty.long_f2);
 
     params_exec("COMMIT");
 }

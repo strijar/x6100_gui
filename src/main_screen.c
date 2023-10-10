@@ -237,44 +237,52 @@ void main_screen_app(uint8_t page_app) {
 }
 
 
-static void long_press_action(longpress_action_t action) {
+static void press_action(press_action_t action) {
     switch (action) {
-        case LONG_ACTION_NONE:
+        case ACTION_NONE:
             break;
 
-        case LONG_ACTION_SCREENSHOT:
+        case ACTION_SCREENSHOT:
             screenshot_take();
             break;
 
-        case LONG_ACTION_RECORDER:
+        case ACTION_RECORDER:
             recorder_set_on(!recorder_is_on());
             break;
 
-        case LONG_ACTION_MUTE:
+        case ACTION_MUTE:
             radio_change_mute();
             break;
+
+        case ACTION_STEP_UP:
+            next_freq_step(true);
+            break;
+
+        case ACTION_STEP_DOWN:
+            next_freq_step(false);
+            break;
             
-        case LONG_ACTION_APP_RTTY:
+        case ACTION_APP_RTTY:
             main_screen_app(PAGE_RTTY);
             break;
             
-        case LONG_ACTION_APP_FT8:
+        case ACTION_APP_FT8:
             main_screen_app(PAGE_FT8);
             break;
             
-        case LONG_ACTION_APP_SWRSCAN:
+        case ACTION_APP_SWRSCAN:
             main_screen_app(PAGE_SWRSCAN);
             break;
             
-        case LONG_ACTION_APP_GPS:
+        case ACTION_APP_GPS:
             main_screen_app(PAGE_GPS);
             break;
             
-        case LONG_ACTION_APP_SETTINGS:
+        case ACTION_APP_SETTINGS:
             main_screen_app(PAGE_SETTINGS);
             break;
 
-        case LONG_ACTION_APP_RECORDER:
+        case ACTION_APP_RECORDER:
             main_screen_app(PAGE_RECORDER);
             break;
     }
@@ -456,7 +464,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_VOL_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_gen);
+                press_action(params.long_gen);
             }
             break;
 
@@ -466,7 +474,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_APP_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_app);
+                press_action(params.long_app);
             }
             break;
 
@@ -476,7 +484,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_KEY_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_key);
+                press_action(params.long_key);
             }
             break;
 
@@ -506,7 +514,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         break;
                 }
             } else if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_msg);
+                press_action(params.long_msg);
             }
             break;
 
@@ -516,13 +524,13 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_DFN_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_dfn);
+                press_action(params.long_dfn);
             }
             break;
 
         case KEYPAD_DFL:
             if (keypad->state == KEYPAD_LONG) {
-                long_press_action(params.long_dfl);
+                press_action(params.long_dfl);
             }
             break;
 
@@ -667,9 +675,17 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         
         case HKEY_F1:
             if (hkey->state == HKEY_RELEASE) {
-                next_freq_step(true);
+                press_action(params.press_f1);
             } else if (hkey->state == HKEY_LONG) {
-                next_freq_step(false);
+                press_action(params.long_f1);
+            }
+            break;
+
+        case HKEY_F2:
+            if (hkey->state == HKEY_RELEASE) {
+                press_action(params.press_f2);
+            } else if (hkey->state == HKEY_LONG) {
+                press_action(params.long_f2);
             }
             break;
         

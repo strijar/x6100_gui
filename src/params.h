@@ -76,18 +76,20 @@ typedef enum {
 } buttons_light_t;
 
 typedef enum {
-    LONG_ACTION_NONE = 0,
-    LONG_ACTION_SCREENSHOT,
-    LONG_ACTION_RECORDER,
-    LONG_ACTION_MUTE,
+    ACTION_NONE = 0,
+    ACTION_SCREENSHOT,
+    ACTION_RECORDER,
+    ACTION_MUTE,
+    ACTION_STEP_UP,
+    ACTION_STEP_DOWN,
 
-    LONG_ACTION_APP_RTTY = 100,
-    LONG_ACTION_APP_FT8,
-    LONG_ACTION_APP_SWRSCAN,
-    LONG_ACTION_APP_GPS,
-    LONG_ACTION_APP_SETTINGS,
-    LONG_ACTION_APP_RECORDER
-} longpress_action_t;
+    ACTION_APP_RTTY = 100,
+    ACTION_APP_FT8,
+    ACTION_APP_SWRSCAN,
+    ACTION_APP_GPS,
+    ACTION_APP_SETTINGS,
+    ACTION_APP_RECORDER
+} press_action_t;
 
 typedef struct {
     uint64_t            vol_modes;
@@ -214,6 +216,13 @@ typedef struct {
     uint8_t             long_dfn;
     uint8_t             long_dfl;
     
+    /* HMic F1, F2 actions */
+    
+    uint8_t             press_f1;
+    uint8_t             press_f2;
+    uint8_t             long_f1;
+    uint8_t             long_f2;
+    
     /* durty flags */
     
     struct {
@@ -304,6 +313,11 @@ typedef struct {
         bool    long_msg;
         bool    long_dfn;
         bool    long_dfl;
+
+        bool    press_f1;
+        bool    press_f2;
+        bool    long_f1;
+        bool    long_f2;
     } durty;
 } params_t;
 

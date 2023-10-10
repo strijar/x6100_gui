@@ -625,21 +625,21 @@ static uint8_t make_clock(uint8_t row) {
 
 typedef struct {
     char                *label;
-    longpress_action_t  action;
-} long_action_items_t;
+    press_action_t      action;
+} action_items_t;
 
-static long_action_items_t long_action_items[] = {
-    { .label = " None ", .action = LONG_ACTION_NONE },
-    { .label = " Screenshot ", .action = LONG_ACTION_SCREENSHOT },
-    { .label = " Recorder on/off ", .action = LONG_ACTION_RECORDER },
-    { .label = " Mute ", .action = LONG_ACTION_MUTE },
-    { .label = " APP RTTY ", .action = LONG_ACTION_APP_RTTY },
-    { .label = " APP FT8 ", .action = LONG_ACTION_APP_FT8 },
-    { .label = " APP SWR Scan ", .action = LONG_ACTION_APP_SWRSCAN },
-    { .label = " APP GPS ", .action = LONG_ACTION_APP_GPS },
-    { .label = " APP Settings", .action = LONG_ACTION_APP_SETTINGS },
-    { .label = " APP Recorder", .action = LONG_ACTION_APP_RECORDER },
-    { .label = NULL, .action = LONG_ACTION_NONE }
+static action_items_t long_action_items[] = {
+    { .label = " None ", .action = ACTION_NONE },
+    { .label = " Screenshot ", .action = ACTION_SCREENSHOT },
+    { .label = " Recorder on/off ", .action = ACTION_RECORDER },
+    { .label = " Mute ", .action = ACTION_MUTE },
+    { .label = " APP RTTY ", .action = ACTION_APP_RTTY },
+    { .label = " APP FT8 ", .action = ACTION_APP_FT8 },
+    { .label = " APP SWR Scan ", .action = ACTION_APP_SWRSCAN },
+    { .label = " APP GPS ", .action = ACTION_APP_GPS },
+    { .label = " APP Settings", .action = ACTION_APP_SETTINGS },
+    { .label = " APP Recorder", .action = ACTION_APP_RECORDER },
+    { .label = NULL, .action = ACTION_NONE }
 };
 
 static void long_action_update_cb(lv_event_t * e) {
@@ -718,7 +718,7 @@ static uint8_t make_long_action(uint8_t row) {
             case 5: x = params.long_dfl;    break;
                 
             default:
-                x = LONG_ACTION_NONE;
+                x = ACTION_NONE;
                 break;
         }
         
@@ -740,6 +740,110 @@ static uint8_t make_long_action(uint8_t row) {
         *param = i;
         
         lv_obj_add_event_cb(obj, long_action_update_cb, LV_EVENT_VALUE_CHANGED, param);
+        
+        row++;
+    }
+    
+    return row;
+}
+
+/* HMic F1, F2 actions */
+
+static action_items_t hmic_action_items[] = {
+    { .label = " None ", .action = ACTION_NONE },
+    { .label = " Recorder on/off ", .action = ACTION_RECORDER },
+    { .label = " Mute ", .action = ACTION_MUTE },
+    { .label = " Step up ", .action = ACTION_STEP_UP },
+    { .label = " Step down ", .action = ACTION_STEP_DOWN },
+    { .label = NULL, .action = ACTION_NONE }
+};
+
+static void hmic_action_update_cb(lv_event_t * e) {
+    lv_obj_t    *obj = lv_event_get_target(e);
+    uint32_t    *i = lv_event_get_user_data(e);
+    uint8_t     val = hmic_action_items[lv_dropdown_get_selected(obj)].action;
+
+    params_lock();
+
+    switch (*i) {
+        case 0:
+            params.press_f1 = val;
+            params_unlock(&params.durty.press_f1);
+            break;
+        
+        case 1:
+            params.press_f2 = val;
+            params_unlock(&params.durty.press_f2);
+            break;
+
+        case 2:
+            params.long_f1 = val;
+            params_unlock(&params.durty.long_f1);
+            break;
+
+        case 3:
+            params.long_f2 = val;
+            params_unlock(&params.durty.long_f2);
+            break;
+    }
+}
+
+static uint8_t make_hmic_action(uint8_t row) {
+    char        *labels[] = { "HMic F1 press", "HMic F2 press", "HMic F1 long press", "HMic F2 long press" };
+    lv_obj_t    *obj;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        row_dsc[row] = 54;
+
+        obj = lv_label_create(grid);
+        
+        lv_label_set_text(obj, labels[i]);
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+        obj = lv_dropdown_create(grid);
+
+        dialog_item(&dialog, obj);
+    
+        lv_obj_set_size(obj, SMALL_6, 56);
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+        lv_obj_center(obj);
+    
+        lv_obj_t *list = lv_dropdown_get_list(obj);
+        lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+    
+        lv_dropdown_set_symbol(obj, NULL);
+        
+        uint8_t x;
+        
+        switch (i) {
+            case 0: x = params.press_f1;    break;
+            case 1: x = params.press_f2;    break;
+            case 2: x = params.long_f1;     break;
+            case 3: x = params.long_f2;     break;
+                
+            default:
+                x = ACTION_NONE;
+                break;
+        }
+        
+        lv_dropdown_clear_options(obj);
+        
+        uint8_t n = 0;
+        
+        while (hmic_action_items[n].label) {
+            lv_dropdown_add_option(obj, hmic_action_items[n].label, LV_DROPDOWN_POS_LAST);
+            
+            if (hmic_action_items[n].action == x) {
+                lv_dropdown_set_selected(obj, n);
+            }
+
+            n++;
+        }
+        
+        uint32_t *param = malloc(sizeof(uint32_t));
+        *param = i;
+        
+        lv_obj_add_event_cb(obj, hmic_action_update_cb, LV_EVENT_VALUE_CHANGED, param);
         
         row++;
     }
@@ -793,6 +897,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_long_action(row);
+
+    row = make_delimiter(row);
+    row = make_hmic_action(row);
     
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
