@@ -632,6 +632,7 @@ static long_action_items_t long_action_items[] = {
     { .label = " None ", .action = LONG_ACTION_NONE },
     { .label = " Screenshot ", .action = LONG_ACTION_SCREENSHOT },
     { .label = " Recorder on/off ", .action = LONG_ACTION_RECORDER },
+    { .label = " Mute ", .action = LONG_ACTION_MUTE },
     { .label = " APP RTTY ", .action = LONG_ACTION_APP_RTTY },
     { .label = " APP FT8 ", .action = LONG_ACTION_APP_FT8 },
     { .label = " APP SWR Scan ", .action = LONG_ACTION_APP_SWRSCAN },

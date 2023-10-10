@@ -41,6 +41,7 @@ static radio_state_t    state = RADIO_RX;
 static uint64_t         now_time;
 static uint64_t         prev_time;
 static uint64_t         idle_time;
+static bool             mute = false;
 
 static void update_agc_time();
 
@@ -322,6 +323,8 @@ uint16_t radio_change_vol(int16_t df) {
         return params.vol;
     }
     
+    mute = false;
+    
     params_lock();
     params.vol = limit(params.vol + df, 0, 55);
     params_unlock(&params.durty.vol);
@@ -331,6 +334,11 @@ uint16_t radio_change_vol(int16_t df) {
     radio_unlock();
     
     return params.vol;
+}
+
+void radio_change_mute() {
+    mute = !mute;
+    x6100_control_rxvol_set(mute ? 0 : params.vol);
 }
 
 uint16_t radio_change_moni(int16_t df) {

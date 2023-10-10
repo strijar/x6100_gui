@@ -249,6 +249,10 @@ static void long_press_action(longpress_action_t action) {
         case LONG_ACTION_RECORDER:
             recorder_set_on(!recorder_is_on());
             break;
+
+        case LONG_ACTION_MUTE:
+            radio_change_mute();
+            break;
             
         case LONG_ACTION_APP_RTTY:
             main_screen_app(PAGE_RTTY);
