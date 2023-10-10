@@ -12,9 +12,9 @@
 #include "textarea_window.h"
 #include "styles.h"
 
-static lv_obj_t             *window;
-static lv_obj_t             *text;
-static lv_obj_t             *keyboard;
+static lv_obj_t             *window = NULL;
+static lv_obj_t             *text = NULL;
+static lv_obj_t             *keyboard = NULL;
 
 static textarea_window_cb_t ok_cb = NULL;
 static textarea_window_cb_t cancel_cb = NULL;
@@ -23,9 +23,8 @@ static void ok() {
     if (ok_cb) {
         ok_cb();
     }
-            
-    lv_obj_del(keyboard);
-    lv_obj_del(window);
+
+    textarea_window_close();
  }
 
 static void cancel() {
@@ -33,8 +32,7 @@ static void cancel() {
         cancel_cb();
     }
 
-    lv_obj_del(keyboard);
-    lv_obj_del(window);
+    textarea_window_close();
 }
 
 static void text_cb(lv_event_t * e) {
@@ -124,19 +122,34 @@ void textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t cancel) 
     lv_obj_set_width(text, 529);
     lv_obj_center(text);
     
-    keyboard = lv_keyboard_create(lv_scr_act());
+    if (!keyboard_ready()) {
+        keyboard = lv_keyboard_create(lv_scr_act());
 
-    lv_keyboard_set_textarea(keyboard, text);
-    lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_UPPER);
-    lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_READY, NULL);
-    lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_CANCEL, NULL);
-    lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_KEY, NULL);
+        lv_keyboard_set_textarea(keyboard, text);
+        lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_UPPER);
+        lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_READY, NULL);
+        lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_CANCEL, NULL);
+        lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_KEY, NULL);
 
-    lv_obj_set_style_bg_color(keyboard, bg_color, LV_PART_MAIN);
-    lv_obj_add_style(keyboard, &dialog_item_focus_style, LV_STATE_FOCUSED | LV_PART_ITEMS);
+        lv_obj_set_style_bg_color(keyboard, bg_color, LV_PART_MAIN);
+        lv_obj_add_style(keyboard, &dialog_item_focus_style, LV_STATE_FOCUSED | LV_PART_ITEMS);
 
-    lv_group_add_obj(keyboard_group, keyboard);
+        lv_group_add_obj(keyboard_group, keyboard);
+    } else {
+        keyboard = NULL;
+    }
+
     lv_group_add_obj(keyboard_group, text);
+}
+
+void textarea_window_close() {
+    if (keyboard) {            
+        lv_obj_del(keyboard);
+        keyboard = NULL;
+    }
+
+    lv_obj_del(window);
+    window = NULL;
 }
 
 const char* textarea_window_get() {

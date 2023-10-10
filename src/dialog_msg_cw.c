@@ -110,6 +110,7 @@ static void destruct_cb() {
     }
     
     cw_encoder_stop();
+    textarea_window_close();
 }
 
 static void key_cb(lv_event_t * e) {

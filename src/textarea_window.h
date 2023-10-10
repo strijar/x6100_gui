@@ -16,6 +16,7 @@
 typedef void (*textarea_window_cb_t)(void);
 
 void textarea_window_open(textarea_window_cb_t ok_cb, textarea_window_cb_t cancel_cb);
+void textarea_window_close();
 
 const char* textarea_window_get();
 void textarea_window_set(const char *text);

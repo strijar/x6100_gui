@@ -243,6 +243,7 @@ static void construct_cb(lv_obj_t *parent) {
 static void destruct_cb() {
     x6100_control_record_set(false);
     play_state = false;
+    textarea_window_close();
 }
 
 static void key_cb(lv_event_t * e) {

@@ -14,6 +14,7 @@ lv_group_t *keyboard_group;
 
 static lv_indev_drv_t       indev_drv_2;
 static lv_group_t           *group;
+static bool                 ready = false;
 
 void keyboard_init() {
     keyboard_group = lv_group_create();
@@ -30,4 +31,10 @@ void keyboard_init() {
     lv_indev_t *keyboard_indev = lv_indev_drv_register(&indev_drv_2);
 
     lv_indev_set_group(keyboard_indev, keyboard_group);
+
+    ready = true;
+}
+
+bool keyboard_ready() {
+    return ready;
 }

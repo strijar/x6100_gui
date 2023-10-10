@@ -339,6 +339,7 @@ static void destruct_cb() {
     
     beacon = VOICE_BEACON_OFF;
     state = MSG_VOICE_OFF;
+    textarea_window_close();
 }
 
 static void key_cb(lv_event_t * e) {

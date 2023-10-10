@@ -33,3 +33,4 @@
 extern lv_group_t *keyboard_group;
 
 void keyboard_init();
+bool keyboard_ready();
