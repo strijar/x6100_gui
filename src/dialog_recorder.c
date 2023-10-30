@@ -137,7 +137,10 @@ static void play_item() {
         int res = sf_read_short(file, samples_buf, BUF_SIZE);
             
         if (res > 0) {
-            audio_play(samples_buf, res);
+            int16_t *samples = audio_gain(samples_buf, res, params.play_gain);
+            
+            audio_play(samples, res);
+            free(samples);
         } else {
             play_state = false;
         }

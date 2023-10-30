@@ -144,3 +144,23 @@ void audio_play_wait() {
 
     pa_operation_unref(op);
 }
+
+int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain) {
+    int16_t *out_samples = malloc(samples * sizeof(int16_t));
+
+    for (uint16_t i = 0; i < samples; i++) {
+        int32_t x = buf[i] * gain / 100;
+        
+        if (x > 32767) {
+            x = 32767;
+        }
+        
+        if (x < -32767) {
+            x = -32767;
+        }
+    
+        out_samples[i] = x;
+    }
+    
+    return out_samples;
+}

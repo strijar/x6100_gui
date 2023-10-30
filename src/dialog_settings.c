@@ -851,6 +851,85 @@ static uint8_t make_hmic_action(uint8_t row) {
     return row;
 }
 
+/* Play,Rec gain */
+
+static void play_gain_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.play_gain = lv_slider_get_value(obj);
+    params_unlock(&params.durty.play_gain);
+}
+
+static void rec_gain_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.rec_gain = lv_slider_get_value(obj);
+    params_unlock(&params.durty.rec_gain);
+}
+
+static uint8_t make_audio_gain(uint8_t row) {
+    lv_obj_t    *obj;
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Play gain");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_slider_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
+    lv_slider_set_value(obj, params.play_gain, LV_ANIM_OFF);
+    lv_slider_set_range(obj, 25, 200);
+    lv_obj_set_width(obj, SMALL_6 - 30);
+    lv_obj_center(obj);
+
+    lv_obj_add_event_cb(obj, play_gain_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    row++;
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+    
+    lv_label_set_text(obj, "Rec gain");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_slider_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_slider_set_mode(obj, LV_SLIDER_MODE_NORMAL);
+    lv_slider_set_value(obj, params.rec_gain, LV_ANIM_OFF);
+    lv_slider_set_range(obj, 25, 200);
+    lv_obj_set_width(obj, SMALL_6 - 30);
+    lv_obj_center(obj);
+
+    lv_obj_add_event_cb(obj, rec_gain_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    
+    return row + 1;
+}
+
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
     
@@ -900,6 +979,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_hmic_action(row);
+
+    row = make_delimiter(row);
+    row = make_audio_gain(row);
     
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);

@@ -177,7 +177,10 @@ static void play_item() {
         int res = sf_read_short(file, samples_buf, BUF_SIZE);
             
         if (res > 0) {
-            audio_play(samples_buf, res);
+            int16_t *samples = audio_gain(samples_buf, res, params.play_gain);
+        
+            audio_play(samples, res);
+            free(samples);
         } else {
             state = MSG_VOICE_OFF;
         }
@@ -494,11 +497,12 @@ msg_voice_state_t dialog_msg_voice_get_state() {
 }
 
 void dialog_msg_voice_put_audio_samples(size_t nsamples, int16_t *samples) {
+    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain * 6);
     int16_t peak = 0;
     
     for (uint16_t i = 0; i < nsamples; i++) {
-        int16_t x = abs(samples[i]);
-    
+        int16_t x = abs(out_samples[i]);
+        
         if (x > peak) {
             peak = x;
         }
@@ -506,5 +510,6 @@ void dialog_msg_voice_put_audio_samples(size_t nsamples, int16_t *samples) {
 
     peak = S1 + (peak / 32768.0) * (S9_40 - S1);
     meter_update(peak, 0.25f);
-    sf_write_short(file, samples, nsamples);
+    sf_write_short(file, out_samples, nsamples);
+    free(out_samples);
 }

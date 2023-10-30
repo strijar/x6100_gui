@@ -116,6 +116,9 @@ params_t params = {
     .press_f2               = ACTION_NONE,
     .long_f1                = ACTION_STEP_DOWN,
     .long_f2                = ACTION_NONE,
+    
+    .play_gain              = 100,
+    .rec_gain               = 100,
 };
 
 params_band_t params_band = {
@@ -583,6 +586,10 @@ static bool params_load() {
             params.long_f1 = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_f2") == 0) {
             params.long_f2 = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "play_gain") == 0) {
+            params.play_gain = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "rec_gain") == 0) {
+            params.rec_gain = sqlite3_column_int(stmt, 1);
         }
     }
     
@@ -723,6 +730,9 @@ static void params_save() {
     if (params.durty.press_f2)              params_write_int("press_f2", params.press_f2, &params.durty.press_f2);
     if (params.durty.long_f1)               params_write_int("long_f1", params.long_f1, &params.durty.long_f1);
     if (params.durty.long_f2)               params_write_int("long_f2", params.long_f2, &params.durty.long_f2);
+
+    if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
+    if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
 
     params_exec("COMMIT");
 }

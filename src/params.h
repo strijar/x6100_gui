@@ -223,6 +223,11 @@ typedef struct {
     uint8_t             long_f1;
     uint8_t             long_f2;
     
+    /* Audio play/rec */
+
+    uint16_t            play_gain;
+    uint16_t            rec_gain;
+    
     /* durty flags */
     
     struct {
@@ -318,6 +323,9 @@ typedef struct {
         bool    press_f2;
         bool    long_f1;
         bool    long_f2;
+
+        bool    play_gain;
+        bool    rec_gain;
     } durty;
 } params_t;
 

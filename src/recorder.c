@@ -14,6 +14,7 @@
 #include "dialog_recorder.h"
 #include "recorder.h"
 #include "msg.h"
+#include "params.h"
 
 char            *recorder_path = "/mnt/rec";
 
@@ -72,5 +73,8 @@ bool recorder_is_on() {
 }
 
 void recorder_put_audio_samples(size_t nsamples, int16_t *samples) {
-    sf_write_short(file, samples, nsamples);
+    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain * 6);
+
+    sf_write_short(file, out_samples, nsamples);
+    free(out_samples);
 }
