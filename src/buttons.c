@@ -261,6 +261,7 @@ void buttons_init(lv_obj_t *parent) {
 void buttons_load(uint8_t n, button_item_t *item) {
     lv_obj_t        *label = lv_obj_get_user_data(btn[n]);
 
+    lv_obj_remove_event_cb(btn[n], NULL);
     lv_obj_add_event_cb(btn[n], item->press, LV_EVENT_PRESSED, item);
     lv_label_set_text(label, item->label);
 }

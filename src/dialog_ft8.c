@@ -24,6 +24,7 @@
 #include "keyboard.h"
 #include "events.h"
 #include "radio.h"
+#include "buttons.h"
 
 #include "ft8/unpack.h"
 #include "ft8/ldpc.h"
@@ -89,11 +90,18 @@ static message_t            decoded[MAX_DECODED];
 static message_t*           decoded_hashtable[MAX_DECODED];
 
 static struct tm            timestamp;
+static bool                 show_all = true;
 
 static void construct_cb(lv_obj_t *parent);
 static void key_cb(lv_event_t * e);
 static void destruct_cb();
 static void * decode_thread(void *arg);
+
+static void show_all_cb(lv_event_t * e);
+static void show_cq_cb(lv_event_t * e);
+
+static button_item_t button_show_all = { .label = "Show\nAll", .press = show_all_cb };
+static button_item_t button_show_cq = { .label = "Show\nCQ", .press = show_cq_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -250,7 +258,9 @@ static void decode() {
             memcpy(&decoded[idx_hash], &message, sizeof(message));
             decoded_hashtable[idx_hash] = &decoded[idx_hash];
 
-            send_msg(MSG_RX_MSG, "%s", message.text);
+            if (show_all || strncmp(message.text, "CQ", 2) == 0) {
+                send_msg(MSG_RX_MSG, "%s", message.text);
+            }
         }
     }
 }
@@ -482,7 +492,20 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_center(table);
     table_rows = 0;
 
+    show_all = true;
+    buttons_load(0, &button_show_all);
+
     init();
+}
+
+static void show_all_cb(lv_event_t * e) {
+    show_all = false;
+    buttons_load(0, &button_show_cq);
+}
+
+static void show_cq_cb(lv_event_t * e) {
+    show_all = true;
+    buttons_load(0, &button_show_all);
 }
 
 ft8_state_t dialog_ft8_get_state() {
