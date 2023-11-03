@@ -51,6 +51,8 @@ CREATE TABLE memory(
     UNIQUE      (id, name) ON CONFLICT REPLACE
 );
 
+.import memory.csv memory
+
 CREATE TABLE msg_cw(
     id          INTEGER PRIMARY KEY,
     val         INTEGER

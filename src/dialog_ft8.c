@@ -44,6 +44,8 @@
 #define FREQ_OSR        2
 #define TIME_OSR        4
 
+#define FT8_BANDS       10
+
 typedef enum {
     RX_IDLE = 0,
     RX_PROCESS,
@@ -78,7 +80,6 @@ static complex float        *freq_buf;
 static windowcf             frame_window;
 static fftplan              fft;
 
-static ftx_protocol_t       protocol = PROTO_FT8;
 static float                symbol_period;
 static uint32_t             block_size;
 static uint32_t             subblock_size;
@@ -91,7 +92,6 @@ static message_t            decoded[MAX_DECODED];
 static message_t*           decoded_hashtable[MAX_DECODED];
 
 static struct tm            timestamp;
-static x6100_mode_t         prev_mode;
 
 static void construct_cb(lv_obj_t *parent);
 static void key_cb(lv_event_t * e);
@@ -123,7 +123,7 @@ static void init() {
 
     float   slot_time;
     
-    switch (protocol) {
+    switch (params.ft8_protocol) {
         case PROTO_FT4:
             slot_time = FT4_SLOT_TIME;
             symbol_period = FT4_SYMBOL_PERIOD;
@@ -151,7 +151,7 @@ static void init() {
     wf.freq_osr = FREQ_OSR;
     wf.block_stride = TIME_OSR * FREQ_OSR * num_bins;
     wf.mag = (uint8_t *) malloc(mag_size);
-    wf.protocol = protocol;
+    wf.protocol = params.ft8_protocol;
 
     /* DSP */
     
@@ -336,7 +336,7 @@ static void * decode_thread(void *arg) {
                 if (tm->tm_sec % 15 == 0) {
                     timestamp = *tm;
                     rx_state = RX_PROCESS;
-                    send_msg(MSG_RX_INFO, "RX %02i:%02i:%02i", timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec);
+                    send_msg(MSG_RX_INFO, "RX %s %02i:%02i:%02i", params_band.label, timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec);
                 }
             }
         
@@ -454,12 +454,62 @@ static void destruct_cb() {
     firdecim_crcf_destroy(decim);
     free(audio_buf);
 
-    radio_restore_mode(prev_mode);
+    mem_load(MEM_BACKUP_ID);
+
     main_screen_lock_mode(false);
+    main_screen_lock_freq(false);
+    main_screen_lock_band(false);
+}
+
+static void load_band() {
+    uint16_t mem_id = 0;
+    
+    switch (params.ft8_protocol) {
+        case PROTO_FT8:
+            mem_id = MEM_FT8_ID;
+            break;
+            
+        case PROTO_FT4:
+            mem_id = MEM_FT4_ID;
+            break;
+    }
+    
+    mem_load(mem_id + params.ft8_band);
+}
+
+static void band_cb(lv_event_t * e) {
+    int band = params.ft8_band;
+
+    if (lv_event_get_code(e) == EVENT_BAND_UP) {
+        band++;
+        
+        if (band > FT8_BANDS - 1) {
+            band = 0;
+        }
+    } else {
+        band--;
+        
+        if (band < 0) {
+            band = FT8_BANDS - 1;
+        }
+    }
+    
+    params_lock();
+    params.ft8_band = band;
+    params_unlock(&params.durty.ft8_band);
+    load_band();
+    
+    reset();
+    rx_state = RX_IDLE;
+    lv_table_set_row_cnt(table, 0);
+    table_rows = 0;
 }
 
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
+
+    lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_UP, NULL);
+    lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_DOWN, NULL);
 
     decim = firdecim_crcf_create_kaiser(DECIM, 16, 40.0f);
     audio_buf = cbuffercf_create(AUDIO_CAPTURE_RATE);
@@ -501,10 +551,25 @@ static void construct_cb(lv_obj_t *parent) {
     } else {
         buttons_load(0, &button_show_cq);
     }
+    
+    uint16_t mem_id = 0;
+    
+    switch (params.ft8_protocol) {
+        case PROTO_FT8:
+            mem_id = MEM_FT8_ID;
+            break;
+            
+        case PROTO_FT4:
+            mem_id = MEM_FT4_ID;
+            break;
+    }
+    
+    mem_save(MEM_BACKUP_ID);
+    load_band();
 
-    prev_mode = radio_current_mode();
-    radio_change_mode(RADIO_MODE_USB);
     main_screen_lock_mode(true);
+    main_screen_lock_freq(true);
+    main_screen_lock_band(true);
 
     init();
 }

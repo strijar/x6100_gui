@@ -26,6 +26,8 @@ uint32_t        EVENT_MSG_UPDATE;
 uint32_t        EVENT_FREQ_UPDATE;
 uint32_t        EVENT_FT8_MSG;
 uint32_t        EVENT_GPS;
+uint32_t        EVENT_BAND_UP;
+uint32_t        EVENT_BAND_DOWN;
 
 typedef struct {
     lv_obj_t        *obj;
@@ -51,6 +53,8 @@ void event_init() {
     EVENT_FREQ_UPDATE = lv_event_register_id();
     EVENT_FT8_MSG = lv_event_register_id();
     EVENT_GPS = lv_event_register_id();
+    EVENT_BAND_UP = lv_event_register_id();
+    EVENT_BAND_DOWN = lv_event_register_id();
 
     for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         queue[i] = NULL;

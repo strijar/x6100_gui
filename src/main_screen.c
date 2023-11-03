@@ -62,13 +62,12 @@ static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
 
-static void freq_update(int16_t diff);
+static void freq_shift(int16_t diff);
 static void next_freq_step(bool up);
+static void freq_update();
 
-static void main_screen_set_freq();
-
-void mem_load(uint8_t x) {
-    params_memory_load(x);
+void mem_load(uint16_t id) {
+    params_memory_load(id);
 
     params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
 
@@ -90,19 +89,26 @@ void mem_load(uint8_t x) {
 
     waterfall_clear();
     spectrum_clear();
-    main_screen_set_freq();
+    freq_update();
 
-    msg_set_text_fmt("Loaded from memory %i", x);
+    if (strlen(params_band.label) > 0) {
+        msg_set_text_fmt("%s", params_band.label);
+    } else if (id <= MEM_NUM) {
+        msg_set_text_fmt("Loaded from memory %i", id);
+    }
 }
 
-void mem_save(uint8_t x) {
-    params_memory_save(x);
-    msg_set_text_fmt("Saved in memory %i", x);
+void mem_save(uint16_t id) {
+    params_memory_save(id);
+    
+    if (id <= MEM_NUM) {
+        msg_set_text_fmt("Saved in memory %i", id);
+    }
 }
 
 /* * */
 
-static void main_screen_set_freq() {
+static void freq_update() {
     uint64_t    f;
     x6100_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
@@ -313,24 +319,22 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_BAND_UP:
-            if (band_lock) {
-                break;
-            }
-        
             if (keypad->state == KEYPAD_RELEASE) {
-                bands_change(true);
-                dialog_send(EVENT_FREQ_UPDATE, NULL);
+                if (!band_lock) {
+                    bands_change(true);
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
+                }
+                dialog_send(EVENT_BAND_UP, NULL);
             }
             break;
             
         case KEYPAD_BAND_DOWN:
-            if (band_lock) {
-                break;
-            }
-        
             if (keypad->state == KEYPAD_RELEASE) {
-                bands_change(false);
-                dialog_send(EVENT_FREQ_UPDATE, NULL);
+                if (!band_lock) {
+                    bands_change(false);
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
+                }
+                dialog_send(EVENT_BAND_DOWN, NULL);
             }
             break;
             
@@ -580,7 +584,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_LOCK:
             if (keypad->state == KEYPAD_RELEASE) {
                 freq_lock = !freq_lock;
-                main_screen_set_freq();
+                freq_update();
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_bb_reset();
                 exit(1);
@@ -642,7 +646,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         case HKEY_SPCH:
             if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
-                main_screen_set_freq();
+                freq_update();
             }
             break;
             
@@ -666,29 +670,30 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             break;
 
         case HKEY_UP:
-        
             if (hkey->state == HKEY_RELEASE) {
                 if (!freq_lock) {
-                    freq_update(+1);
+                    freq_shift(+1);
                 }
             } else if (hkey->state == HKEY_LONG) {
                 if (!band_lock) {
                     bands_change(true);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
+                dialog_send(EVENT_BAND_UP, NULL);
             }
             break;
 
         case HKEY_DOWN:
             if (hkey->state == HKEY_RELEASE) {
                 if (!freq_lock) {
-                    freq_update(-1);
+                    freq_shift(-1);
                 }
             } else if (hkey->state == HKEY_LONG) {
                 if (!band_lock) {
                     bands_change(false);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
+                dialog_send(EVENT_BAND_DOWN, NULL);
             }
             break;
         
@@ -717,7 +722,7 @@ static void main_screen_radio_cb(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
 
     if (params_band.split) {
-        main_screen_set_freq();
+        freq_update();
     }
     
     lv_event_send(meter, code, NULL);
@@ -728,7 +733,7 @@ static void main_screen_radio_cb(lv_event_t * e) {
 }
 
 static void main_screen_update_cb(lv_event_t * e) {
-    main_screen_set_freq();
+    freq_update();
     info_params_set();
 
     waterfall_clear();
@@ -739,7 +744,7 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
     info_atu_update();
 }
 
-static void freq_update(int16_t diff) {
+static void freq_shift(int16_t diff) {
     if (freq_lock) {
         return;
     }
@@ -749,18 +754,16 @@ static void freq_update(int16_t diff) {
     freq = radio_change_freq(diff * params_mode.freq_step, &prev_freq);
     waterfall_change_freq(freq - prev_freq);
     spectrum_change_freq(freq - prev_freq);
-    main_screen_set_freq();
+    freq_update();
     check_cross_band(freq, prev_freq);
     
-    if (dialog_is_run()) {
-        dialog_send(EVENT_FREQ_UPDATE, NULL);
-    }
+    dialog_send(EVENT_FREQ_UPDATE, NULL);
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
     int32_t     diff = lv_event_get_param(e);
     
-    freq_update(diff);
+    freq_shift(diff);
 }
 
 static void spectrum_key_cb(lv_event_t * e) {
@@ -769,13 +772,13 @@ static void spectrum_key_cb(lv_event_t * e) {
     switch (key) {
         case '-':
             if (!freq_lock) {
-                freq_update(-1);
+                freq_shift(-1);
             }
             break;
             
         case '=':
             if (!freq_lock) {
-                freq_update(+1);
+                freq_shift(+1);
             }
             break;
 
@@ -860,31 +863,23 @@ static void spectrum_key_cb(lv_event_t * e) {
             
         case KEYBOARD_SCRL_LOCK:
             freq_lock = !freq_lock;
-            main_screen_set_freq();
+            freq_update();
             break;
 
         case KEYBOARD_PGUP:
-            if (band_lock) {
-                break;
-            }
-            
-            bands_change(true);
-            
-            if (dialog_is_run()) {
+            if (!band_lock) {
+                bands_change(true);
                 dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
+            dialog_send(EVENT_BAND_UP, NULL);
             break;
 
         case KEYBOARD_PGDN:
-            if (band_lock) {
-                break;
-            }
-        
-            bands_change(false);
-
-            if (dialog_is_run()) {
+            if (!band_lock) {
+                bands_change(false);
                 dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
+            dialog_send(EVENT_BAND_DOWN, NULL);
             break;
             
         case HKEY_FINP:
@@ -923,7 +918,7 @@ void main_screen_keys_enable(bool value) {
 
 void main_screen_lock_freq(bool lock) {
     freq_lock = lock;
-    main_screen_set_freq();
+    freq_update();
 }
 
 void main_screen_lock_band(bool lock) {
@@ -933,6 +928,29 @@ void main_screen_lock_band(bool lock) {
 void main_screen_lock_mode(bool lock) {
     mode_lock = lock;
     info_lock_mode(lock);
+}
+
+void main_screen_set_freq(uint64_t freq) {
+    x6100_vfo_t vfo = params_band.vfo;
+    uint64_t    prev_freq = params_band.vfo_x[vfo].freq;
+    
+    params.freq_band = bands_find(freq);
+    
+    if (params.freq_band) {
+        if (params.freq_band->type != 0) {
+            if (params.freq_band->id != params.band) {
+                params_band_freq_set(prev_freq);
+                bands_activate(params.freq_band, &freq);
+                info_params_set();
+                pannel_visible();
+            }
+        } else {
+            params.freq_band = NULL;
+        }
+    }
+
+    radio_set_freq(freq);
+    event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 
 lv_obj_t * main_screen() {
@@ -1015,5 +1033,5 @@ lv_obj_t * main_screen() {
 }
 
 void main_screen_band_set() {
-    main_screen_set_freq();
+    freq_update();
 }

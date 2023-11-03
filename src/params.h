@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include <aether_radio/x6100_control/control.h>
+#include "ft8/constants.h"
 #include "bands.h"
 #include "radio.h"
 #include "clock.h"
@@ -58,6 +59,7 @@ typedef struct {
     bool            split;
     int16_t         grid_min;
     int16_t         grid_max;
+    char            label[64];
 
     /* durty flags */
     
@@ -66,6 +68,7 @@ typedef struct {
         bool    split;
         bool    grid_min;
         bool    grid_max;
+        bool    label;
     } durty;
 } params_band_t;
 
@@ -210,7 +213,9 @@ typedef struct {
     /* FT8 */
     
     bool                ft8_show_all;
-    
+    ftx_protocol_t      ft8_protocol;
+    uint8_t             ft8_band;
+
     /* Long press actions */
     
     uint8_t             long_gen;
@@ -317,6 +322,8 @@ typedef struct {
         bool    swrscan_span;
 
         bool    ft8_show_all;
+        bool    ft8_protocol;
+        bool    ft8_band;
 
         bool    long_gen;
         bool    long_app;
