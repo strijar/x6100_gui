@@ -20,3 +20,5 @@ const char* info_params_agc();
 const char* info_params_vfo();
 bool info_params_att();
 bool info_params_pre();
+
+void info_lock_mode(bool lock);

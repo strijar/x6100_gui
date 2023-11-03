@@ -51,6 +51,8 @@ static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
 static lv_obj_t     *obj;
 static bool         freq_lock = false;
+static bool         mode_lock = false;
+static bool         band_lock = false;
 
 static lv_obj_t     *spectrum;
 static lv_obj_t     *freq[3];
@@ -311,6 +313,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_BAND_UP:
+            if (band_lock) {
+                break;
+            }
+        
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
                 
@@ -321,6 +327,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_BAND_DOWN:
+            if (band_lock) {
+                break;
+            }
+        
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
 
@@ -331,6 +341,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_MODE_AM:
+            if (mode_lock) {
+                break;
+            }
+        
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_AM);
                 params_mode_load();
@@ -346,6 +360,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
             
         case KEYPAD_MODE_CW:
+            if (mode_lock) {
+                break;
+            }
+
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_CW);
                 params_mode_load();
@@ -361,6 +379,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             break;
 
         case KEYPAD_MODE_SSB:
+            if (mode_lock) {
+                break;
+            }
+
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_SSB);
                 params_mode_load();
@@ -650,25 +672,34 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             break;
 
         case HKEY_UP:
+        
             if (hkey->state == HKEY_RELEASE) {
-                freq_update(+1);
+                if (!freq_lock) {
+                    freq_update(+1);
+                }
             } else if (hkey->state == HKEY_LONG) {
-                bands_change(true);
+                if (!band_lock) {
+                    bands_change(true);
                 
-                if (dialog_is_run()) {
-                    dialog_send(EVENT_FREQ_UPDATE, NULL);
+                    if (dialog_is_run()) {
+                        dialog_send(EVENT_FREQ_UPDATE, NULL);
+                    }
                 }
             }
             break;
 
         case HKEY_DOWN:
             if (hkey->state == HKEY_RELEASE) {
-                freq_update(-1);
+                if (!freq_lock) {
+                    freq_update(-1);
+                }
             } else if (hkey->state == HKEY_LONG) {
-                bands_change(false);
+                if (!band_lock) {
+                    bands_change(false);
 
-                if (dialog_is_run()) {
-                    dialog_send(EVENT_FREQ_UPDATE, NULL);
+                    if (dialog_is_run()) {
+                        dialog_send(EVENT_FREQ_UPDATE, NULL);
+                    }
                 }
             }
             break;
@@ -749,11 +780,15 @@ static void spectrum_key_cb(lv_event_t * e) {
 
     switch (key) {
         case '-':
-            freq_update(-1);
+            if (!freq_lock) {
+                freq_update(-1);
+            }
             break;
             
         case '=':
-            freq_update(+1);
+            if (!freq_lock) {
+                freq_update(+1);
+            }
             break;
 
         case '_':
@@ -841,6 +876,10 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case KEYBOARD_PGUP:
+            if (band_lock) {
+                break;
+            }
+            
             bands_change(true);
             
             if (dialog_is_run()) {
@@ -849,6 +888,10 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
 
         case KEYBOARD_PGDN:
+            if (band_lock) {
+                break;
+            }
+        
             bands_change(false);
 
             if (dialog_is_run()) {
@@ -857,7 +900,9 @@ static void spectrum_key_cb(lv_event_t * e) {
             break;
             
         case HKEY_FINP:
-            dialog_construct(dialog_freq, obj);
+            if (!freq_lock) {
+                dialog_construct(dialog_freq, obj);
+            }
             break;
             
         default:
@@ -886,6 +931,20 @@ void main_screen_keys_enable(bool value) {
         lv_group_remove_obj(spectrum);
         lv_group_set_editing(keyboard_group, false);
     }
+}
+
+void main_screen_lock_freq(bool lock) {
+    freq_lock = lock;
+    main_screen_set_freq();
+}
+
+void main_screen_lock_band(bool lock) {
+    band_lock = lock;
+}
+
+void main_screen_lock_mode(bool lock) {
+    mode_lock = lock;
+    info_lock_mode(lock);
 }
 
 lv_obj_t * main_screen() {

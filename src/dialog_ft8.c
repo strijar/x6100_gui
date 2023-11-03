@@ -25,6 +25,7 @@
 #include "events.h"
 #include "radio.h"
 #include "buttons.h"
+#include "main_screen.h"
 
 #include "ft8/unpack.h"
 #include "ft8/ldpc.h"
@@ -91,6 +92,7 @@ static message_t*           decoded_hashtable[MAX_DECODED];
 
 static struct tm            timestamp;
 static bool                 show_all = true;
+static x6100_mode_t         prev_mode;
 
 static void construct_cb(lv_obj_t *parent);
 static void key_cb(lv_event_t * e);
@@ -452,6 +454,9 @@ static void destruct_cb() {
     
     firdecim_crcf_destroy(decim);
     free(audio_buf);
+
+    radio_restore_mode(prev_mode);
+    main_screen_lock_mode(false);
 }
 
 static void construct_cb(lv_obj_t *parent) {
@@ -494,6 +499,10 @@ static void construct_cb(lv_obj_t *parent) {
 
     show_all = true;
     buttons_load(0, &button_show_all);
+
+    prev_mode = radio_current_mode();
+    radio_change_mode(RADIO_MODE_USB);
+    main_screen_lock_mode(true);
 
     init();
 }

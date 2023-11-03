@@ -24,6 +24,7 @@
 #include "cw_encoder.h"
 #include "msg.h"
 #include "buttons.h"
+#include "main_screen.h"
 
 static uint32_t         *ids = NULL;
 
@@ -102,6 +103,7 @@ static void construct_cb(lv_obj_t *parent) {
     ids = NULL;
     
     params_msg_cw_load();
+    main_screen_lock_mode(true);
 }
 
 static void destruct_cb() {
@@ -111,6 +113,7 @@ static void destruct_cb() {
     
     cw_encoder_stop();
     textarea_window_close();
+    main_screen_lock_mode(false);
 }
 
 static void key_cb(lv_event_t * e) {

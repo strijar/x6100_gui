@@ -464,6 +464,18 @@ void radio_set_mode(x6100_vfo_t vfo,  x6100_mode_t mode) {
     radio_unlock();
 }
 
+void radio_restore_mode(x6100_mode_t mode) {
+    x6100_vfo_t vfo = params_band.vfo;
+
+    params_lock();
+    params_band.vfo_x[vfo].mode = mode;
+    params_unlock(&params_band.vfo_x[vfo].durty.mode);
+
+    radio_lock();
+    x6100_control_vfo_mode_set(vfo, mode);
+    radio_unlock();
+}
+
 void radio_change_mode(radio_mode_t select) {
     params_lock();
 
@@ -526,6 +538,14 @@ void radio_change_mode(radio_mode_t select) {
             }
             break;
             
+        case RADIO_MODE_USB:
+            mode = x6100_mode_usb;
+            break;
+
+        case RADIO_MODE_LSB:
+            mode = x6100_mode_lsb;
+            break;
+        
         default:
             break;
     }

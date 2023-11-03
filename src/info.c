@@ -22,6 +22,8 @@ typedef enum {
 static lv_obj_t     *obj;
 static lv_obj_t     *items[6];
 
+static bool         mode_lock = false;
+
 lv_obj_t * info_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
 
@@ -171,6 +173,12 @@ void info_params_set() {
     lv_label_set_text(items[INFO_MODE], info_params_mode());
     lv_label_set_text(items[INFO_AGC], info_params_agc());
 
+    if (mode_lock) {
+        lv_obj_set_style_text_color(items[INFO_MODE], lv_color_hex(0xAAAAAA), 0);
+    } else {
+        lv_obj_set_style_text_color(items[INFO_MODE], lv_color_white(), 0);
+    }
+
     if (info_params_att()) {
         lv_obj_set_style_text_color(items[INFO_ATT], lv_color_black(), 0);
         lv_obj_set_style_bg_color(items[INFO_ATT], lv_color_white(), 0);
@@ -192,4 +200,9 @@ void info_params_set() {
     }
 
     info_atu_update();
+}
+
+void info_lock_mode(bool lock) {
+    mode_lock = lock;
+    info_params_set();
 }
