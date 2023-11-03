@@ -45,6 +45,7 @@
 #define TIME_OSR        4
 
 #define FT8_BANDS       10
+#define FT4_BANDS       8
 
 typedef enum {
     RX_IDLE = 0,
@@ -100,9 +101,13 @@ static void * decode_thread(void *arg);
 
 static void show_all_cb(lv_event_t * e);
 static void show_cq_cb(lv_event_t * e);
+static void mode_ft8_cb(lv_event_t * e);
+static void mode_ft4_cb(lv_event_t * e);
 
 static button_item_t button_show_all = { .label = "Show\nAll", .press = show_all_cb };
 static button_item_t button_show_cq = { .label = "Show\nCQ", .press = show_cq_cb };
+static button_item_t button_mode_ft8 = { .label = "Mode\nFT8", .press = mode_ft8_cb };
+static button_item_t button_mode_ft4 = { .label = "Mode\nFT4", .press = mode_ft4_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -332,8 +337,34 @@ static void * decode_thread(void *arg) {
             if (rx_state == RX_IDLE) {
                 now = time(NULL);
                 tm = localtime(&now);
-
-                if (tm->tm_sec % 15 == 0) {
+                
+                bool start = false;
+                
+                switch (params.ft8_protocol) {
+                    case PROTO_FT4:
+                        switch (tm->tm_sec) {
+                            case 0:
+                            case 7:
+                            case 15:
+                            case 22:
+                            case 30:
+                            case 37:
+                            case 45:
+                            case 52:
+                                start = true;
+                                break;
+                                
+                            default:
+                                start = false;
+                        }
+                        break;
+                        
+                    case PROTO_FT8:
+                        start = tm->tm_sec % 15 == 0;
+                        break;
+                }
+                
+                if (start) {
                     timestamp = *tm;
                     rx_state = RX_PROCESS;
                     send_msg(MSG_RX_INFO, "RX %s %02i:%02i:%02i", params_band.label, timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec);
@@ -467,30 +498,56 @@ static void load_band() {
     switch (params.ft8_protocol) {
         case PROTO_FT8:
             mem_id = MEM_FT8_ID;
+            
+            if (params.ft8_band > FT8_BANDS - 1) {
+                params.ft8_band = FT8_BANDS - 1;
+            }
             break;
             
         case PROTO_FT4:
             mem_id = MEM_FT4_ID;
+
+            if (params.ft8_band > FT4_BANDS - 1) {
+                params.ft8_band = FT4_BANDS - 1;
+            }
             break;
     }
     
     mem_load(mem_id + params.ft8_band);
 }
 
+static void clean() {
+    reset();
+    rx_state = RX_IDLE;
+    lv_table_set_row_cnt(table, 0);
+    table_rows = 0;
+}
+
 static void band_cb(lv_event_t * e) {
     int band = params.ft8_band;
+    int max_band = 0;
+    
+    switch (params.ft8_protocol) {
+        case PROTO_FT8:
+            max_band = FT8_BANDS - 1;
+            break;
+            
+        case PROTO_FT4:
+            max_band = FT4_BANDS - 1;
+            break;
+    }
 
     if (lv_event_get_code(e) == EVENT_BAND_UP) {
         band++;
         
-        if (band > FT8_BANDS - 1) {
+        if (band > max_band) {
             band = 0;
         }
     } else {
         band--;
         
         if (band < 0) {
-            band = FT8_BANDS - 1;
+            band = max_band;
         }
     }
     
@@ -498,11 +555,7 @@ static void band_cb(lv_event_t * e) {
     params.ft8_band = band;
     params_unlock(&params.durty.ft8_band);
     load_band();
-    
-    reset();
-    rx_state = RX_IDLE;
-    lv_table_set_row_cnt(table, 0);
-    table_rows = 0;
+    clean();    
 }
 
 static void construct_cb(lv_obj_t *parent) {
@@ -551,16 +604,14 @@ static void construct_cb(lv_obj_t *parent) {
     } else {
         buttons_load(0, &button_show_cq);
     }
-    
-    uint16_t mem_id = 0;
-    
+
     switch (params.ft8_protocol) {
         case PROTO_FT8:
-            mem_id = MEM_FT8_ID;
+            buttons_load(1, &button_mode_ft8);
             break;
-            
+
         case PROTO_FT4:
-            mem_id = MEM_FT4_ID;
+            buttons_load(1, &button_mode_ft4);
             break;
     }
     
@@ -588,6 +639,32 @@ static void show_cq_cb(lv_event_t * e) {
     params_unlock(&params.durty.ft8_show_all);
 
     buttons_load(0, &button_show_all);
+}
+
+static void mode_ft8_cb(lv_event_t * e) {
+    params_lock();
+    params.ft8_protocol = PROTO_FT4;
+    params_unlock(&params.durty.ft8_protocol);
+
+    buttons_load(1, &button_mode_ft4);
+
+    done();
+    init();
+    clean();
+    load_band();
+}
+
+static void mode_ft4_cb(lv_event_t * e) {
+    params_lock();
+    params.ft8_protocol = PROTO_FT8;
+    params_unlock(&params.durty.ft8_protocol);
+
+    buttons_load(1, &button_mode_ft8);
+
+    done();
+    init();
+    clean();
+    load_band();
 }
 
 ft8_state_t dialog_ft8_get_state() {

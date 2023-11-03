@@ -578,6 +578,8 @@ static bool params_load() {
             params.ft8_show_all = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "ft8_band") == 0) {
             params.ft8_band = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "ft8_protocol") == 0) {
+            params.ft8_protocol = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_gen") == 0) {
             params.long_gen = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_app") == 0) {
@@ -733,6 +735,7 @@ static void params_save() {
 
     if (params.durty.ft8_show_all)          params_write_int("ft8_show_all", params.ft8_show_all, &params.durty.ft8_show_all);
     if (params.durty.ft8_band)              params_write_int("ft8_band", params.ft8_band, &params.durty.ft8_band);
+    if (params.durty.ft8_protocol)          params_write_int("ft8_protocol", params.ft8_protocol, &params.durty.ft8_protocol);
 
     if (params.durty.long_gen)              params_write_int("long_gen", params.long_gen, &params.durty.long_gen);
     if (params.durty.long_app)              params_write_int("long_app", params.long_app, &params.durty.long_app);
