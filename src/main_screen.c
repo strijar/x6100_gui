@@ -319,10 +319,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(true);
-                
-                if (dialog_is_run()) {
-                    dialog_send(EVENT_FREQ_UPDATE, NULL);
-                }
+                dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
             break;
             
@@ -333,10 +330,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         
             if (keypad->state == KEYPAD_RELEASE) {
                 bands_change(false);
-
-                if (dialog_is_run()) {
-                    dialog_send(EVENT_FREQ_UPDATE, NULL);
-                }
+                dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
             break;
             
@@ -680,10 +674,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             } else if (hkey->state == HKEY_LONG) {
                 if (!band_lock) {
                     bands_change(true);
-                
-                    if (dialog_is_run()) {
-                        dialog_send(EVENT_FREQ_UPDATE, NULL);
-                    }
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;
@@ -696,10 +687,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             } else if (hkey->state == HKEY_LONG) {
                 if (!band_lock) {
                     bands_change(false);
-
-                    if (dialog_is_run()) {
-                        dialog_send(EVENT_FREQ_UPDATE, NULL);
-                    }
+                    dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
             }
             break;

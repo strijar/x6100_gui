@@ -206,6 +206,10 @@ typedef struct {
 
     bool                swrscan_linear;
     uint32_t            swrscan_span;
+
+    /* FT8 */
+    
+    bool                ft8_show_all;
     
     /* Long press actions */
     
@@ -311,6 +315,8 @@ typedef struct {
 
         bool    swrscan_linear;
         bool    swrscan_span;
+
+        bool    ft8_show_all;
 
         bool    long_gen;
         bool    long_app;

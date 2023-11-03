@@ -91,7 +91,6 @@ static message_t            decoded[MAX_DECODED];
 static message_t*           decoded_hashtable[MAX_DECODED];
 
 static struct tm            timestamp;
-static bool                 show_all = true;
 static x6100_mode_t         prev_mode;
 
 static void construct_cb(lv_obj_t *parent);
@@ -260,7 +259,7 @@ static void decode() {
             memcpy(&decoded[idx_hash], &message, sizeof(message));
             decoded_hashtable[idx_hash] = &decoded[idx_hash];
 
-            if (show_all || strncmp(message.text, "CQ", 2) == 0) {
+            if (params.ft8_show_all || strncmp(message.text, "CQ", 2) == 0) {
                 send_msg(MSG_RX_MSG, "%s", message.text);
             }
         }
@@ -497,8 +496,11 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_center(table);
     table_rows = 0;
 
-    show_all = true;
-    buttons_load(0, &button_show_all);
+    if (params.ft8_show_all) {
+        buttons_load(0, &button_show_all);
+    } else {
+        buttons_load(0, &button_show_cq);
+    }
 
     prev_mode = radio_current_mode();
     radio_change_mode(RADIO_MODE_USB);
@@ -508,12 +510,18 @@ static void construct_cb(lv_obj_t *parent) {
 }
 
 static void show_all_cb(lv_event_t * e) {
-    show_all = false;
+    params_lock();
+    params.ft8_show_all = false;
+    params_unlock(&params.durty.ft8_show_all);
+
     buttons_load(0, &button_show_cq);
 }
 
 static void show_cq_cb(lv_event_t * e) {
-    show_all = true;
+    params_lock();
+    params.ft8_show_all = true;
+    params_unlock(&params.durty.ft8_show_all);
+
     buttons_load(0, &button_show_all);
 }
 

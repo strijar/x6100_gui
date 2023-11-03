@@ -105,6 +105,8 @@ params_t params = {
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
 
+    .ft8_show_all           = true,
+
     .long_gen               = ACTION_SCREENSHOT,
     .long_app               = ACTION_APP_RECORDER,
     .long_key               = ACTION_NONE,
@@ -566,6 +568,8 @@ static bool params_load() {
             params.swrscan_linear = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "swrscan_span") == 0) {
             params.swrscan_span = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "ft8_show_all") == 0) {
+            params.ft8_show_all = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_gen") == 0) {
             params.long_gen = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "long_app") == 0) {
@@ -718,6 +722,8 @@ static void params_save() {
 
     if (params.durty.swrscan_linear)        params_write_int("swrscan_linear", params.swrscan_linear, &params.durty.swrscan_linear);
     if (params.durty.swrscan_span)          params_write_int("swrscan_span", params.swrscan_span, &params.durty.swrscan_span);
+
+    if (params.durty.ft8_show_all)          params_write_int("ft8_show_all", params.ft8_show_all, &params.durty.ft8_show_all);
 
     if (params.durty.long_gen)              params_write_int("long_gen", params.long_gen, &params.durty.long_gen);
     if (params.durty.long_app)              params_write_int("long_app", params.long_app, &params.durty.long_app);
