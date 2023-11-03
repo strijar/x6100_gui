@@ -910,10 +910,15 @@ static void spectrum_pressed_cb(lv_event_t * e) {
     mfk_update(0);
 }
 
+static void keys_enable_cb(lv_timer_t *t) {
+    lv_group_add_obj(keyboard_group, spectrum);
+    lv_group_set_editing(keyboard_group, true);
+}
+
 void main_screen_keys_enable(bool value) {
     if (value) {
-        lv_group_add_obj(keyboard_group, spectrum);
-        lv_group_set_editing(keyboard_group, true);
+        lv_timer_t *timer = lv_timer_create(keys_enable_cb, 100, NULL);
+        lv_timer_set_repeat_count(timer, 1);
     } else {
         lv_group_remove_obj(spectrum);
         lv_group_set_editing(keyboard_group, false);

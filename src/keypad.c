@@ -208,8 +208,10 @@ keypad_t * keypad_init(char *dev_name) {
     keypad->indev_drv.type = LV_INDEV_TYPE_KEYPAD;
     keypad->indev_drv.read_cb = keypad_input_read;
     keypad->indev_drv.user_data = keypad;
+    keypad->indev_drv.long_press_time = 1000;
     
     keypad->indev = lv_indev_drv_register(&keypad->indev_drv);
+
 
     lv_indev_set_group(keypad->indev, keyboard_group);
 
