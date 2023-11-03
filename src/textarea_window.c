@@ -163,3 +163,7 @@ const char* textarea_window_get() {
 void textarea_window_set(const char *val) {
     lv_textarea_set_text(text, val);
 }
+
+lv_obj_t * textarea_window_text() {
+    return text;
+}

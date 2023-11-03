@@ -20,3 +20,5 @@ void textarea_window_close();
 
 const char* textarea_window_get();
 void textarea_window_set(const char *text);
+
+lv_obj_t * textarea_window_text();

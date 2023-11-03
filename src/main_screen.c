@@ -42,6 +42,7 @@
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
 #include "dialog_gps.h"
+#include "dialog_qth.h"
 #include "dialog_recorder.h"
 #include "backlight.h"
 #include "buttons.h"
@@ -244,8 +245,7 @@ void main_screen_app(uint8_t page_app) {
     }
 }
 
-
-static void press_action(press_action_t action) {
+void main_screen_action(press_action_t action) {
     switch (action) {
         case ACTION_NONE:
             break;
@@ -292,6 +292,10 @@ static void press_action(press_action_t action) {
 
         case ACTION_APP_RECORDER:
             main_screen_app(PAGE_RECORDER);
+            break;
+
+        case ACTION_APP_QTH:
+            dialog_qth();
             break;
     }
 }
@@ -484,7 +488,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_VOL_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_gen);
+                main_screen_action(params.long_gen);
             }
             break;
 
@@ -494,7 +498,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_APP_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_app);
+                main_screen_action(params.long_app);
             }
             break;
 
@@ -504,7 +508,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_KEY_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_key);
+                main_screen_action(params.long_key);
             }
             break;
 
@@ -534,7 +538,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         break;
                 }
             } else if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_msg);
+                main_screen_action(params.long_msg);
             }
             break;
 
@@ -544,13 +548,13 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 buttons_unload_page();
                 buttons_load_page(PAGE_DFN_1);
             } else if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_dfn);
+                main_screen_action(params.long_dfn);
             }
             break;
 
         case KEYPAD_DFL:
             if (keypad->state == KEYPAD_LONG) {
-                press_action(params.long_dfl);
+                main_screen_action(params.long_dfl);
             }
             break;
 
@@ -699,17 +703,17 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         
         case HKEY_F1:
             if (hkey->state == HKEY_RELEASE) {
-                press_action(params.press_f1);
+                main_screen_action(params.press_f1);
             } else if (hkey->state == HKEY_LONG) {
-                press_action(params.long_f1);
+                main_screen_action(params.long_f1);
             }
             break;
 
         case HKEY_F2:
             if (hkey->state == HKEY_RELEASE) {
-                press_action(params.press_f2);
+                main_screen_action(params.press_f2);
             } else if (hkey->state == HKEY_LONG) {
-                press_action(params.long_f2);
+                main_screen_action(params.long_f2);
             }
             break;
         

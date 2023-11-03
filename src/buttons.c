@@ -42,6 +42,8 @@ static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
 static void button_mem_save_cb(void * ptr);
 
+static void button_action_cb(lv_event_t * e);
+
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
@@ -149,8 +151,8 @@ static button_item_t    buttons[] = {
 
     { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1 },
     { .label = "Recorder",          .press = button_app_page_cb,    .data = PAGE_RECORDER },
+    { .label = "QTH",               .press = button_action_cb,      .data = ACTION_APP_QTH },
     { .label = "Settings",          .press = button_app_page_cb,    .data = PAGE_SETTINGS },
-    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
     /* RTTY */
@@ -294,6 +296,12 @@ static void button_app_page_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
     main_screen_app(item->data);
+}
+
+static void button_action_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    main_screen_action(item->data);
 }
 
 static void button_vol_update_cb(lv_event_t * e) {

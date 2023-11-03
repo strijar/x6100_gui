@@ -91,7 +91,8 @@ typedef enum {
     ACTION_APP_SWRSCAN,
     ACTION_APP_GPS,
     ACTION_APP_SETTINGS,
-    ACTION_APP_RECORDER
+    ACTION_APP_RECORDER,
+    ACTION_APP_QTH
 } press_action_t;
 
 typedef struct {
@@ -237,6 +238,8 @@ typedef struct {
     uint16_t            play_gain;
     uint16_t            rec_gain;
     
+    char                qth[7];
+    
     /* durty flags */
     
     struct {
@@ -339,6 +342,8 @@ typedef struct {
 
         bool    play_gain;
         bool    rec_gain;
+
+        bool    qth;
     } durty;
 } params_t;
 

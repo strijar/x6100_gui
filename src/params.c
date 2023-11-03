@@ -123,6 +123,8 @@ params_t params = {
     
     .play_gain              = 100,
     .rec_gain               = 100,
+    
+    .qth                    = "",
 };
 
 params_band_t params_band = {
@@ -604,6 +606,8 @@ static bool params_load() {
             params.play_gain = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "rec_gain") == 0) {
             params.rec_gain = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "qth") == 0) {
+            strncpy(params.qth, sqlite3_column_text(stmt, 1), sizeof(params.qth) - 1);
         }
     }
     
@@ -638,6 +642,16 @@ static void params_write_int(const char *name, int data, bool *durty) {
 static void params_write_int64(const char *name, uint64_t data, bool *durty) {
     sqlite3_bind_text(write_stmt, 1, name, strlen(name), 0);
     sqlite3_bind_int64(write_stmt, 2, data);
+    sqlite3_step(write_stmt);
+    sqlite3_reset(write_stmt);
+    sqlite3_clear_bindings(write_stmt);
+    
+    *durty = false;
+}
+
+static void params_write_text(const char *name, const char *data, bool *durty) {
+    sqlite3_bind_text(write_stmt, 1, name, strlen(name), 0);
+    sqlite3_bind_text(write_stmt, 2, data, strlen(data), 0);
     sqlite3_step(write_stmt);
     sqlite3_reset(write_stmt);
     sqlite3_clear_bindings(write_stmt);
@@ -751,6 +765,8 @@ static void params_save() {
 
     if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
     if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
+
+    if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
 
     params_exec("COMMIT");
 }
