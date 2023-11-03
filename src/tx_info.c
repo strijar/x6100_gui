@@ -171,6 +171,7 @@ static void tx_cb(lv_event_t * e) {
     alc = 0;
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(obj);
 }
 
 static void rx_cb(lv_event_t * e) {
