@@ -19,6 +19,7 @@
 #include "events.h"
 #include "radio.h"
 #include "keyboard.h"
+#include "qth.h"
 
 #define HEIGHT 42
 
@@ -137,81 +138,6 @@ char *deg_to_str2(deg_str_type type, double f, char *buf, unsigned int buf_size,
     return buf;
 }
 
-const char *maidenhead(double lat, double lon) {
-    static char buf[9];
-
-    int t1;
-
-    if (180.001 < fabs(lon) ||
-        90.001 < fabs(lat)) {
-        return "    n/a ";
-    }
-
-    if (179.99999 < lon) {
-        lon = 179.99999;
-    }
-
-    lon += 180.0;
-    t1 = (int)(lon / 20);
-    buf[0] = (char)t1 + 'A';
-
-    if ('R' < buf[0]) {
-        buf[0] = 'R';
-    }
-    lon -= (float)t1 * 20.0;
-
-    t1 = (int)lon / 2;
-    buf[2] = (char)t1 + '0';
-    lon -= (float)t1 * 2;
-
-    lon *= 60.0;
-
-    t1 = (int)(lon / 5);
-    buf[4] = (char) ((char)t1 + 'a');
-    lon -= (float)(t1 * 5);
-
-    lon *= 60.0;
-    t1 = (int)(lon / 30);
-
-    if (9 < t1) {
-        t1 = 9;
-    }
-    buf[6] = (char) ((char)t1 + '0');
-
-    if (89.99999 < lat) {
-        lat = 89.99999;
-    }
-
-    lat += 90.0;
-    t1 = (int)(lat / 10.0);
-    buf[1] = (char)t1 + 'A';
-
-    if ('R' < buf[1]) {
-        buf[1] = 'R';
-    }
-    lat -= (float)t1 * 10.0;
-
-    buf[3] = (char)lat + '0';
-    lat -= (int)lat;
-    lat *= 60.0;
-
-    t1 = (int)(lat / 2.5);
-    buf[5] = (char)((char)t1 + 'a');
-    lat -= (float)(t1 * 2.5);
-    lat *= 60.0;
-
-    t1 = (int)(lat / 15);
-
-    if (9 < t1) {
-        t1 = 9;
-    }
-
-    buf[7] = (char) ((char)t1 + '0');
-    buf[8] = '\0';
-
-    return buf;
-}
-
 static void gps_cb(lv_event_t * e) {
     struct gps_data_t   *msg = lv_event_get_param(e);
     char                str[64];
@@ -251,7 +177,7 @@ static void gps_cb(lv_event_t * e) {
     }
     
     if (msg->fix.mode >= MODE_2D) {
-        lv_label_set_text(qth, maidenhead(msg->fix.latitude, msg->fix.longitude));
+        lv_label_set_text(qth, pos_grid(msg->fix.latitude, msg->fix.longitude));
     } else {
         lv_label_set_text(qth, "N/A");
     }

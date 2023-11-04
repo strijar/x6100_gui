@@ -18,6 +18,7 @@
 #include "mfk.h"
 #include "vol.h"
 #include "dialog_msg_cw.h"
+#include "qth.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
@@ -607,7 +608,7 @@ static bool params_load() {
         } else if (strcmp(name, "rec_gain") == 0) {
             params.rec_gain = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "qth") == 0) {
-            strncpy(params.qth, sqlite3_column_text(stmt, 1), sizeof(params.qth) - 1);
+            qth_set(sqlite3_column_text(stmt, 1));
         }
     }
     

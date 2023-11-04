@@ -26,6 +26,7 @@
 #include "radio.h"
 #include "buttons.h"
 #include "main_screen.h"
+#include "qth.h"
 
 #include "ft8/unpack.h"
 #include "ft8/ldpc.h"
@@ -429,7 +430,7 @@ static void add_msg_cb(lv_event_t * e) {
     table_rows++;
 }
 
-static void draw_part_event_cb(lv_event_t * e) {
+static void draw_part_begin_cb(lv_event_t * e) {
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
 
@@ -447,6 +448,52 @@ static void draw_part_event_cb(lv_event_t * e) {
             if (strncmp(str, "CQ", 2) == 0) {
                 dsc->rect_dsc->bg_color = lv_color_hex(0x00FF00);
                 dsc->rect_dsc->bg_opa = 64;
+            }
+        }
+    }
+}
+
+static const char * find_qth(const char *str) {
+    char *ptr = rindex(str, ' ');
+    
+    if (ptr) {
+        ptr++;
+        
+        if (strcmp(ptr, "RR73") != 0 && grid_check(ptr)) {
+            return ptr;
+        }
+    }
+    
+    return NULL;
+}
+
+static void draw_part_end_cb(lv_event_t * e) {
+    if (params.qth[0] == 0) {
+        return;
+    }
+
+    lv_obj_t                *obj = lv_event_get_target(e);
+    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+
+    if (dsc->part == LV_PART_ITEMS) {
+        uint32_t row = dsc->id / lv_table_get_col_cnt(obj);
+        uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
+
+        if (lv_table_has_cell_ctrl(obj, row, col, LV_TABLE_CELL_CTRL_CUSTOM_2)) {    /* RX MSG */
+            const char *str = lv_table_get_cell_value(obj, row, col);
+            const char *qth = find_qth(str);
+            
+            if (qth) {
+                lv_area_t   area;
+                char        buf[64];
+
+                area.x1 = dsc->draw_area->x2 - 200;
+                area.x2 = area.x1 + 190;
+                area.y1 = dsc->draw_area->y1;
+                area.y2 = dsc->draw_area->y2;
+                
+                snprintf(buf, sizeof(buf), "%i km", grid_dist(qth));
+                lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
             }
         }
     }
@@ -573,7 +620,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, draw_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+    lv_obj_add_event_cb(table, draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+    lv_obj_add_event_cb(table, draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
 
     lv_obj_set_size(table, 775, 325);
     

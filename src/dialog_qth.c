@@ -9,6 +9,8 @@
 #include "textarea_window.h"
 #include "params.h"
 #include "main_screen.h"
+#include "qth.h"
+#include "msg.h"
 
 static void close_cb() {
     main_screen_keys_enable(true);
@@ -17,9 +19,11 @@ static void close_cb() {
 static void edit_ok_cb() {
     const char *qth = textarea_window_get();
 
-    params_lock();    
-    strncpy(params.qth, qth, sizeof(params.qth) - 1);
-    params_unlock(&params.durty.qth);
+    if (grid_check(qth)) {
+        qth_set(qth);
+    } else {
+        msg_set_text_fmt("Incorrect QTH Grid");
+    }
 
     main_screen_keys_enable(true);
 }
