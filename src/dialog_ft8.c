@@ -344,14 +344,14 @@ static void * decode_thread(void *arg) {
                 switch (params.ft8_protocol) {
                     case PROTO_FT4:
                         switch (tm->tm_sec) {
-                            case 0:
-                            case 7:
-                            case 15:
-                            case 22:
-                            case 30:
-                            case 37:
-                            case 45:
-                            case 52:
+                            case 0 ... 1:
+                            case 7 ... 8:
+                            case 15 ... 16:
+                            case 22 ... 23:
+                            case 30 ... 31:
+                            case 37 ... 38:
+                            case 45 ... 46:
+                            case 52 ... 53:
                                 start = true;
                                 break;
                                 
@@ -361,7 +361,17 @@ static void * decode_thread(void *arg) {
                         break;
                         
                     case PROTO_FT8:
-                        start = tm->tm_sec % 15 == 0;
+                        switch (tm->tm_sec) {
+                            case 0 ... 1:
+                            case 15 ... 16:
+                            case 30 ... 31:
+                            case 45 ... 46:
+                                start = true;
+                                break;
+                                
+                            default:
+                                start = false;
+                        }
                         break;
                 }
                 
