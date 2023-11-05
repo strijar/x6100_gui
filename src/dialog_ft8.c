@@ -578,8 +578,18 @@ static void load_band() {
 static void clean() {
     reset();
     rx_state = RX_IDLE;
-    lv_table_set_row_cnt(table, 0);
+
+    lv_table_set_row_cnt(table, 1);
+    lv_table_set_cell_value(table, 0, 0, "Wait sync");
+    lv_table_add_cell_ctrl(table, 0, 0, LV_TABLE_CELL_CTRL_CUSTOM_1);
+    lv_table_clear_cell_ctrl(table, 0, 0, LV_TABLE_CELL_CTRL_CUSTOM_2);
+
     table_rows = 0;
+
+    int32_t *c = malloc(sizeof(int32_t));
+    *c = LV_KEY_UP;
+        
+    lv_event_send(table, LV_EVENT_KEY, c);
 }
 
 static void band_cb(lv_event_t * e) {
@@ -652,6 +662,9 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_text_color(table, lv_color_black(), LV_PART_ITEMS | LV_STATE_EDITED);
     lv_obj_set_style_bg_color(table, lv_color_white(), LV_PART_ITEMS | LV_STATE_EDITED);
     lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
+
+    lv_table_set_cell_value(table, 0, 0, "Wait sync");
+    lv_table_add_cell_ctrl(table, 0, 0, LV_TABLE_CELL_CTRL_CUSTOM_1);
 
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
