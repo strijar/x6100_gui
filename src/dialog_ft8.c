@@ -494,13 +494,15 @@ static void draw_part_end_cb(lv_event_t * e) {
             const char *qth = find_qth(str);
             
             if (qth) {
-                lv_area_t   area;
-                char        buf[64];
+                lv_area_t           area;
+                char                buf[64];
+                const lv_coord_t    cell_top = lv_obj_get_style_pad_top(obj, LV_PART_ITEMS);
+                const lv_coord_t    cell_bottom = lv_obj_get_style_pad_bottom(obj, LV_PART_ITEMS);
 
                 area.x1 = dsc->draw_area->x2 - 200;
                 area.x2 = area.x1 + 190;
-                area.y1 = dsc->draw_area->y1;
-                area.y2 = dsc->draw_area->y2;
+                area.y1 = dsc->draw_area->y1 + cell_top;
+                area.y2 = dsc->draw_area->y2 - cell_bottom;
                 
                 snprintf(buf, sizeof(buf), "%i km", grid_dist(qth));
                 lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
