@@ -32,6 +32,8 @@ static void ft4_extract_symbol(const uint8_t* wf, float* logl);
 static void ft8_extract_symbol(const uint8_t* wf, float* logl);
 static void ft8_decode_multi_symbols(const uint8_t* wf, int num_bins, int n_syms, int bit_idx, float* log174);
 
+int get_snr(const waterfall_t* wf, candidate_t candidate);
+
 static int get_index(const waterfall_t* wf, const candidate_t* candidate)
 {
     int offset = candidate->time_offset;
@@ -230,7 +232,76 @@ int ft8_find_sync(const waterfall_t* wf, int num_candidates, candidate_t heap[],
         heapify_down(heap, len_unsorted);
     }
 
+    for (int i = 0; i < heap_size; i++) {
+        heap[i].snr = get_snr(wf,heap[i]);
+    }
+
     return heap_size;
+}
+
+void swap(int* xp, int* yp) {
+    int temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+ 
+// Function to perform Selection Sort
+void selectionSort(int arr[], int n) {
+    int i, j, min_idx;
+  
+    for (i = 0; i < n-1; i++) {
+        min_idx = i;
+
+        for (j = i+1; j < n; j++)
+          if (arr[j] < arr[min_idx])
+            min_idx = j;
+  
+        swap(&arr[min_idx], &arr[i]);
+    }
+}
+
+int get_snr(const waterfall_t* wf, candidate_t candidate) {
+    //array with wf.num_blocks (row of watterfall) x 8*wf.freq_osr (signals witdh)
+    //Get this watterfall zoom on the candidate symbols
+    //Sort max to min and calculate max/min = ft8snr and return with substract of -26db for get snr on 2500hz
+
+    int     m = wf->freq_osr * wf->time_osr;
+    int     l = 8 * m;
+    int     n = 2 * m;
+    float   freq_hz = (candidate.freq_offset + (float)candidate.freq_sub / 2) / 0.160f;
+    float   minC = 0, maxC = 0;
+    int     i = 0;
+
+    while (i < wf->num_blocks) {
+        int candidate_zoom[l];
+
+        for (int j = 0; j< 8; j++) {
+            for(int k = 0; k<m; k++) {
+                candidate_zoom[(j*m)+k] = wf->mag[( (i * wf->block_stride) + candidate.freq_offset + candidate.freq_sub + (j*m) + k )];
+            }
+        }
+
+        selectionSort(candidate_zoom,l);
+
+        for (int j = 0; j < n; j++) {
+            minC += candidate_zoom[j+(n)];
+        }
+
+        for (int j = 1; j <= m; j++) {
+            maxC += candidate_zoom[(l)-j];
+        }
+
+        i++;
+    }
+
+    minC = minC / (wf->num_blocks*wf->freq_osr*wf->time_osr*2);
+    maxC = maxC / (wf->num_blocks*wf->freq_osr*wf->time_osr);
+
+    int min = (int)(minC/2 - 240);
+    int max = (int)(maxC/2 - 240);
+    int snr= max - min - 26;
+
+    return snr;
 }
 
 static void ft4_extract_likelihood(const waterfall_t* wf, const candidate_t* cand, float* log174)
