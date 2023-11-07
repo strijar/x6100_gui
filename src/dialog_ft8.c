@@ -510,10 +510,6 @@ static void draw_part_begin_cb(lv_event_t * e) {
 
 
 static void draw_part_end_cb(lv_event_t * e) {
-    if (params.qth[0] == 0) {
-        return;
-    }
-
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
 
