@@ -720,27 +720,25 @@ void radio_start_atu() {
 }
 
 bool radio_start_swrscan() {
-    static uint64_t freq_save;
-
-    if (state == RADIO_RX) {
-        state = RADIO_SWRSCAN;
-
-        freq_save = params_band.vfo_x[params_band.vfo].freq;
-        x6100_control_vfo_mode_set(params_band.vfo, x6100_mode_am);
-        x6100_control_txpwr_set(5.0f);
-        x6100_control_swrscan_set(true);
-        
-        return true;
-    } else if (state == RADIO_SWRSCAN) {
-        x6100_control_swrscan_set(false);
-        x6100_control_txpwr_set(params.pwr);
-        x6100_control_vfo_mode_set(params_band.vfo, radio_current_mode());
-        radio_set_freq(freq_save);
-
-        state = RADIO_RX;
+    if (state != RADIO_RX) {
+        return false;
     }
     
-    return false;
+    state = RADIO_SWRSCAN;
+
+    x6100_control_vfo_mode_set(params_band.vfo, x6100_mode_am);
+    x6100_control_txpwr_set(5.0f);
+    x6100_control_swrscan_set(true);
+        
+    return true;
+}
+
+void radio_stop_swrscan() {
+    if (state == RADIO_SWRSCAN) {
+        x6100_control_swrscan_set(false);
+        x6100_control_txpwr_set(params.pwr);
+        state = RADIO_RX;
+    }
 }
 
 void radio_load_atu() {

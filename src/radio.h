@@ -109,6 +109,7 @@ void radio_start_atu();
 void radio_load_atu();
 
 bool radio_start_swrscan();
+void radio_stop_swrscan();
 
 void radio_vfo_set();
 void radio_mode_set();

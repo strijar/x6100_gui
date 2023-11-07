@@ -20,6 +20,7 @@
 #include "events.h"
 #include "util.h"
 #include "keyboard.h"
+#include "main_screen.h"
 
 #define STEPS   50
 
@@ -248,11 +249,15 @@ static void key_cb(lv_event_t * e) {
 }
 
 void dialog_swrscan_run_cb(lv_event_t * e) {
-    run = radio_start_swrscan();
-    
     if (run) {
+        radio_stop_swrscan();
+        run = false;
+        mem_load(MEM_BACKUP_ID);
+    } else {
+        mem_save(MEM_BACKUP_ID);
         do_init();
         radio_set_freq(freq_start);
+        run = radio_start_swrscan();
     }
 }
 
