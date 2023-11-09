@@ -472,7 +472,7 @@ static void add_msg_cb(lv_event_t * e) {
     lv_table_add_cell_ctrl(table, table_rows, 0, ctrl);
 
     if (msg->cell) {
-        lv_table_set_user_data(table, table_rows, 0, msg->cell);
+        lv_table_set_cell_user_data(table, table_rows, 0, msg->cell);
     }
     
     if (scroll) {
@@ -531,7 +531,7 @@ static void draw_part_end_cb(lv_event_t * e) {
             area.x2 = dsc->draw_area->x2 - 15;
             area.x1 = area.x2 - 120;
 
-            ft8_cell_t *cell = lv_table_get_user_data(obj, row, col);
+            ft8_cell_t *cell = lv_table_get_cell_user_data(obj, row, col);
             
             snprintf(buf, sizeof(buf), "%i dB", cell->snr);
             lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
