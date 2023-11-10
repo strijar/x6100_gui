@@ -112,7 +112,7 @@ static void band_info_draw_cb(lv_event_t * e) {
 }
 
 static void fade_anim(void * obj, int32_t v) {
-    lv_obj_set_style_opa(obj, v, 0);
+    lv_obj_set_style_opa_layered(obj, v, 0);
 }
 
 static void fade_ready(lv_anim_t * a) {
