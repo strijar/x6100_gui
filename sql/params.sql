@@ -11,6 +11,7 @@ CREATE TABLE bands(
 .import bands_ham.csv bands
 .import bands_cb.csv bands
 .import bands_broadcast.csv bands
+.import bands_transverter.csv bands
 
 CREATE TABLE band_params(
     bands_id    INTEGER,
@@ -56,4 +57,11 @@ CREATE TABLE memory(
 CREATE TABLE msg_cw(
     id          INTEGER PRIMARY KEY,
     val         INTEGER
+);
+
+CREATE TABLE transverter(
+    id          INTEGER,
+    name        TEXT,
+    val         INTEGER,
+    UNIQUE      (id, name) ON CONFLICT REPLACE
 );

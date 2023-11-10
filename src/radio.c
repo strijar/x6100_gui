@@ -172,6 +172,8 @@ static void * radio_thread(void *arg) {
 }
 
 void radio_vfo_set() {
+    uint64_t shift;
+
     radio_lock();
 
     for (int i = 0; i < 2; i++) {
@@ -179,7 +181,10 @@ void radio_vfo_set() {
         x6100_control_vfo_agc_set(i, params_band.vfo_x[i].agc);
         x6100_control_vfo_pre_set(i, params_band.vfo_x[i].pre);
         x6100_control_vfo_att_set(i, params_band.vfo_x[i].att);
-        x6100_control_vfo_freq_set(i, params_band.vfo_x[i].freq);
+        
+        radio_check_freq(params_band.vfo_x[i].freq, &shift);
+        x6100_control_vfo_freq_set(i, params_band.vfo_x[i].freq - shift);
+        params_band.vfo_x[i].shift = (shift != 0);
     }
 
     x6100_control_vfo_set(params_band.vfo);
@@ -299,15 +304,42 @@ radio_state_t radio_get_state() {
 }
 
 void radio_set_freq(uint64_t freq) {
+    uint64_t shift = 0;
+    
+    if (!radio_check_freq(freq, &shift)) {
+        LV_LOG_ERROR("Freq %llu incorrect", freq);
+        return;
+    }
+
     params_lock();
     params_band.vfo_x[params_band.vfo].freq = freq;
+    params_band.vfo_x[params_band.vfo].shift = (shift != 0);
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
 
     radio_lock();
-    x6100_control_vfo_freq_set(params_band.vfo, freq);
+    x6100_control_vfo_freq_set(params_band.vfo, freq - shift);
     radio_unlock();
 
     radio_load_atu();
+}
+
+bool radio_check_freq(uint64_t freq, uint64_t *shift) {
+    if (freq >= 1000000 && freq <= 55000000) {
+        if (shift != NULL) {
+            *shift = 0;
+        }
+        return true;
+    }
+    
+    for (uint8_t i = 0; i < TRANSVERTER_NUM; i++)
+        if (freq >= params_transverter[i].from && freq <= params_transverter[i].to) {
+            if (shift != NULL) {
+                *shift = params_transverter[i].shift;
+            }
+            return true;
+        }
+
+    return false;
 }
 
 uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
@@ -743,9 +775,20 @@ void radio_stop_swrscan() {
 
 void radio_load_atu() {
     if (params.atu) {
+        if (params_band.vfo_x[params_band.vfo].shift) {
+            info_atu_update();
+
+            radio_lock();
+            x6100_control_atu_set(false);
+            radio_unlock();
+
+            return;
+        }
+    
         uint32_t atu = params_atu_load(&params.atu_loaded);
 
         radio_lock();
+        x6100_control_atu_set(true);
         x6100_control_cmd(x6100_atu_network, atu);
         radio_unlock();
     

@@ -37,6 +37,7 @@ typedef struct {
 
 typedef struct {
     uint64_t        freq;
+    bool            shift;
     x6100_att_t     att;
     x6100_pre_t     pre;
     x6100_mode_t    mode;
@@ -95,6 +96,7 @@ typedef enum {
     ACTION_APP_QTH
 } press_action_t;
 
+
 typedef struct {
     uint64_t            vol_modes;
     uint64_t            mfk_modes;
@@ -112,7 +114,7 @@ typedef struct {
 
     /* radio */
     
-    uint8_t             band;
+    uint16_t            band;
     int16_t             vol;
     int16_t             rfg;
     uint8_t             sql;
@@ -347,9 +349,24 @@ typedef struct {
     } durty;
 } params_t;
 
+typedef struct {
+    uint64_t        from;
+    uint64_t        to;
+    uint64_t        shift;
+    
+    struct {
+        bool        from;
+        bool        to;
+        bool        shift;
+    } durty;
+} transverter_t;
+
+#define TRANSVERTER_NUM 2
+
 extern params_t params;
 extern params_band_t params_band;
 extern params_mode_t params_mode;
+extern transverter_t params_transverter[TRANSVERTER_NUM];
 
 void params_init();
 void params_lock();

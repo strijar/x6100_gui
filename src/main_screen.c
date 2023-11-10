@@ -536,6 +536,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         dialog_construct(dialog_msg_voice, obj);
                         buttons_load_page(PAGE_MSG_VOICE_1);
                         break;
+                        
+                    default:
+                        msg_tiny_set_text_fmt("Not used in this mode");
+                        break;
                 }
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(params.long_msg);
@@ -1007,7 +1011,7 @@ lv_obj_t * main_screen() {
 
     f = lv_label_create(obj);
     lv_obj_add_style(f, &freq_style, 0);
-    lv_obj_set_pos(f, 800 - 110, y);
+    lv_obj_set_pos(f, 800 - 150, y);
     lv_label_set_recolor(f, true);
     freq[2] = f;
 

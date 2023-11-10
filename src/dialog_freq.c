@@ -24,6 +24,7 @@
 #include "info.h"
 #include "pannel.h"
 #include "main_screen.h"
+#include "msg.h"
 
 static lv_obj_t *text;
 
@@ -75,10 +76,12 @@ static void construct_cb(lv_obj_t *parent) {
 
 static void enter_freq() {
     const char* str = lv_textarea_get_text(text);
-    float       f = atof(str);
+    uint64_t    f = atof(str) * 1000000L;
     
-    if (f > 1.0f && f < 55.0f) {
-        main_screen_set_freq(f * 1000000L);
+    if (radio_check_freq(f, NULL)) {
+        main_screen_set_freq(f);
+    } else {
+        msg_set_text_fmt("Incorrect freq");
     }
 }
 

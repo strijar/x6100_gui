@@ -13,7 +13,7 @@
 #include <stdbool.h>
 
 typedef struct {
-    uint8_t     id;
+    uint16_t    id;
     char        *name;
     uint64_t    start_freq;
     uint64_t    stop_freq;
@@ -27,7 +27,7 @@ typedef struct {
 
 void bands_init();
 void bands_clear();
-void bands_insert(uint8_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t used);
+void bands_insert(uint16_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t used);
 
 void bands_activate(band_t *band, uint64_t *freq);
 void bands_change(bool up);

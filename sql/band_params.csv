@@ -30,3 +30,7 @@
 203	vfoa_mode	6
 204	vfoa_freq	27415000
 204	vfoa_mode	6
+301	vfoa_freq	145500000
+301	vfoa_mode	7
+302	vfoa_freq	433500000
+302	vfoa_mode	7

@@ -57,7 +57,7 @@ void styles_init() {
     lv_style_set_text_color(&freq_style, lv_color_white());
     lv_style_set_text_font(&freq_style, &sony_30);
     lv_style_set_pad_ver(&freq_style, 7);
-    lv_style_set_width(&freq_style, 110);
+    lv_style_set_width(&freq_style, 150);
     lv_style_set_height(&freq_style, 36);
     lv_style_set_text_align(&freq_style, LV_TEXT_ALIGN_CENTER);
 

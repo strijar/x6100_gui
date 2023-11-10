@@ -16,7 +16,7 @@
 #include "main_screen.h"
 #include "pannel.h"
 
-#define BANDS_MAX   32
+#define BANDS_MAX   64
 
 static band_t   *bands[BANDS_MAX];
 
@@ -37,7 +37,7 @@ void bands_clear() {
     }
 }
 
-void bands_insert(uint8_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t type) {
+void bands_insert(uint16_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t type) {
     band_t *band = malloc(sizeof(band_t));
     
     band->id = id;
@@ -103,7 +103,7 @@ void bands_change(bool up) {
         
         if (bands[index] != NULL && bands[index]->type != 0) {
             band_t *band = bands[index];
-
+            
             bands_activate(band, NULL);
             radio_load_atu();
             info_params_set();
