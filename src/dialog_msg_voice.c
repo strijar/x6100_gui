@@ -77,7 +77,7 @@ static dialog_t             dialog = {
 dialog_t                    *dialog_msg_voice = &dialog;
 
 static void load_table() {
-    lv_table_set_row_cnt(table, 0);
+    lv_table_set_row_cnt(table, 1);
     table_rows = 0;
 
     DIR             *dp;

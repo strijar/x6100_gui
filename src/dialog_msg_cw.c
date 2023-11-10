@@ -55,7 +55,7 @@ static void reset() {
 
     ids = NULL;
     table_rows = 0;
-    lv_table_set_row_cnt(table, 0);
+    lv_table_set_row_cnt(table, 1);
 }
 
 static void tx_cb(lv_event_t * e) {
