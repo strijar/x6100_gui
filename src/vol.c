@@ -11,10 +11,11 @@
 #include "radio.h"
 #include "main.h"
 #include "params.h"
+#include "voice.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
-void vol_update(int16_t diff) {
+void vol_update(int16_t diff, bool voice) {
     int32_t     x;
     float       f;
     char        *s;
@@ -25,31 +26,55 @@ void vol_update(int16_t diff) {
         case VOL_VOL:
             x = radio_change_vol(diff);
             msg_set_text_fmt("#%3X Volume: %i", color, x);
+            
+            if (voice) {
+                voice_say_text_fmt("Audio level");
+            }
             break;
             
         case VOL_RFG:
             x = radio_change_rfg(diff);
             msg_set_text_fmt("#%3X RF gain: %i", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("RF gain");
+            }
             break;
 
         case VOL_SQL:
             x = radio_change_sql(diff);
             msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("Squelch level");
+            }
             break;
 
         case VOL_FILTER_LOW:
             x = radio_change_filter_low(diff);
             msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("Low filter limit");
+            }
             break;
 
         case VOL_FILTER_HIGH:
             x = radio_change_filter_high(diff);
             msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("High filter limit");
+            }
             break;
 
         case VOL_PWR:
             f = radio_change_pwr(diff);
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
+
+            if (voice) {
+                voice_say_text_fmt("Transmit power");
+            }
             break;
 
         case VOL_MIC:
@@ -70,21 +95,37 @@ void vol_update(int16_t diff) {
             }
             
             msg_set_text_fmt("#%3X MIC: %s", color, s);
+
+            if (voice) {
+                voice_say_text_fmt("Mic selector");
+            }
             break;
 
         case VOL_HMIC:
             x = radio_change_hmic(diff);
             msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("Hand microphone gain");
+            }
             break;
 
         case VOL_IMIC:
             x = radio_change_imic(diff);
             msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("Internal microphone gain");
+            }
             break;
 
         case VOL_MONI:
             x = radio_change_moni(diff);
             msg_set_text_fmt("#%3X Moni level: %i", color, x);
+
+            if (voice) {
+                voice_say_text_fmt("Monitor level");
+            }
             break;
             
         default:
@@ -113,7 +154,7 @@ void vol_press(int16_t dir) {
         }
     }
 
-    vol_update(0);
+    vol_update(0, true);
 }
 
 void vol_set_mode(vol_mode_t mode) {

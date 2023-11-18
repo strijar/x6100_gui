@@ -13,11 +13,13 @@ target_sources(${PROJECT_NAME} PUBLIC
     dialog_ft8.c dialog_freq.c dialog_gps.c dialog_msg_cw.c 
     dialog_msg_voice.c dialog_recorder.c dialog_qth.c
     textarea_window.c cw_encoder.c buttons.c vol.c recorder.c
-    qth.c
+    qth.c voice.cpp
 )
 
 add_subdirectory(fonts)
 add_subdirectory(ft8)
+
+include_directories(utf8)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -37,3 +39,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
 target_link_libraries(${PROJECT_NAME} PRIVATE png)
 target_link_libraries(${PROJECT_NAME} PRIVATE gps)
 target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
+target_link_libraries(${PROJECT_NAME} PRIVATE RHVoice RHVoice_core RHVoice_audio)

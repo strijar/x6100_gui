@@ -15,6 +15,7 @@
 #include "waterfall.h"
 #include "main_screen.h"
 #include "pannel.h"
+#include "voice.h"
 
 #define BANDS_MAX   64
 
@@ -112,6 +113,8 @@ void bands_change(bool up) {
             waterfall_clear();
             spectrum_clear();
             main_screen_band_set();
+            
+            voice_say_text_fmt("Band %s", band->name);
 
             return;
         }

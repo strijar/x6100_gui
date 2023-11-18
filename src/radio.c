@@ -27,6 +27,7 @@
 #include "clock.h"
 #include "info.h"
 #include "dialog_swrscan.h"
+#include "voice.h"
 
 #define FLOW_RESTART_TIMOUT 300
 #define IDLE_TIMEOUT        (3 * 1000)
@@ -433,6 +434,7 @@ bool radio_change_pre() {
     x6100_control_vfo_pre_set(params_band.vfo, params_band.vfo_x[params_band.vfo].pre);
     radio_unlock();
 
+    voice_say_text_fmt("Preamplifier %s", params_band.vfo_x[params_band.vfo].pre ? "On" : "Off");
     return params_band.vfo_x[params_band.vfo].pre;
 }
 
@@ -446,6 +448,7 @@ bool radio_change_att() {
     x6100_control_vfo_att_set(params_band.vfo, params_band.vfo_x[params_band.vfo].att);
     radio_unlock();
 
+    voice_say_text_fmt("Attenuator %s", params_band.vfo_x[params_band.vfo].att ? "On" : "Off");
     return params_band.vfo_x[params_band.vfo].att;
 }
 
@@ -518,14 +521,17 @@ void radio_change_mode(radio_mode_t select) {
             switch (mode) {
                 case x6100_mode_am:
                     mode = x6100_mode_nfm;
+                    voice_say_text_fmt("N F M modulation");
                     break;
                     
                 case x6100_mode_nfm:
                     mode = x6100_mode_am;
+                    voice_say_text_fmt("A M modulation");
                     break;
                     
                 default:
                     mode = x6100_mode_am;
+                    voice_say_text_fmt("A M modulation");
                     break;
             }
             break;
@@ -534,14 +540,17 @@ void radio_change_mode(radio_mode_t select) {
             switch (mode) {
                 case x6100_mode_cw:
                     mode = x6100_mode_cwr;
+                    voice_say_text_fmt("CWR modulation");
                     break;
                     
                 case x6100_mode_cwr:
                     mode = x6100_mode_cw;
+                    voice_say_text_fmt("CW modulation");
                     break;
                     
                 default:
                     mode = x6100_mode_cw;
+                    voice_say_text_fmt("CW modulation");
                     break;
             }
             break;
@@ -550,22 +559,27 @@ void radio_change_mode(radio_mode_t select) {
             switch (mode) {
                 case x6100_mode_lsb:
                     mode = x6100_mode_lsb_dig;
+                    voice_say_text_fmt("LSB digital modulation");
                     break;
                     
                 case x6100_mode_lsb_dig:
                     mode = x6100_mode_usb;
+                    voice_say_text_fmt("USB modulation");
                     break;
                     
                 case x6100_mode_usb:
                     mode = x6100_mode_usb_dig;
+                    voice_say_text_fmt("USB digital modulation");
                     break;
                     
                 case x6100_mode_usb_dig:
                     mode = x6100_mode_lsb;
+                    voice_say_text_fmt("LSB modulation");
                     break;
                     
                 default: 
                     mode = x6100_mode_lsb;
+                    voice_say_text_fmt("LSB modulation");
                     break;
             }
             break;
@@ -708,18 +722,22 @@ void radio_change_agc() {
     switch (agc) {
         case x6100_agc_off:
             agc = x6100_agc_slow;
+            voice_say_text_fmt("Auto gain slow mode");
             break;
             
         case x6100_agc_slow:
             agc = x6100_agc_fast;
+            voice_say_text_fmt("Auto gain fast mode");
             break;
             
         case x6100_agc_fast:
             agc = x6100_agc_auto;
+            voice_say_text_fmt("Auto gain auto mode");
             break;
             
         case x6100_agc_auto:
             agc = x6100_agc_off;
+            voice_say_text_fmt("Auto gain off");
             break;
     }
 
@@ -743,6 +761,7 @@ void radio_change_atu() {
     radio_unlock();
     
     radio_load_atu();
+    voice_say_text_fmt("Auto tuner %s", params.atu ? "On" : "Off");
 }
 
 void radio_start_atu() {
@@ -1068,6 +1087,7 @@ x6100_vfo_t radio_change_vfo() {
     x6100_vfo_t vfo = (params_band.vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A;
 
     radio_set_vfo(vfo);
+    voice_say_text_fmt("V F O %s", (params_band.vfo == X6100_VFO_A) ? "A" : "B");
     
     return params_band.vfo;
 }
@@ -1080,6 +1100,7 @@ void radio_change_split() {
     radio_lock();
     x6100_control_split_set(params_band.split);
     radio_unlock();
+    voice_say_text_fmt("Split %s", params_band.split ? "On" : "Off");
 }
 
 void radio_poweroff() {

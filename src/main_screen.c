@@ -47,6 +47,7 @@
 #include "backlight.h"
 #include "buttons.h"
 #include "recorder.h"
+#include "voice.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -195,6 +196,7 @@ static void next_freq_step(bool up) {
 
     params_unlock(&params_mode.durty.freq_step);
     msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
+    voice_say_text_fmt("Frequency step %i herz", params_mode.freq_step);
 }
 
 static void apps_disable() {
@@ -487,6 +489,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 mfk_set_mode(MFK_MIN_LEVEL);
                 buttons_unload_page();
                 buttons_load_page(PAGE_VOL_1);
+                voice_say_text_fmt("General menu keys");
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(params.long_gen);
             }
@@ -497,6 +500,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_APP_1);
+                voice_say_text_fmt("Application menu keys");
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(params.long_app);
             }
@@ -507,6 +511,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_KEY_1);
+                voice_say_text_fmt("CW parameters");
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(params.long_key);
             }
@@ -523,6 +528,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         pannel_hide();
                         dialog_construct(dialog_msg_cw, obj);
                         buttons_load_page(PAGE_MSG_CW_1);
+                        voice_say_text_fmt("CW messages");
                         break;
                         
                     case x6100_mode_lsb:
@@ -535,6 +541,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         pannel_hide();
                         dialog_construct(dialog_msg_voice, obj);
                         buttons_load_page(PAGE_MSG_VOICE_1);
+                        voice_say_text_fmt("Voice messages");
                         break;
                         
                     default:
@@ -551,6 +558,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 apps_disable();
                 buttons_unload_page();
                 buttons_load_page(PAGE_DFN_1);
+                voice_say_text_fmt("DNF parameters");
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(params.long_dfn);
             }
@@ -577,6 +585,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 params_band_vfo_clone();
                 radio_vfo_set();
                 msg_set_text_fmt("Clone VFO %s", params_band.vfo == X6100_VFO_A ? "A->B" : "B->A");
+                voice_say_text_fmt("V F O cloned %s", params_band.vfo == X6100_VFO_A ? "from A to B" : "from B to A");
             }
             break;
 
@@ -584,6 +593,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 backlight_switch();
             } else if (keypad->state == KEYPAD_LONG) {
+                voice_say_text_fmt("Power off");
                 msg_set_text_fmt("Power off");
                 radio_poweroff();
             }
@@ -593,6 +603,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 freq_lock = !freq_lock;
                 freq_update();
+                voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_bb_reset();
                 exit(1);
@@ -646,8 +657,10 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         case HKEY_8:
             if (hkey->state == HKEY_RELEASE) {
                 mem_load(hkey->key - HKEY_1 + 1);
+                voice_say_text_fmt("Memory %i loaded", hkey->key - HKEY_1 + 1);
             } else if (hkey->state == HKEY_LONG) {
                 mem_save(hkey->key - HKEY_1 + 1);
+                voice_say_text_fmt("Memory %i stored", hkey->key - HKEY_1 + 1);
             }
             break;
             
@@ -655,6 +668,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
                 freq_update();
+                voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
             }
             break;
             
@@ -766,6 +780,7 @@ static void freq_shift(int16_t diff) {
     check_cross_band(freq, prev_freq);
     
     dialog_send(EVENT_FREQ_UPDATE, NULL);
+    voice_say_freq(freq);
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -800,12 +815,12 @@ static void spectrum_key_cb(lv_event_t * e) {
 
         case KEY_VOL_LEFT_EDIT:
         case '[':
-            vol_update(-1);
+            vol_update(-1, false);
             break;
             
         case KEY_VOL_RIGHT_EDIT:
         case ']':
-            vol_update(+1);
+            vol_update(+1, false);
             break;
 
         case KEY_VOL_LEFT_SELECT:
@@ -828,7 +843,7 @@ static void spectrum_key_cb(lv_event_t * e) {
         case LV_KEY_LEFT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
-                    mfk_update(-1);
+                    mfk_update(-1, false);
                     break;
                     
                 case MFK_STATE_SELECT:
@@ -840,7 +855,7 @@ static void spectrum_key_cb(lv_event_t * e) {
         case LV_KEY_RIGHT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
-                    mfk_update(+1);
+                    mfk_update(+1, false);
                     break;
                     
                 case MFK_STATE_SELECT:
@@ -854,13 +869,15 @@ static void spectrum_key_cb(lv_event_t * e) {
                 switch (vol->mode) {
                     case VOL_EDIT:
                         vol->mode = VOL_SELECT;
+                        voice_say_text_fmt("Selection mode");
                         break;
                         
                     case VOL_SELECT:
                         vol->mode = VOL_EDIT;
+                        voice_say_text_fmt("Edit mode");
                         break;
                 }
-                vol_update(0);
+                vol_update(0, false);
             }
             break;
 
@@ -905,13 +922,15 @@ static void spectrum_pressed_cb(lv_event_t * e) {
     switch (mfk_state) {
         case MFK_STATE_EDIT:
             mfk_state = MFK_STATE_SELECT;
+            voice_say_text_fmt("Selection mode");
             break;
             
         case MFK_STATE_SELECT:
             mfk_state = MFK_STATE_EDIT;
+            voice_say_text_fmt("Edit mode");
             break;
     }
-    mfk_update(0);
+    mfk_update(0, false);
 }
 
 static void keys_enable_cb(lv_timer_t *t) {

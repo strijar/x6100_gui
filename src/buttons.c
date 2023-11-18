@@ -24,6 +24,7 @@
 #include "dialog_msg_cw.h"
 #include "dialog_msg_voice.h"
 #include "dialog_recorder.h"
+#include "voice.h"
 
 #define BUTTONS     5
 
@@ -308,14 +309,14 @@ static void button_vol_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
     vol_set_mode(item->data);
-    vol_update(0);
+    vol_update(0, true);
 }
 
 static void button_mfk_update_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
     mfk_set_mode(item->data);
-    mfk_update(0);
+    mfk_update(0, true);
 }
 
 static void button_prev_page_cb(void * ptr) {
@@ -359,12 +360,14 @@ static void button_mem_load_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
     mem_load(item->data);
+    voice_say_text_fmt("Memory %i loaded", item->data);
 }
 
 static void button_mem_save_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
  
     mem_save(item->data);
+    voice_say_text_fmt("Memory %i stored", item->data);
 }
 
 void buttons_press(uint8_t n, bool hold) {

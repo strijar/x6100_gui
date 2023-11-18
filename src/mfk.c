@@ -19,11 +19,12 @@
 #include "util.h"
 #include "info.h"
 #include "backlight.h"
+#include "voice.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
 
-void mfk_update(int16_t diff) {
+void mfk_update(int16_t diff, bool voice) {
     int32_t     i;
     char        *str;
     bool        b;
@@ -38,6 +39,10 @@ void mfk_update(int16_t diff) {
                 spectrum_set_min(params_band.grid_min);
             }
             msg_set_text_fmt("#%3X Min level: %i dB", color, params_band.grid_min);
+            
+            if (voice) {
+                voice_say_text_fmt("Spectrum min level");
+            }
             break;
             
         case MFK_MAX_LEVEL:
@@ -46,6 +51,10 @@ void mfk_update(int16_t diff) {
                 spectrum_set_max(params_band.grid_max);
             }
             msg_set_text_fmt("#%3X Max level: %i dB", color, params_band.grid_max);
+
+            if (voice) {
+                voice_say_text_fmt("Spectrum max level");
+            }
             break;
 
         case MFK_SPECTRUM_FACTOR:
@@ -63,6 +72,10 @@ void mfk_update(int16_t diff) {
                 spectrum_mode_set();
             }
             msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, params_mode.spectrum_factor);
+
+            if (voice) {
+                voice_say_text_fmt("Spectrum zoom");
+            }
             break;
 
         case MFK_SPECTRUM_BETA:
@@ -80,6 +93,10 @@ void mfk_update(int16_t diff) {
                 dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
             }
             msg_set_text_fmt("#%3X Spectrum beta: %i", color, params.spectrum_beta);
+
+            if (voice) {
+                voice_say_text_fmt("Spectrum beta");
+            }
             break;
 
         case MFK_SPECTRUM_FILL:
@@ -89,6 +106,10 @@ void mfk_update(int16_t diff) {
                 params_unlock(&params.durty.spectrum_filled);
             }
             msg_set_text_fmt("#%3X Spectrum fill: %s", color, params.spectrum_filled ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("Spectrum fill switcher");
+            }
             break;
             
         case MFK_SPECTRUM_PEAK:
@@ -98,6 +119,10 @@ void mfk_update(int16_t diff) {
                 params_unlock(&params.durty.spectrum_peak);
             }
             msg_set_text_fmt("#%3X Spectrum peak: %s", color, params.spectrum_peak ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("Spectrum peak switcher");
+            }
             break;
 
         case MFK_PEAK_HOLD:
@@ -115,6 +140,10 @@ void mfk_update(int16_t diff) {
                 params_unlock(&params.durty.spectrum_peak_hold);
             }
             msg_set_text_fmt("#%3X Peak hold: %i s", color, params.spectrum_peak_hold / 1000);
+
+            if (voice) {
+                voice_say_text_fmt("Peak hold time");
+            }
             break;
             
         case MFK_PEAK_SPEED:
@@ -132,11 +161,19 @@ void mfk_update(int16_t diff) {
                 params_unlock(&params.durty.spectrum_peak_speed);
             }
             msg_set_text_fmt("#%3X Peak speed: %.1f dB", color, params.spectrum_peak_speed);
+
+            if (voice) {
+                voice_say_text_fmt("Peak speed time");
+            }
             break;
             
         case MFK_KEY_SPEED:
             i = radio_change_key_speed(diff);
             msg_set_text_fmt("#%3X Key speed: %i wpm", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("CW key speed");
+            }
             break;
 
         case MFK_KEY_MODE:
@@ -156,6 +193,10 @@ void mfk_update(int16_t diff) {
                     break;
             }
             msg_set_text_fmt("#%3X Key mode: %s", color, str);
+
+            if (voice) {
+                voice_say_text_fmt("CW key mode selector");
+            }
             break;
             
         case MFK_IAMBIC_MODE:
@@ -171,31 +212,55 @@ void mfk_update(int16_t diff) {
                     break;
             }
             msg_set_text_fmt("#%3X Iambic mode: %s", color, str);
+
+            if (voice) {
+                voice_say_text_fmt("Iambic mode selector");
+            }
             break;
             
         case MFK_KEY_TONE:
             i = radio_change_key_tone(diff);
             msg_set_text_fmt("#%3X Key tone: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("CW key tone");
+            }
             break;
 
         case MFK_KEY_VOL:
             i = radio_change_key_vol(diff);
             msg_set_text_fmt("#%3X Key volume: %i", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("CW key volume level");
+            }
             break;
 
         case MFK_KEY_TRAIN:
             b = radio_change_key_train(diff);
             msg_set_text_fmt("#%3X Key train: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("CW key train switcher");
+            }
             break;
 
         case MFK_QSK_TIME:
             i = radio_change_qsk_time(diff);
             msg_set_text_fmt("#%3X QSK time: %i ms", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("CW key QSK time");
+            }
             break;
 
         case MFK_KEY_RATIO:
             i = radio_change_key_ratio(diff);
             msg_set_text_fmt("#%3X Key ratio: %.1f", color, i * 0.1f);
+
+            if (voice) {
+                voice_say_text_fmt("CW key ration");
+            }
             break;
 
         case MFK_CHARGER:
@@ -215,6 +280,10 @@ void mfk_update(int16_t diff) {
                     break;
             }
             msg_set_text_fmt("#%3X Charger: %s", color, str);
+
+            if (voice) {
+                voice_say_text_fmt("Charger mode selector");
+            }
             break;
             
         case MFK_ANT:
@@ -227,111 +296,199 @@ void mfk_update(int16_t diff) {
                 info_atu_update();
             }
             msg_set_text_fmt("#%3X Antenna : %i", color, params.ant);
+
+            if (voice) {
+                voice_say_text_fmt("Antenna selector");
+            }
             break;
 
         case MFK_RIT:
             i = radio_change_rit(diff);
             msg_set_text_fmt("#%3X RIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
+
+            if (voice) {
+                voice_say_text_fmt("RIT");
+            }
             break;
 
         case MFK_XIT:
             i = radio_change_xit(diff);
             msg_set_text_fmt("#%3X XIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
+
+            if (voice) {
+                voice_say_text_fmt("XIT");
+            }
             break;
             
         case MFK_DNF:
             b = radio_change_dnf(diff);
             msg_set_text_fmt("#%3X DNF: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("DNF switcher");
+            }
             break;
 
         case MFK_DNF_CENTER:
             i = radio_change_dnf_center(diff);
             msg_set_text_fmt("#%3X DNF center: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("DNF center frequency");
+            }
             break;
             
         case MFK_DNF_WIDTH:
             i = radio_change_dnf_width(diff);
             msg_set_text_fmt("#%3X DNF width: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("DNF width");
+            }
             break;
 
         case MFK_NB:
             b = radio_change_nb(diff);
             msg_set_text_fmt("#%3X NB: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("NB switcher");
+            }
             break;
 
         case MFK_NB_LEVEL:
             i = radio_change_nb_level(diff);
             msg_set_text_fmt("#%3X NB level: %i", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("NB level");
+            }
             break;
 
         case MFK_NB_WIDTH:
             i = radio_change_nb_width(diff);
             msg_set_text_fmt("#%3X NB width: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("NB width");
+            }
             break;
 
         case MFK_NR:
             b = radio_change_nr(diff);
             msg_set_text_fmt("#%3X NR: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("NR switcher");
+            }
             break;
 
         case MFK_NR_LEVEL:
             i = radio_change_nr_level(diff);
             msg_set_text_fmt("#%3X NR level: %i", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("NR level");
+            }
             break;
 
         case MFK_AGC_HANG:
             b = radio_change_agc_hang(diff);
             msg_set_text_fmt("#%3X AGC hang: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("Auto gain hang switcher");
+            }
             break;
 
         case MFK_AGC_KNEE:
             i = radio_change_agc_knee(diff);
             msg_set_text_fmt("#%3X AGC knee: %i dB", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("Auto gain knee level");
+            }
             break;
 
         case MFK_AGC_SLOPE:
             i = radio_change_agc_slope(diff);
             msg_set_text_fmt("#%3X AGC slope: %i dB", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("Auto gain slope level");
+            }
             break;
 
         case MFK_CW_DECODER:
             b = cw_change_decoder(diff);
             msg_set_text_fmt("#%3X CW decoder: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("CW decoder switcher");
+            }
             break;
             
         case MFK_CW_DECODER_SNR:
             f = cw_change_snr(diff);
             msg_set_text_fmt("#%3X CW decoder SNR: %.1f dB", color, f);
+
+            if (voice) {
+                voice_say_text_fmt("CW decoder SNR level");
+            }
             break;
             
         case MFK_CW_DECODER_PEAK_BETA:
             f = cw_change_peak_beta(diff);
             msg_set_text_fmt("#%3X CW decoder peak beta: %.2f", color, f);
+
+            if (voice) {
+                voice_say_text_fmt("CW decoder peak beta");
+            }
             break;
             
         case MFK_CW_DECODER_NOISE_BETA:
             f = cw_change_noise_beta(diff);
             msg_set_text_fmt("#%3X CW decoder noise beta: %.2f", color, f);
+
+            if (voice) {
+                voice_say_text_fmt("CW decoder noise beta");
+            }
             break;
 
         case MFK_RTTY_RATE:
             f = rtty_change_rate(diff);
             msg_set_text_fmt("#%3X RTTY rate: %.2f", color, f);
+
+            if (voice) {
+                voice_say_text_fmt("Teletype rate");
+            }
             break;
 
         case MFK_RTTY_SHIFT:
             i = rtty_change_shift(diff);
             msg_set_text_fmt("#%3X RTTY shift: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("Teletype frequency shift");
+            }
             break;
         
         case MFK_RTTY_CENTER:
             i = rtty_change_center(diff);
             msg_set_text_fmt("#%3X RTTY center: %i Hz", color, i);
+
+            if (voice) {
+                voice_say_text_fmt("Teletype frequency center");
+            }
             break;
         
         case MFK_RTTY_REVERSE:
             b = rtty_change_reverse(diff);
             msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
+
+            if (voice) {
+                voice_say_text_fmt("Teletype reverse switcher");
+            }
             break;
 
         default:
@@ -362,7 +519,7 @@ void mfk_press(int16_t dir) {
         }
     }
     
-    mfk_update(0);
+    mfk_update(0, true);
 }
 
 void mfk_set_mode(mfk_mode_t mode) {
