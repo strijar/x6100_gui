@@ -24,6 +24,7 @@
 #include "events.h"
 #include "keyboard.h"
 #include "clock.h"
+#include "voice.h"
 
 static lv_obj_t     *grid;
 
@@ -1006,6 +1007,128 @@ static uint8_t make_transverter(uint8_t row, uint8_t n) {
     return row + 1;
 }
 
+/* Voice */
+
+static void voice_mode_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.voice_mode = lv_dropdown_get_selected(obj);
+    params_unlock(&params.durty.voice_mode);
+}
+
+static void voice_rate_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.voice_rate = lv_spinbox_get_value(obj);
+    params_unlock(&params.durty.voice_rate);
+    
+    voice_delay_say_text_fmt("Rate %i", params.voice_rate);
+}
+
+static void voice_pitch_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.voice_pitch = lv_spinbox_get_value(obj);
+    params_unlock(&params.durty.voice_pitch);
+
+    voice_delay_say_text_fmt("Pitch %i", params.voice_pitch);
+}
+
+static void voice_volume_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    params_lock();
+    params.voice_volume = lv_spinbox_get_value(obj);
+    params_unlock(&params.durty.voice_volume);
+
+    voice_delay_say_text_fmt("Volume %i", params.voice_volume);
+}
+
+static uint8_t make_voice(uint8_t row) {
+    lv_obj_t    *obj;
+    uint8_t     col = 0;
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Voice mode");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_dropdown_create(grid);
+
+    dialog_item(&dialog, obj);
+    
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_center(obj);
+    
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+    
+    lv_dropdown_set_options(obj, " Off \n When LCD off \n Always");
+    lv_dropdown_set_symbol(obj, NULL);
+    lv_dropdown_set_selected(obj, params.voice_mode);
+    lv_obj_add_event_cb(obj, voice_mode_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    /* * */
+
+    row++;
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+    
+    lv_label_set_text(obj, "Voice rate, pitch, volume");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_spinbox_create(grid);
+    sec = obj;
+
+    dialog_item(&dialog, obj);
+
+    lv_spinbox_set_value(obj, params.voice_rate);
+    lv_spinbox_set_range(obj, 50, 150);
+    lv_spinbox_set_digit_format(obj, 3, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_2, 56);
+    
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
+    lv_obj_add_event_cb(obj, voice_rate_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    obj = lv_spinbox_create(grid);
+    sec = obj;
+
+    dialog_item(&dialog, obj);
+
+    lv_spinbox_set_value(obj, params.voice_pitch);
+    lv_spinbox_set_range(obj, 50, 150);
+    lv_spinbox_set_digit_format(obj, 3, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_2, 56);
+    
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
+    lv_obj_add_event_cb(obj, voice_pitch_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    obj = lv_spinbox_create(grid);
+    sec = obj;
+
+    dialog_item(&dialog, obj);
+
+    lv_spinbox_set_value(obj, params.voice_volume);
+    lv_spinbox_set_range(obj, 25, 150);
+    lv_spinbox_set_digit_format(obj, 3, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_2, 56);
+    
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
+    lv_obj_add_event_cb(obj, voice_volume_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    return row + 1;
+}
+
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
     
@@ -1058,6 +1181,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_audio_gain(row);
+
+    row = make_delimiter(row);
+    row = make_voice(row);
 
     row = make_delimiter(row);
     

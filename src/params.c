@@ -454,169 +454,179 @@ static bool params_load() {
     }
     
     while (sqlite3_step(stmt) != SQLITE_DONE) {
-        const char *name = sqlite3_column_text(stmt, 0);
+        const char      *name = sqlite3_column_text(stmt, 0);
+        const int32_t   i = sqlite3_column_int(stmt, 1);
+        const int64_t   l = sqlite3_column_int64(stmt, 1);
 
         if (strcmp(name, "band") == 0) {
-            params.band = sqlite3_column_int(stmt, 1);
+            params.band = i;
             params_band_load();
         } else if (strcmp(name, "vol") == 0) {
-            params.vol = sqlite3_column_int(stmt, 1);
+            params.vol = i;
         } else if (strcmp(name, "rfg") == 0) {
-            params.rfg = sqlite3_column_int(stmt, 1);
+            params.rfg = i;
         } else if (strcmp(name, "sql") == 0) {
-            params.sql = sqlite3_column_int(stmt, 1);
+            params.sql = i;
         } else if (strcmp(name, "atu") == 0) {
-            params.atu = sqlite3_column_int(stmt, 1);
+            params.atu = i;
         } else if (strcmp(name, "pwr") == 0) {
-            params.pwr = sqlite3_column_int(stmt, 1) * 0.1f;
+            params.pwr = i * 0.1f;
         } else if (strcmp(name, "spectrum_beta") == 0) {
-            params.spectrum_beta = sqlite3_column_int(stmt, 1);
+            params.spectrum_beta = i;
         } else if (strcmp(name, "spectrum_filled") == 0) {
-            params.spectrum_filled = sqlite3_column_int(stmt, 1);
+            params.spectrum_filled = i;
         } else if (strcmp(name, "spectrum_peak") == 0) {
-            params.spectrum_peak = sqlite3_column_int(stmt, 1);
+            params.spectrum_peak = i;
         } else if (strcmp(name, "spectrum_peak_hold") == 0) {
-            params.spectrum_peak_hold = sqlite3_column_int(stmt, 1);
+            params.spectrum_peak_hold = i;
         } else if (strcmp(name, "spectrum_peak_speed") == 0) {
-            params.spectrum_peak_speed = sqlite3_column_int(stmt, 1) * 0.1f;
+            params.spectrum_peak_speed = i * 0.1f;
         } else if (strcmp(name, "key_speed") == 0) {
-            params.key_speed = sqlite3_column_int(stmt, 1);
+            params.key_speed = i;
         } else if (strcmp(name, "key_mode") == 0) {
-            params.key_mode = sqlite3_column_int(stmt, 1);
+            params.key_mode = i;
         } else if (strcmp(name, "iambic_mode") == 0) {
-            params.iambic_mode = sqlite3_column_int(stmt, 1);
+            params.iambic_mode = i;
         } else if (strcmp(name, "key_tone") == 0) {
-            params.key_tone = sqlite3_column_int(stmt, 1);
+            params.key_tone = i;
         } else if (strcmp(name, "key_vol") == 0) {
-            params.key_vol = sqlite3_column_int(stmt, 1);
+            params.key_vol = i;
         } else if (strcmp(name, "key_train") == 0) {
-            params.key_train = sqlite3_column_int(stmt, 1);
+            params.key_train = i;
         } else if (strcmp(name, "qsk_time") == 0) {
-            params.qsk_time = sqlite3_column_int(stmt, 1);
+            params.qsk_time = i;
         } else if (strcmp(name, "key_ratio") == 0) {
-            params.key_ratio = sqlite3_column_int(stmt, 1);
+            params.key_ratio = i;
         } else if (strcmp(name, "mic") == 0) {
-            params.mic = sqlite3_column_int(stmt, 1);
+            params.mic = i;
         } else if (strcmp(name, "hmic") == 0) {
-            params.hmic = sqlite3_column_int(stmt, 1);
+            params.hmic = i;
         } else if (strcmp(name, "imic") == 0) {
-            params.imic = sqlite3_column_int(stmt, 1);
+            params.imic = i;
         } else if (strcmp(name, "charger") == 0) {
-            params.charger = sqlite3_column_int(stmt, 1);
+            params.charger = i;
         } else if (strcmp(name, "dnf") == 0) {
-            params.dnf = sqlite3_column_int(stmt, 1);
+            params.dnf = i;
         } else if (strcmp(name, "dnf_center") == 0) {
-            params.dnf_center = sqlite3_column_int(stmt, 1);
+            params.dnf_center = i;
         } else if (strcmp(name, "dnf_width") == 0) {
-            params.dnf_width = sqlite3_column_int(stmt, 1);
+            params.dnf_width = i;
         } else if (strcmp(name, "nb") == 0) {
-            params.nb = sqlite3_column_int(stmt, 1);
+            params.nb = i;
         } else if (strcmp(name, "nb_level") == 0) {
-            params.nb_level = sqlite3_column_int(stmt, 1);
+            params.nb_level = i;
         } else if (strcmp(name, "nb_width") == 0) {
-            params.nb_width = sqlite3_column_int(stmt, 1);
+            params.nb_width = i;
         } else if (strcmp(name, "nr") == 0) {
-            params.nr = sqlite3_column_int(stmt, 1);
+            params.nr = i;
         } else if (strcmp(name, "nr_level") == 0) {
-            params.nr_level = sqlite3_column_int(stmt, 1);
+            params.nr_level = i;
         } else if (strcmp(name, "agc_hang") == 0) {
-            params.agc_hang = sqlite3_column_int(stmt, 1);
+            params.agc_hang = i;
         } else if (strcmp(name, "agc_knee") == 0) {
-            params.agc_knee = sqlite3_column_int(stmt, 1);
+            params.agc_knee = i;
         } else if (strcmp(name, "agc_slope") == 0) {
-            params.agc_slope = sqlite3_column_int(stmt, 1);
+            params.agc_slope = i;
         } else if (strcmp(name, "cw_decoder") == 0) {
-            params.cw_decoder = sqlite3_column_int(stmt, 1);
+            params.cw_decoder = i;
         } else if (strcmp(name, "cw_decoder_snr") == 0) {
-            params.cw_decoder_snr = sqlite3_column_int(stmt, 1) * 0.1f;
+            params.cw_decoder_snr = i * 0.1f;
         } else if (strcmp(name, "cw_decoder_peak_beta") == 0) {
-            params.cw_decoder_peak_beta = sqlite3_column_int(stmt, 1) * 0.01f;
+            params.cw_decoder_peak_beta = i * 0.01f;
         } else if (strcmp(name, "cw_decoder_noise_beta") == 0) {
-            params.cw_decoder_noise_beta = sqlite3_column_int(stmt, 1) * 0.01f;
+            params.cw_decoder_noise_beta = i * 0.01f;
         } else if (strcmp(name, "cw_encoder_period") == 0) {
-            params.cw_encoder_period = sqlite3_column_int(stmt, 1);
+            params.cw_encoder_period = i;
         } else if (strcmp(name, "voice_msg_period") == 0) {
-            params.voice_msg_period = sqlite3_column_int(stmt, 1);
+            params.voice_msg_period = i;
         } else if (strcmp(name, "vol_modes") == 0) {
-            params.vol_modes = sqlite3_column_int64(stmt, 1);
+            params.vol_modes = l;
         } else if (strcmp(name, "mfk_modes") == 0) {
-            params.mfk_modes = sqlite3_column_int64(stmt, 1);
+            params.mfk_modes = l;
         } else if (strcmp(name, "rtty_rate") == 0) {
-            params.rtty_rate = sqlite3_column_int(stmt, 1);
+            params.rtty_rate = i;
         } else if (strcmp(name, "rtty_shift") == 0) {
-            params.rtty_shift = sqlite3_column_int(stmt, 1);
+            params.rtty_shift = i;
         } else if (strcmp(name, "rtty_center") == 0) {
-            params.rtty_center = sqlite3_column_int(stmt, 1);
+            params.rtty_center = i;
         } else if (strcmp(name, "rtty_reverse") == 0) {
-            params.rtty_reverse = sqlite3_column_int(stmt, 1);
+            params.rtty_reverse = i;
         } else if (strcmp(name, "ant") == 0) {
-            params.ant = sqlite3_column_int(stmt, 1);
+            params.ant = i;
         } else if (strcmp(name, "rit") == 0) {
-            params.rit = sqlite3_column_int(stmt, 1);
+            params.rit = i;
         } else if (strcmp(name, "xit") == 0) {
-            params.xit = sqlite3_column_int(stmt, 1);
+            params.xit = i;
         } else if (strcmp(name, "brightness_normal") == 0) {
-            params.brightness_normal = sqlite3_column_int(stmt, 1);
+            params.brightness_normal = i;
         } else if (strcmp(name, "brightness_idle") == 0) {
-            params.brightness_idle = sqlite3_column_int(stmt, 1);
+            params.brightness_idle = i;
         } else if (strcmp(name, "brightness_timeout") == 0) {
-            params.brightness_timeout = sqlite3_column_int(stmt, 1);
+            params.brightness_timeout = i;
         } else if (strcmp(name, "brightness_buttons") == 0) {
-            params.brightness_buttons = sqlite3_column_int(stmt, 1);
+            params.brightness_buttons = i;
         } else if (strcmp(name, "line_in") == 0) {
-            params.line_in = sqlite3_column_int(stmt, 1);
+            params.line_in = i;
         } else if (strcmp(name, "line_out") == 0) {
-            params.line_out = sqlite3_column_int(stmt, 1);
+            params.line_out = i;
         } else if (strcmp(name, "moni") == 0) {
-            params.moni = sqlite3_column_int(stmt, 1);
+            params.moni = i;
         } else if (strcmp(name, "mag_freq") == 0) {
-            params.mag_freq = sqlite3_column_int(stmt, 1);
+            params.mag_freq = i;
         } else if (strcmp(name, "mag_info") == 0) {
-            params.mag_info = sqlite3_column_int(stmt, 1);
+            params.mag_info = i;
         } else if (strcmp(name, "mag_alc") == 0) {
-            params.mag_alc = sqlite3_column_int(stmt, 1);
+            params.mag_alc = i;
         } else if (strcmp(name, "clock_view") == 0) {
-            params.clock_view = sqlite3_column_int(stmt, 1);
+            params.clock_view = i;
         } else if (strcmp(name, "clock_time_timeout") == 0) {
-            params.clock_time_timeout = sqlite3_column_int(stmt, 1);
+            params.clock_time_timeout = i;
         } else if (strcmp(name, "clock_power_timeout") == 0) {
-            params.clock_power_timeout = sqlite3_column_int(stmt, 1);
+            params.clock_power_timeout = i;
         } else if (strcmp(name, "clock_tx_timeout") == 0) {
-            params.clock_tx_timeout = sqlite3_column_int(stmt, 1);
+            params.clock_tx_timeout = i;
         } else if (strcmp(name, "swrscan_linear") == 0) {
-            params.swrscan_linear = sqlite3_column_int(stmt, 1);
+            params.swrscan_linear = i;
         } else if (strcmp(name, "swrscan_span") == 0) {
-            params.swrscan_span = sqlite3_column_int(stmt, 1);
+            params.swrscan_span = i;
         } else if (strcmp(name, "ft8_show_all") == 0) {
-            params.ft8_show_all = sqlite3_column_int(stmt, 1);
+            params.ft8_show_all = i;
         } else if (strcmp(name, "ft8_band") == 0) {
-            params.ft8_band = sqlite3_column_int(stmt, 1);
+            params.ft8_band = i;
         } else if (strcmp(name, "ft8_protocol") == 0) {
-            params.ft8_protocol = sqlite3_column_int(stmt, 1);
+            params.ft8_protocol = i;
         } else if (strcmp(name, "long_gen") == 0) {
-            params.long_gen = sqlite3_column_int(stmt, 1);
+            params.long_gen = i;
         } else if (strcmp(name, "long_app") == 0) {
-            params.long_app = sqlite3_column_int(stmt, 1);
+            params.long_app = i;
         } else if (strcmp(name, "long_key") == 0) {
-            params.long_key = sqlite3_column_int(stmt, 1);
+            params.long_key = i;
         } else if (strcmp(name, "long_msg") == 0) {
-            params.long_msg = sqlite3_column_int(stmt, 1);
+            params.long_msg = i;
         } else if (strcmp(name, "long_dfn") == 0) {
-            params.long_dfn = sqlite3_column_int(stmt, 1);
+            params.long_dfn = i;
         } else if (strcmp(name, "long_dfl") == 0) {
-            params.long_dfl = sqlite3_column_int(stmt, 1);
+            params.long_dfl = i;
         } else if (strcmp(name, "press_f1") == 0) {
-            params.press_f1 = sqlite3_column_int(stmt, 1);
+            params.press_f1 = i;
         } else if (strcmp(name, "press_f2") == 0) {
-            params.press_f2 = sqlite3_column_int(stmt, 1);
+            params.press_f2 = i;
         } else if (strcmp(name, "long_f1") == 0) {
-            params.long_f1 = sqlite3_column_int(stmt, 1);
+            params.long_f1 = i;
         } else if (strcmp(name, "long_f2") == 0) {
-            params.long_f2 = sqlite3_column_int(stmt, 1);
+            params.long_f2 = i;
         } else if (strcmp(name, "play_gain") == 0) {
-            params.play_gain = sqlite3_column_int(stmt, 1);
+            params.play_gain = i;
         } else if (strcmp(name, "rec_gain") == 0) {
-            params.rec_gain = sqlite3_column_int(stmt, 1);
+            params.rec_gain = i;
+        } else if (strcmp(name, "voice_mode") == 0) {
+            params.voice_mode = i;
+        } else if (strcmp(name, "voice_rate") == 0) {
+            params.voice_rate = i;
+        } else if (strcmp(name, "voice_pitch") == 0) {
+            params.voice_pitch = i;
+        } else if (strcmp(name, "voice_volume") == 0) {
+            params.voice_volume = i;
         } else if (strcmp(name, "qth") == 0) {
             qth_set(sqlite3_column_text(stmt, 1));
         }
@@ -776,6 +786,11 @@ static void params_save() {
 
     if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
     if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
+
+    if (params.durty.voice_mode)            params_write_int("voice_mode", params.voice_mode, &params.durty.voice_mode);
+    if (params.durty.voice_rate)            params_write_int("voice_rate", params.voice_rate, &params.durty.voice_rate);
+    if (params.durty.voice_pitch)           params_write_int("voice_pitch", params.voice_pitch, &params.durty.voice_pitch);
+    if (params.durty.voice_volume)          params_write_int("voice_volume", params.voice_volume, &params.durty.voice_volume);
 
     if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
 
