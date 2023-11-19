@@ -27,7 +27,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_vol(diff);
             msg_set_text_fmt("#%3X Volume: %i", color, x);
             
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Audio level");
             }
             break;
@@ -36,7 +38,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_rfg(diff);
             msg_set_text_fmt("#%3X RF gain: %i", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("RF gain");
             }
             break;
@@ -45,7 +49,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_sql(diff);
             msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Squelch level");
             }
             break;
@@ -54,7 +60,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_filter_low(diff);
             msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Low filter limit");
             }
             break;
@@ -63,7 +71,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_filter_high(diff);
             msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("High filter limit");
             }
             break;
@@ -72,7 +82,9 @@ void vol_update(int16_t diff, bool voice) {
             f = radio_change_pwr(diff);
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%.1f", f);
+            } else if (voice) {
                 voice_say_text_fmt("Transmit power");
             }
             break;
@@ -96,7 +108,9 @@ void vol_update(int16_t diff, bool voice) {
             
             msg_set_text_fmt("#%3X MIC: %s", color, s);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%s", s);
+            } else if (voice) {
                 voice_say_text_fmt("Mic selector");
             }
             break;
@@ -105,7 +119,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_hmic(diff);
             msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Hand microphone gain");
             }
             break;
@@ -114,7 +130,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_imic(diff);
             msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Internal microphone gain");
             }
             break;
@@ -123,7 +141,9 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_moni(diff);
             msg_set_text_fmt("#%3X Moni level: %i", color, x);
 
-            if (voice) {
+            if (diff) {
+                voice_delay_say_text_fmt("%i", x);
+            } else if (voice) {
                 voice_say_text_fmt("Monitor level");
             }
             break;

@@ -15,7 +15,14 @@ extern "C" {
 #include <cstdarg>
 #endif
 
+typedef enum {
+    VOICE_OFF = 0,
+    VOICE_LCD,
+    VOICE_ALWAYS
+} voice_mode_t;
+
 void voice_say_text_fmt(const char * fmt, ...);
+void voice_delay_say_text_fmt(const char * fmt, ...);
 void voice_say_freq(uint64_t freq);
 
 #ifdef __cplusplus

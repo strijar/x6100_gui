@@ -220,26 +220,32 @@ void main_screen_app(uint8_t page_app) {
         case PAGE_RTTY:
             rtty_set_state(RTTY_RX);
             pannel_visible();
+            voice_say_text_fmt("Teletype window");
             break;
             
         case PAGE_SETTINGS:
             dialog_construct(dialog_settings, obj);
+            voice_say_text_fmt("Settings window");
             break;
 
         case PAGE_SWRSCAN:
             dialog_construct(dialog_swrscan, obj);
+            voice_say_text_fmt("SWR scan window");
             break;
 
         case PAGE_FT8:
             dialog_construct(dialog_ft8, obj);
+            voice_say_text_fmt("FT8 window");
             break;
 
         case PAGE_GPS:
             dialog_construct(dialog_gps, obj);
+            voice_say_text_fmt("GPS window");
             break;
 
         case PAGE_RECORDER:
             dialog_construct(dialog_recorder, obj);
+            voice_say_text_fmt("Audio recorder window");
             break;
             
         default:
@@ -257,7 +263,13 @@ void main_screen_action(press_action_t action) {
             break;
 
         case ACTION_RECORDER:
-            recorder_set_on(!recorder_is_on());
+            if (recorder_is_on()) {
+                recorder_set_on(false);
+                voice_say_text_fmt("Audio recorder off");
+            } else {
+                voice_say_text_fmt("Audio recorder on");
+                recorder_set_on(true);
+            }
             break;
 
         case ACTION_MUTE:
@@ -298,6 +310,7 @@ void main_screen_action(press_action_t action) {
 
         case ACTION_APP_QTH:
             dialog_qth();
+            voice_say_text_fmt("QTH window");
             break;
     }
 }
@@ -528,7 +541,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         pannel_hide();
                         dialog_construct(dialog_msg_cw, obj);
                         buttons_load_page(PAGE_MSG_CW_1);
-                        voice_say_text_fmt("CW messages");
+                        voice_say_text_fmt("CW messages window");
                         break;
                         
                     case x6100_mode_lsb:
@@ -541,7 +554,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         pannel_hide();
                         dialog_construct(dialog_msg_voice, obj);
                         buttons_load_page(PAGE_MSG_VOICE_1);
-                        voice_say_text_fmt("Voice messages");
+                        voice_say_text_fmt("Voice messages window");
                         break;
                         
                     default:

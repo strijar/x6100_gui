@@ -92,18 +92,20 @@ void backlight_set_buttons(buttons_light_t value) {
 }
 
 void backlight_switch() {
-    on = !on;
-    
     if (on) {
-        set_power(true);
-        set_brightness(params.brightness_normal);
-        x6100_gpio_set(x6100_pin_light, params.brightness_buttons == BUTTONS_DARK ? 0 : 1);
-        voice_say_text_fmt("Display on");
-    } else {
         set_power(false);
         set_brightness(9);
         x6100_gpio_set(x6100_pin_light, 0);
+
+        on = false;
         voice_say_text_fmt("Display off");
+    } else {
+        set_power(true);
+        set_brightness(params.brightness_normal);
+        x6100_gpio_set(x6100_pin_light, params.brightness_buttons == BUTTONS_DARK ? 0 : 1);
+
+        voice_say_text_fmt("Display on");
+        on = true;
     }
 }
 

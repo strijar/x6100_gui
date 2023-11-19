@@ -16,6 +16,7 @@
 #include "bands.h"
 #include "radio.h"
 #include "clock.h"
+#include "voice.h"
 
 typedef struct {
     int32_t         filter_low;
@@ -240,6 +241,13 @@ typedef struct {
     uint16_t            play_gain;
     uint16_t            rec_gain;
     
+    /* Voice */
+    
+    voice_mode_t        voice_mode;
+    uint8_t             voice_rate;
+    uint8_t             voice_pitch;
+    uint8_t             voice_volume;
+    
     char                qth[7];
     
     /* durty flags */
@@ -344,6 +352,11 @@ typedef struct {
 
         bool    play_gain;
         bool    rec_gain;
+
+        bool    voice_mode;
+        bool    voice_rate;
+        bool    voice_pitch;
+        bool    voice_volume;
 
         bool    qth;
     } durty;

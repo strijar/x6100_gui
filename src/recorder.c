@@ -59,13 +59,14 @@ void recorder_set_on(bool x) {
         } else {
             msg_set_text_fmt("Recorder is on");
         }
+        on = true;
     } else {
         msg_set_text_fmt("Recorder is off");
+        on = false;
         sf_close(file);
     }
 
-    dialog_recorder_set_on(x);
-    on = x;
+    dialog_recorder_set_on(on);
 }
 
 bool recorder_is_on() {

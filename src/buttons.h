@@ -51,6 +51,7 @@ typedef void (*hold_cb_t)(void *);
 
 typedef struct {
     char            *label;
+    char            *voice;
     lv_event_cb_t   press;
     hold_cb_t       hold;
     uint16_t        data;

@@ -125,6 +125,11 @@ params_t params = {
     .play_gain              = 100,
     .rec_gain               = 100,
 
+    .voice_mode             = VOICE_LCD,
+    .voice_rate             = 75,
+    .voice_pitch            = 100,
+    .voice_volume           = 100,
+
     .qth                    = "",
 };
 

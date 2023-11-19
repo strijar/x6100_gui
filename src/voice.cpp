@@ -17,6 +17,8 @@ extern "C" {
 #include "audio.h"
 #include "params.h"
 #include "util.h"
+#include "backlight.h"
+#include "recorder.h"
 }
 
 #include <memory>
@@ -66,7 +68,6 @@ void audio_player::finish() {
 }
 
 static std::shared_ptr<engine>      eng(new engine);
-static audio_player                 player;
 static voice_profile                profile;
 static char                         buf[512];
 static pthread_t                    thread;
@@ -83,14 +84,15 @@ static void * say_thread(void *arg) {
     
     run = true;
 
+    audio_player                    player;
     std::istringstream              text{buf};
     std::istreambuf_iterator<char>  text_start{text};
     std::istreambuf_iterator<char>  text_end;
     std::unique_ptr<document>       doc = document::create_from_plain_text(eng, text_start, text_end, content_text, profile);
     
-    doc->speech_settings.relative.rate = 0.75;
-    doc->speech_settings.relative.pitch = 1.0;
-    doc->speech_settings.relative.volume = 1.5;
+    doc->speech_settings.relative.rate = params.voice_rate / 100.0;
+    doc->speech_settings.relative.pitch = params.voice_pitch / 100.0;
+    doc->speech_settings.relative.volume = params.voice_volume / 100.0;
     doc->set_owner(player);
 
     x6100_control_record_set(true);
@@ -102,8 +104,47 @@ static void * say_thread(void *arg) {
     return NULL;
 }
 
+bool voice_enable() {
+    if (run || recorder_is_on()) {
+        return false;
+    }
+    
+    switch (params.voice_mode) {
+        case VOICE_OFF:
+            return false;
+            
+        case VOICE_ALWAYS:
+            return true;
+            
+        case VOICE_LCD:
+            return !backlight_is_on();
+    }
+    
+    return false;
+}
+
+void voice_delay_say_text_fmt(const char * fmt, ...) {
+    if (!voice_enable()) {
+        return;
+    }
+
+    va_list args;
+
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+
+    if (thread) {
+        pthread_cancel(thread);
+        pthread_join(thread, NULL);
+    }
+    
+    delay = 1000000;
+    pthread_create(&thread, NULL, say_thread, NULL);
+}
+
 void voice_say_text_fmt(const char * fmt, ...) {
-    if (run) {
+    if (!voice_enable()) {
         return;
     }
 
@@ -118,7 +159,7 @@ void voice_say_text_fmt(const char * fmt, ...) {
 }
 
 void voice_say_freq(uint64_t freq) {
-    if (run) {
+    if (!voice_enable()) {
         return;
     }
 
@@ -139,6 +180,6 @@ void voice_say_freq(uint64_t freq) {
         pthread_join(thread, NULL);
     }
 
-    delay = 500000;
+    delay = 1000000;
     pthread_create(&thread, NULL, say_thread, NULL);
 }
