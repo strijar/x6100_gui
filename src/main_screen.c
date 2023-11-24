@@ -129,7 +129,11 @@ static void freq_update() {
     split_freq(f, &mhz, &khz, &hz);
 
     if (params.mag_freq) {
-        msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
+        if (mhz < 100) {
+            msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
+        } else {
+            msg_tiny_set_text_fmt("%i.%03i", mhz, khz);
+        }
     }
 
     if (params_band.split) {
