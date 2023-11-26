@@ -16,7 +16,8 @@ static lv_obj_t         *obj;
 
 static lv_coord_t       band_info_height = 24;
 static int32_t          width_hz = 100000;
-static bands_t          *bands = NULL;
+static band_t           *bands = NULL;
+static uint16_t         bands_count = 0;
 static uint64_t         freq;
 static lv_anim_t        fade;
 static bool             fade_run = false;
@@ -44,10 +45,8 @@ static void band_info_draw_cb(lv_event_t * e) {
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj) - 1;
 
-    bands_t *current = bands;
-    
-    while (current) {
-        band_t *band = current->item;
+    for (uint16_t i = 0; i < bands_count; i++) {
+        band_t *band = &bands[i];
 
         /* Rect */
 
@@ -106,8 +105,6 @@ static void band_info_draw_cb(lv_event_t * e) {
 
             lv_draw_label(draw_ctx, &dsc_label, &area, band->name, NULL);
         }
-        
-        current = current->next;
     }
 }
 
@@ -142,16 +139,14 @@ lv_obj_t * band_info_init(lv_obj_t *parent) {
 }
 
 void band_info_update(uint64_t f) {
-    bands_t *current = bands;
-    
-    while (current) {
-        bands_t *next = current->next;
-        
-        free(current);
-        current = next;
+    if (bands != NULL) {
+        for (uint16_t i = 0; i < bands_count; i++)
+            free(bands[i].name);
+
+        free(bands);
     }
 
-    bands = bands_find_all(f, width_hz / 2);
+    bands = params_bands_find_all(f, width_hz / 2, &bands_count);
     freq = f;
 
     if (backlight_is_on()) {

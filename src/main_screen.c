@@ -71,12 +71,14 @@ static void freq_update();
 void mem_load(uint16_t id) {
     params_memory_load(id);
 
-    params.freq_band = bands_find(params_band.vfo_x[params_band.vfo].freq);
-
-    if (params.freq_band) {
-        if (params.freq_band->type != 0) {
-            params.band = params.freq_band->id;
+    if (params_bands_find(params_band.vfo_x[params_band.vfo].freq, &params.freq_band)) {
+        if (params.freq_band.type != 0) {
+            params.band = params.freq_band.id;
+        } else {
+            params.band = -1;
         }
+    } else {
+        params.band = -1;
     }
 
     radio_vfo_set();
@@ -154,19 +156,19 @@ static void freq_update() {
 }
 
 static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
-    params.freq_band = bands_find(freq);
-    
-    if (params.freq_band) {
-        if (params.freq_band->type != 0) {
-            if (params.freq_band->id != params.band) {
+    if (params_bands_find(freq, &params.freq_band)) {
+        if (params.freq_band.type != 0) {
+            if (params.freq_band.id != params.band) {
                 params_band_freq_set(prev_freq);
-                bands_activate(params.freq_band, &freq);
+                bands_activate(&params.freq_band, &freq);
                 info_params_set();
                 pannel_visible();
             }
         } else {
-            params.freq_band = NULL;
+            params.band = -1;
         }
+    } else {
+        params.band = -1;
     }
 }
 
@@ -983,18 +985,14 @@ void main_screen_set_freq(uint64_t freq) {
     x6100_vfo_t vfo = params_band.vfo;
     uint64_t    prev_freq = params_band.vfo_x[vfo].freq;
     
-    params.freq_band = bands_find(freq);
-    
-    if (params.freq_band) {
-        if (params.freq_band->type != 0) {
-            if (params.freq_band->id != params.band) {
+    if (params_bands_find(freq, &params.freq_band)) {
+        if (params.freq_band.type != 0) {
+            if (params.freq_band.id != params.band) {
                 params_band_freq_set(prev_freq);
-                bands_activate(params.freq_band, &freq);
+                bands_activate(&params.freq_band, &freq);
                 info_params_set();
                 pannel_visible();
             }
-        } else {
-            params.freq_band = NULL;
         }
     }
 

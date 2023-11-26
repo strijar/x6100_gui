@@ -178,6 +178,8 @@ static sqlite3_stmt     *write_mb_stmt;
 static sqlite3_stmt     *write_mode_stmt;
 static sqlite3_stmt     *save_atu_stmt;
 static sqlite3_stmt     *load_atu_stmt;
+static sqlite3_stmt     *bands_find_all_stmt;
+static sqlite3_stmt     *bands_find_stmt;
 
 static bool params_exec(const char *sql);
 static bool params_mb_save(uint16_t id);
@@ -260,6 +262,10 @@ void params_memory_load(uint16_t id) {
 }
 
 void params_band_load() {
+    if (params.band < 0) {
+        return;
+    }
+
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db, "SELECT name,val FROM band_params WHERE bands_id = ?", -1, &stmt, 0);
@@ -354,7 +360,7 @@ static void params_mb_write_int64(uint16_t id, const char *name, uint64_t data, 
 }
 
 void params_band_save() {
-    if (!params.freq_band) {
+    if (params.band < 0) {
         return;
     }
 
@@ -865,30 +871,6 @@ void transverter_save() {
 
 /* * */
 
-bool params_bands_load() {
-    sqlite3_stmt    *stmt;
-    int             rc;
-    
-    rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,type FROM bands ORDER BY start_freq ASC", -1, &stmt, 0);
-    
-    if (rc != SQLITE_OK) {
-        return false;
-    }
-    
-    while (sqlite3_step(stmt) != SQLITE_DONE) {
-        int         id = sqlite3_column_int(stmt, 0);
-        const char  *name = sqlite3_column_text(stmt, 1);
-        uint64_t    start_freq = sqlite3_column_int64(stmt, 2);
-        uint64_t    stop_freq = sqlite3_column_int64(stmt, 3);
-        uint8_t     type = sqlite3_column_int(stmt, 4);
-        
-        bands_insert(id, name, start_freq, stop_freq, type);
-    }
-    
-    sqlite3_finalize(stmt);
-    return true;
-}
-
 static void * params_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&params_mux);
@@ -945,11 +927,24 @@ void params_init() {
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare atu load");
         }
-        
-        if (!params_bands_load()) {
-            LV_LOG_ERROR("Load bands");
+
+        rc = sqlite3_prepare_v2(db, 
+            "SELECT id,name,start_freq,stop_freq,type FROM bands "
+                "WHERE (stop_freq BETWEEN ? AND ?) OR (start_freq BETWEEN ? AND ?) OR (start_freq <= ? AND stop_freq >= ?) "
+                "ORDER BY start_freq ASC", 
+                -1, &bands_find_all_stmt, 0
+        );
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare bands all find");
         }
 
+        rc = sqlite3_prepare_v2(db,  "SELECT id,name,start_freq,stop_freq,type FROM bands WHERE (? BETWEEN start_freq AND stop_freq)", -1, &bands_find_stmt, 0);
+
+        if (rc != SQLITE_OK) {
+            LV_LOG_ERROR("Prepare bands find");
+        }
+        
         if (!transverter_load()) {
             LV_LOG_ERROR("Load transverter");
         }
@@ -1116,4 +1111,96 @@ void params_msg_cw_delete(uint32_t id) {
     sqlite3_bind_int(stmt, 1, id);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+}
+
+band_t * params_bands_find_all(uint64_t freq, int32_t half_width, uint16_t *count) {
+    uint64_t    left = freq - half_width;
+    uint64_t    right = freq + half_width;
+    band_t      *res = NULL;
+    uint16_t    n = 0;
+
+    sqlite3_bind_int64(bands_find_all_stmt, 1, left);
+    sqlite3_bind_int64(bands_find_all_stmt, 2, right);
+    sqlite3_bind_int64(bands_find_all_stmt, 3, left);
+    sqlite3_bind_int64(bands_find_all_stmt, 4, right);
+    sqlite3_bind_int64(bands_find_all_stmt, 5, left);
+    sqlite3_bind_int64(bands_find_all_stmt, 6, right);
+    
+    while (sqlite3_step(bands_find_all_stmt) != SQLITE_DONE) {
+        n++;
+        res = realloc(res, sizeof(band_t) * n);
+        
+        band_t *current = &res[n - 1];
+
+        current->id = sqlite3_column_int(bands_find_all_stmt, 0);
+        current->name = strdup(sqlite3_column_text(bands_find_all_stmt, 1));
+        current->start_freq = sqlite3_column_int64(bands_find_all_stmt, 2);
+        current->stop_freq = sqlite3_column_int64(bands_find_all_stmt, 3);
+        current->type = sqlite3_column_int(bands_find_all_stmt, 4);
+    }
+
+    sqlite3_reset(bands_find_all_stmt);
+    sqlite3_clear_bindings(bands_find_all_stmt);
+    
+    *count = n;
+    return res;
+}
+
+bool params_bands_find(uint64_t freq, band_t *band) {
+    bool res = false;
+
+    sqlite3_bind_int64(bands_find_stmt, 1, freq);
+
+    if (sqlite3_step(bands_find_stmt) == SQLITE_ROW) {
+        if (band->name)
+            free(band->name);
+    
+        band->id = sqlite3_column_int(bands_find_stmt, 0);
+        band->name = strdup(sqlite3_column_text(bands_find_stmt, 1));
+        band->start_freq = sqlite3_column_int64(bands_find_stmt, 2);
+        band->stop_freq = sqlite3_column_int64(bands_find_stmt, 3);
+        band->type = sqlite3_column_int(bands_find_stmt, 4);
+        
+        res = true;
+    }
+
+    sqlite3_reset(bands_find_stmt);
+    sqlite3_clear_bindings(bands_find_stmt);
+    
+    return res;
+}
+
+bool params_bands_find_next(uint64_t freq, bool up, band_t *band) {
+    bool            res = false;
+    sqlite3_stmt    *stmt;
+    int             rc;
+    
+    if (up) {
+        rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,type FROM bands WHERE (? < start_freq AND type != 0) ORDER BY start_freq ASC", -1, &stmt, 0);
+    } else {
+        rc = sqlite3_prepare_v2(db, "SELECT id,name,start_freq,stop_freq,type FROM bands WHERE (? > stop_freq AND type != 0) ORDER BY start_freq DESC", -1, &stmt, 0);
+    }
+    
+    if (rc != SQLITE_OK) {
+        return false;
+    }
+
+    sqlite3_bind_int64(stmt, 1, freq);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (band->name)
+            free(band->name);
+    
+        band->id = sqlite3_column_int(stmt, 0);
+        band->name = strdup(sqlite3_column_text(stmt, 1));
+        band->start_freq = sqlite3_column_int64(stmt, 2);
+        band->stop_freq = sqlite3_column_int64(stmt, 3);
+        band->type = sqlite3_column_int(stmt, 4);
+
+        res = true;
+    }
+
+    sqlite3_finalize(stmt);
+
+    return res;
 }

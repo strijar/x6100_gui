@@ -111,11 +111,11 @@ typedef struct {
 
     /* band info */
     
-    band_t              *freq_band;
+    band_t              freq_band;
 
     /* radio */
     
-    uint16_t            band;
+    int16_t             band;
     int16_t             vol;
     int16_t             rfg;
     uint8_t             sql;
@@ -405,3 +405,7 @@ void params_msg_cw_load();
 void params_msg_cw_new(const char *val);
 void params_msg_cw_edit(uint32_t id, const char *val);
 void params_msg_cw_delete(uint32_t id);
+
+band_t * params_bands_find_all(uint64_t freq, int32_t half_width, uint16_t *count);
+bool params_bands_find(uint64_t freq, band_t *band);
+bool params_bands_find_next(uint64_t freq, bool up, band_t *band);

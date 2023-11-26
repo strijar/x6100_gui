@@ -132,10 +132,8 @@ static void send_code(uint8_t code) {
 }
 
 static void set_freq(uint64_t freq) {
-    params.freq_band = bands_find(freq);
-    
-    if (params.freq_band) {
-        bands_activate(params.freq_band, NULL);
+    if (params_bands_find(freq, &params.freq_band)) {
+        bands_activate(&params.freq_band, NULL);
     }
 
     radio_set_freq(freq);

@@ -17,46 +17,6 @@
 #include "pannel.h"
 #include "voice.h"
 
-#define BANDS_MAX   64
-
-static band_t   *bands[BANDS_MAX];
-
-void bands_init() {
-    for (uint8_t i = 0; i < BANDS_MAX; i++)
-        bands[i] = NULL;
-}
-
-void bands_clear() {
-    for (uint8_t i = 0; i < BANDS_MAX; i++) {
-        if (bands[i] != NULL) {
-            if (bands[i]->name != NULL) {
-                free(bands[i]->name);
-            }
-            free(bands[i]);
-            bands[i] = NULL;
-        }
-    }
-}
-
-void bands_insert(uint16_t id, const char *name, uint64_t start_freq, uint64_t stop_freq, uint8_t type) {
-    band_t *band = malloc(sizeof(band_t));
-    
-    band->id = id;
-    band->name = strdup(name);
-    band->start_freq = start_freq;
-    band->stop_freq = stop_freq;
-    band->type = type;
-    
-    for (uint8_t i = 0; i < BANDS_MAX; i++)
-        if (bands[i] == NULL) {
-            bands[i] = band;
-            return;
-        }
-
-   LV_LOG_ERROR("Too many bands");
-   free(band);
-}
-
 void bands_activate(band_t *band, uint64_t *freq) {
     params_lock();
     params_band_save();
@@ -76,87 +36,18 @@ void bands_activate(band_t *band, uint64_t *freq) {
 }
 
 void bands_change(bool up) {
-    int8_t index = 0;
-
-    for (uint8_t i = 0; i < BANDS_MAX; i++)
-        if (bands[i] == NULL) {
-            LV_LOG_ERROR("Band not found");
-            return;
-        } else if (bands[i]->id == params.band) {
-            index = i;
-            break;
-        }
-
-    while (true) {
-        if (up) {
-            index++;
-            
-            if (index >= BANDS_MAX) {
-                index = 0;
-            }
-        } else {
-            index--;
-            
-            if (index < 0) {
-                index = BANDS_MAX - 1;
-            }
-        }
-        
-        if (bands[index] != NULL && bands[index]->type != 0) {
-            band_t *band = bands[index];
-            
-            bands_activate(band, NULL);
-            radio_load_atu();
-            info_params_set();
-            pannel_visible();
-
-            waterfall_clear();
-            spectrum_clear();
-            main_screen_band_set();
-            
-            voice_say_text_fmt("Band %s", band->name);
-
-            return;
-        }
-    }
-}
-
-bands_t * bands_find_all(uint64_t freq, int32_t half_width) {
-    uint64_t    left = freq - half_width;
-    uint64_t    right = freq + half_width;
-    bands_t     *res = NULL;
-
-    for (uint8_t i = 0; i < BANDS_MAX; i++) {
-        band_t *band = bands[i];
-        
-        if (band == NULL)
-            return res;
-        
-        if ((band->stop_freq >= left && band->stop_freq <= right) ||
-            (band->start_freq >= left && band->start_freq <= right) ||
-            (band->start_freq <= left && band->stop_freq >= right))
-        {
-            bands_t *item = malloc(sizeof(bands_t));
-            
-            item->item = band;
-            item->next = res;
-            res = item;
-        }
-    }
+    band_t band = { .name = NULL };
     
-    return res;
-}
+    if (params_bands_find_next(params_band.vfo_x[params_band.vfo].freq, up, &band)) {
+        bands_activate(&band, NULL);
+        radio_load_atu();
+        info_params_set();
+        pannel_visible();
 
-band_t * bands_find(uint64_t freq) {
-    for (uint8_t i = 0; i < BANDS_MAX; i++) {
-        band_t *band = bands[i];
-        
-        if (band == NULL)
-            break;
+        waterfall_clear();
+        spectrum_clear();
+        main_screen_band_set();
             
-        if (freq >= band->start_freq && freq <= band->stop_freq)
-            return band;
+        voice_say_text_fmt("Band %s", band.name);
     }
-    
-    return NULL;
 }

@@ -86,7 +86,6 @@ int main(void) {
     vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
     vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
     
-    bands_init();
     params_init();
     styles_init();
     
