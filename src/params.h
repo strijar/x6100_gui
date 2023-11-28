@@ -168,6 +168,10 @@ typedef struct {
     uint16_t            spectrum_peak_hold;
     float               spectrum_peak_speed;
     bool                spectrum_filled;
+    bool                spectrum_auto_min;
+    bool                spectrum_auto_max;
+    bool                waterfall_auto_min;
+    bool                waterfall_auto_max;
     bool                mag_freq;
     bool                mag_info;
     bool                mag_alc;

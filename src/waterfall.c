@@ -17,8 +17,12 @@
 #include "band_info.h"
 #include "meter.h"
 #include "backlight.h"
+#include "dsp.h"
 
 #define PX_BYTES    4
+
+float                   waterfall_auto_min;
+float                   waterfall_auto_max;
 
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
@@ -112,9 +116,12 @@ void waterfall_data(float *data_buf, uint16_t size) {
 
     scroll_down();
 
+    float min = params.waterfall_auto_min ? waterfall_auto_min + 6.0f : grid_min;
+    float max = params.waterfall_auto_max ? waterfall_auto_max + 3.0f : grid_max;
+
     for (int x = 0; x < width; x++) {
         uint16_t    index = x * size / width;
-        float       v = (data_buf[index] - grid_min) / (grid_max - grid_min);
+        float       v = (data_buf[index] - min) / (max - min);
         
         if (v < 0.0f) {
             v = 0.0f;

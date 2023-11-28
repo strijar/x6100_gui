@@ -54,6 +54,9 @@ static firhilbf         audio_hilb;
 static float complex    *audio;
 
 static bool             ready = false;
+static bool             auto_clear = true;
+
+static void dsp_calc_auto(float *data_buf, uint16_t size);
 
 /* * */
 
@@ -164,28 +167,32 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     /* S-Meter */
 
-    if (dialog_msg_voice_get_state() == MSG_VOICE_RECORD) {
-        return;
+    if (dialog_msg_voice_get_state() != MSG_VOICE_RECORD) {
+        int32_t filter_from, filter_to;
+        int32_t from, to;
+    
+        radio_filter_get(&filter_from, &filter_to);
+    
+        from = nfft / 2;
+        from -= filter_to * nfft / 100000;
+    
+        to = nfft / 2;
+        to -= filter_from * nfft / 100000;
+    
+        int16_t peak_db = -121;
+    
+        for (int32_t i = from; i <= to; i++)
+            if (waterfall_psd[i] > peak_db)
+                peak_db = waterfall_psd[i];
+
+        meter_update(peak_db, 0.8f);
     }
 
-    int32_t filter_from, filter_to;
-    int32_t from, to;
-    
-    radio_filter_get(&filter_from, &filter_to);
-    
-    from = nfft / 2;
-    from -= filter_to * nfft / 100000;
-    
-    to = nfft / 2;
-    to -= filter_from * nfft / 100000;
-    
-    int16_t peak_db = -121;
-    
-    for (int32_t i = from; i <= to; i++)
-        if (waterfall_psd[i] > peak_db)
-            peak_db = waterfall_psd[i];
+    /* Auto min, max */
 
-    meter_update(peak_db, 0.8f);
+    if (!delay) {
+        dsp_calc_auto(waterfall_psd, nfft);
+    }
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
@@ -253,5 +260,60 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
         dialog_ft8_put_audio_samples(nsamples, audio);
     } else if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
         cw_put_audio_samples(nsamples, audio);
+    }
+}
+
+void dsp_auto_clear() {
+    auto_clear = true;
+}
+
+static int compare_fft(const void *p1, const void *p2) {
+    float *i1 = (float *) p1;
+    float *i2 = (float *) p2;
+
+    return (*i1 < *i2) ? -1 : 1;
+}
+
+static void dsp_calc_auto(float *data_buf, uint16_t size) {
+    float       min = 0;
+    float       max = 0;
+    uint16_t    window = 30;
+
+    qsort(data_buf, size, sizeof(float), compare_fft);
+    
+    for (uint16_t i = 0; i < window; i++) {
+        min += data_buf[i];
+        max += data_buf[size - i - 1];
+    }
+
+    min /= window;
+    max /= window;
+
+    if (max > S9_40) {
+        max = S9_40;
+    } else if (max < S8) {
+        max = S8;
+    }
+
+    if (min > S7) {
+        min = S7;
+    } else if (min < S_MIN) {
+        min = S_MIN;
+    }
+
+    if (auto_clear) {
+        spectrum_auto_min = min;
+        spectrum_auto_max = max;
+
+        waterfall_auto_min = min;
+        waterfall_auto_max = max;
+
+        auto_clear = false;
+    } else {
+        lpf(&spectrum_auto_min, min, 0.75f);
+        lpf(&spectrum_auto_max, max, 0.55f);
+
+        lpf(&waterfall_auto_min, min, 0.95f);
+        lpf(&waterfall_auto_max, max, 0.85f);
     }
 }

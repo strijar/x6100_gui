@@ -93,6 +93,7 @@ void mem_load(uint16_t id) {
 
     waterfall_clear();
     spectrum_clear();
+    dsp_auto_clear();
     freq_update();
 
     if (strlen(params_band.label) > 0) {
@@ -433,6 +434,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
                 waterfall_clear();
                 spectrum_clear();
+                dsp_auto_clear();
                 main_screen_band_set();
 
                 if (params.mag_info) {
@@ -595,6 +597,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
                 waterfall_clear();
                 spectrum_clear();
+                dsp_auto_clear();
                 main_screen_band_set();
 
                 if (params.mag_info) {
@@ -706,6 +709,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 info_params_set();
                 waterfall_clear();
                 spectrum_clear();
+                dsp_auto_clear();
                 main_screen_band_set();
             }
             break;
@@ -779,6 +783,7 @@ static void main_screen_update_cb(lv_event_t * e) {
 
     waterfall_clear();
     spectrum_clear();
+    dsp_auto_clear();
 }
 
 static void main_screen_atu_update_cb(lv_event_t * e) {

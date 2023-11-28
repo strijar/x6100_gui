@@ -46,6 +46,7 @@ void bands_change(bool up) {
 
         waterfall_clear();
         spectrum_clear();
+        dsp_auto_clear();
         main_screen_band_set();
             
         voice_say_text_fmt("Band %s", band.name);

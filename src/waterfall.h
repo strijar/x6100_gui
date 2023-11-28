@@ -13,6 +13,9 @@
 
 #include "lvgl/lvgl.h"
 
+extern float waterfall_auto_min;
+extern float waterfall_auto_max;
+
 lv_obj_t * waterfall_init(lv_obj_t * parent);
 void waterfall_data(float *data_buf, uint16_t size);
 void waterfall_set_height(lv_coord_t h);

@@ -22,3 +22,4 @@ float dsp_get_spectrum_beta();
 void dsp_set_spectrum_beta(float x);
 
 void dsp_put_audio_samples(size_t nsamples, int16_t *samples);
+void dsp_auto_clear();

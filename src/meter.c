@@ -10,6 +10,7 @@
 #include "styles.h"
 #include "events.h"
 #include "params.h"
+#include "spectrum.h"
 
 #define NUM_ITEMS   7
 
@@ -66,8 +67,10 @@ static void meter_draw_cb(lv_event_t * e) {
 
     int16_t db = s_items[0].db;
 
+    int16_t min = params.spectrum_auto_min ? spectrum_auto_min : params_band.grid_min;
+
     for (uint16_t i = 0; i < count; i++) {
-        if (db <= params_band.grid_min) {
+        if (db <= min) {
             rect_dsc.bg_color = lv_color_hex(0x777777);
         } else if (db <= -73) {
             rect_dsc.bg_color = lv_color_hex(0xAAAAAA);

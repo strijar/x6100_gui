@@ -20,6 +20,9 @@
 #include "rtty.h"
 #include "recorder.h"
 
+float                   spectrum_auto_min;
+float                   spectrum_auto_max;
+
 static lv_obj_t         *obj;
 
 static int              grid_min = -70;
@@ -81,15 +84,18 @@ static void spectrum_draw_cb(lv_event_t * e) {
 
     peak_b.x = x1;
     peak_b.y = y1 + h;
+
+    float min = params.spectrum_auto_min ? spectrum_auto_min + 6.0f : grid_min;
+    float max = params.spectrum_auto_max ? spectrum_auto_max + 10.0f : grid_max;
     
     for (uint16_t i = 0; i < spectrum_size; i++) {
-        float       v = (spectrum_buf[i] - grid_min) / (grid_max - grid_min);
+        float       v = (spectrum_buf[i] - min) / (max - min);
         uint16_t    x = i * w / spectrum_size;
 
         /* Peak */
         
         if (params.spectrum_peak) {
-            float v_peak = (spectrum_peak[i].val - grid_min) / (grid_max - grid_min);
+            float v_peak = (spectrum_peak[i].val - min) / (max - min);
 
             peak_a.x = x1 + x;
             peak_a.y = y1 + (1.0f - v_peak) * h;
