@@ -216,7 +216,7 @@ void tx_info_update(float p, float s, float a) {
 
     event_send(obj, LV_EVENT_REFRESH, NULL);
     
-    if (params.mag_alc) {
+    if (params.mag_alc.x) {
         msg_tiny_set_text_fmt("ALC: %.1f", alc);
     }
 }

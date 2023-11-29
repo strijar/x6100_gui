@@ -97,6 +97,51 @@ typedef enum {
     ACTION_APP_QTH
 } press_action_t;
 
+/* Params items */
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    bool        x;
+    bool        durty;
+} bool_params_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    float       x;
+    bool        durty;
+} float_params_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    uint8_t     x;
+    bool        durty;
+} uint8_params_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    int8_t      x;
+    bool        durty;
+} int8_params_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    int16_t     x;
+    bool        durty;
+} int16_params_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    uint64_t    x;
+    bool        durty;
+} uint64_params_t;
+
+/* Params */
 
 typedef struct {
     uint64_t            vol_modes;
@@ -168,13 +213,13 @@ typedef struct {
     uint16_t            spectrum_peak_hold;
     float               spectrum_peak_speed;
     bool                spectrum_filled;
-    bool                spectrum_auto_min;
-    bool                spectrum_auto_max;
-    bool                waterfall_auto_min;
-    bool                waterfall_auto_max;
-    bool                mag_freq;
-    bool                mag_info;
-    bool                mag_alc;
+    bool_params_t       spectrum_auto_min;
+    bool_params_t       spectrum_auto_max;
+    bool_params_t       waterfall_auto_min;
+    bool_params_t       waterfall_auto_max;
+    bool_params_t       mag_freq;
+    bool_params_t       mag_info;
+    bool_params_t       mag_alc;
     clock_view_t        clock_view;
     uint8_t             clock_time_timeout;     /* seconds */
     uint8_t             clock_power_timeout;    /* seconds */
@@ -305,9 +350,6 @@ typedef struct {
         bool    spectrum_peak_hold;
         bool    spectrum_peak_speed;
         bool    spectrum_filled;
-        bool    mag_freq;
-        bool    mag_info;
-        bool    mag_alc;
         bool    clock_view;
         bool    clock_time_timeout;
         bool    clock_power_timeout;
@@ -388,6 +430,8 @@ extern transverter_t params_transverter[TRANSVERTER_NUM];
 void params_init();
 void params_lock();
 void params_unlock(bool *durty);
+
+void params_bool_set(bool_params_t *var, bool x);
 
 void params_band_save();
 void params_band_load();

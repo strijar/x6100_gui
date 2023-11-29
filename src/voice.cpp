@@ -84,6 +84,8 @@ static void * say_thread(void *arg) {
     
     run = true;
 
+    profile = eng->create_voice_profile("lyubov");
+
     audio_player                    player;
     std::istringstream              text{buf};
     std::istreambuf_iterator<char>  text_start{text};
@@ -182,4 +184,8 @@ void voice_say_freq(uint64_t freq) {
 
     delay = 1000000;
     pthread_create(&thread, NULL, say_thread, NULL);
+}
+
+void voice_say_bool(const char *prompt, bool x) {
+    voice_delay_say_text_fmt("%s is %s", prompt, x ? "on" : "off");
 }

@@ -131,7 +131,7 @@ static void freq_update() {
 
     split_freq(f, &mhz, &khz, &hz);
 
-    if (params.mag_freq) {
+    if (params.mag_freq.x) {
         if (mhz < 100) {
             msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
         } else {
@@ -331,14 +331,14 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_pre();
                 info_params_set();
                 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("Pre: %s", info_params_pre() ? "On" : "Off");
                 }
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_att();
                 info_params_set();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("Att: %s", info_params_att() ? "On" : "Off");
                 }
             }
@@ -377,7 +377,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
                 pannel_visible();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("%s", info_params_mode());
                 }
             }
@@ -396,7 +396,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
                 pannel_visible();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("%s", info_params_mode());
                 }
             }
@@ -415,7 +415,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 info_params_set();
                 pannel_visible();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("%s", info_params_mode());
                 }
             }
@@ -426,7 +426,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_agc();
                 info_params_set();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("AGC: %s", info_params_agc());
                 }
             } else if (keypad->state == KEYPAD_LONG) {
@@ -437,7 +437,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 dsp_auto_clear();
                 main_screen_band_set();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("%s", info_params_vfo());
                 }
             }
@@ -456,7 +456,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_atu();
                 info_params_set();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("ATU: %s", params.atu ? "On" : "Off");
                 }
             } else if (keypad->state == KEYPAD_LONG) {
@@ -600,7 +600,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 dsp_auto_clear();
                 main_screen_band_set();
 
-                if (params.mag_info) {
+                if (params.mag_info.x) {
                     msg_tiny_set_text_fmt("%s", info_params_vfo());
                 }
             } else if (keypad->state == KEYPAD_LONG) {

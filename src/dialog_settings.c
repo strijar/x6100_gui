@@ -64,6 +64,15 @@ static dialog_t     dialog = {
 
 dialog_t            *dialog_settings = &dialog;
 
+/* Shared */
+
+static void bool_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    bool_params_t   *var = lv_event_get_user_data(e);
+
+    params_bool_set(var, lv_obj_has_state(obj, LV_STATE_CHECKED));
+}
+
 /* Datetime */
 
 static void datetime_update_cb(lv_event_t * e) {
@@ -402,30 +411,6 @@ static uint8_t make_line_gain(uint8_t row) {
 
 /* Mag Freq, Info, ALC */
 
-static void mag_freq_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.mag_freq = lv_obj_has_state(obj, LV_STATE_CHECKED);
-    params_unlock(&params.durty.mag_freq);
-}
-
-static void mag_info_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.mag_info = lv_obj_has_state(obj, LV_STATE_CHECKED);
-    params_unlock(&params.durty.mag_info);
-}
-
-static void mag_alc_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.mag_alc = lv_obj_has_state(obj, LV_STATE_CHECKED);
-    params_unlock(&params.durty.mag_alc);
-}
-
 static uint8_t make_mag(uint8_t row) {
     lv_obj_t    *obj;
     uint8_t     col = 0;
@@ -453,9 +438,9 @@ static uint8_t make_mag(uint8_t row) {
 
     lv_obj_set_width(obj, SMALL_2 - 30);
     lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, mag_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_freq);
 
-    if (params.mag_freq) {
+    if (params.mag_freq.x) {
         lv_obj_add_state(obj, LV_STATE_CHECKED);
     }
 
@@ -475,9 +460,9 @@ static uint8_t make_mag(uint8_t row) {
 
     lv_obj_set_width(obj, SMALL_2 - 30);
     lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, mag_info_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_info);
 
-    if (params.mag_info) {
+    if (params.mag_info.x) {
         lv_obj_add_state(obj, LV_STATE_CHECKED);
     }
 
@@ -497,9 +482,9 @@ static uint8_t make_mag(uint8_t row) {
 
     lv_obj_set_width(obj, SMALL_2 - 30);
     lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, mag_alc_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_alc);
 
-    if (params.mag_alc) {
+    if (params.mag_alc.x) {
         lv_obj_add_state(obj, LV_STATE_CHECKED);
     }
 
@@ -1129,6 +1114,114 @@ static uint8_t make_voice(uint8_t row) {
     return row + 1;
 }
 
+/* Spectrum and waterfall auto */
+
+static uint8_t make_auto(uint8_t row) {
+    lv_obj_t    *obj;
+
+    row_dsc[row] = 54;
+
+    /* Spectrum */
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Spectrum auto min, max");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_3, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_switch_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.spectrum_auto_min);
+
+    if (params.spectrum_auto_min.x) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_3, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 4, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_switch_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.spectrum_auto_max);
+
+    if (params.spectrum_auto_max.x) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+
+    /* Waterfall */
+
+    row++;
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Waterfall auto min, max");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_3, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_switch_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.waterfall_auto_min);
+
+    if (params.waterfall_auto_min.x) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+
+    obj = lv_obj_create(grid);
+    
+    lv_obj_set_size(obj, SMALL_3, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 4, 3, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(obj);
+
+    obj = lv_switch_create(obj);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_width(obj, SMALL_3 - 30);
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.waterfall_auto_max);
+
+    if (params.waterfall_auto_max.x) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+
+    return row + 1;
+}
+
+
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
     
@@ -1184,6 +1277,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_voice(row);
+
+    row = make_delimiter(row);
+    row = make_auto(row);
 
     row = make_delimiter(row);
     

@@ -85,8 +85,8 @@ static void spectrum_draw_cb(lv_event_t * e) {
     peak_b.x = x1;
     peak_b.y = y1 + h;
 
-    float min = params.spectrum_auto_min ? spectrum_auto_min + 6.0f : grid_min;
-    float max = params.spectrum_auto_max ? spectrum_auto_max + 10.0f : grid_max;
+    float min = params.spectrum_auto_min.x ? spectrum_auto_min + 6.0f : grid_min;
+    float max = params.spectrum_auto_max.x ? spectrum_auto_max + 10.0f : grid_max;
     
     for (uint16_t i = 0; i < spectrum_size; i++) {
         float       v = (spectrum_buf[i] - min) / (max - min);

@@ -19,6 +19,7 @@
 #include "vol.h"
 #include "dialog_msg_cw.h"
 #include "qth.h"
+#include "voice.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
@@ -36,13 +37,13 @@ params_t params = {
     .spectrum_peak          = true,
     .spectrum_peak_hold     = 5000,
     .spectrum_peak_speed    = 0.5f,
-    .spectrum_auto_min      = true,
-    .spectrum_auto_max      = true,
-    .waterfall_auto_min     = true,
-    .waterfall_auto_max     = true,
-    .mag_freq               = true,
-    .mag_info               = true,
-    .mag_alc                = true,
+    .spectrum_auto_min      = { .x = true,  .name = "spectrum_auto_min",    .voice = "Auto minimum of spectrum" },
+    .spectrum_auto_max      = { .x = true,  .name = "spectrum_auto_max",    .voice = "Auto maximum of spectrum" },
+    .waterfall_auto_min     = { .x = true,  .name = "waterfall_auto_min",   .voice = "Auto minimum of waterfall" },
+    .waterfall_auto_max     = { .x = true,  .name = "waterfall_auto_max",   .voice = "Auto maximum of waterfall" },
+    .mag_freq               = { .x = true,  .name = "mag_freq",             .voice = "Magnification of frequency" },
+    .mag_info               = { .x = true,  .name = "mag_info",             .voice = "Magnification of info" },
+    .mag_alc                = { .x = true,  .name = "mag_alc",              .voice = "Magnification of A L C" },
     .clock_view             = CLOCK_TIME_POWER,
     .clock_time_timeout     = 5,
     .clock_power_timeout    = 3,
@@ -453,6 +454,15 @@ static bool params_mb_save(uint16_t id) {
 
 /* System params */
 
+static bool params_load_bool(bool_params_t *var, const char *name, const int32_t x) {
+    if (strcmp(name, var->name) == 0) {
+        var->x = x;
+        return true;
+    }
+    
+    return false;
+}
+
 static bool params_load() {
     sqlite3_stmt    *stmt;
     int             rc;
@@ -581,12 +591,6 @@ static bool params_load() {
             params.line_out = i;
         } else if (strcmp(name, "moni") == 0) {
             params.moni = i;
-        } else if (strcmp(name, "mag_freq") == 0) {
-            params.mag_freq = i;
-        } else if (strcmp(name, "mag_info") == 0) {
-            params.mag_info = i;
-        } else if (strcmp(name, "mag_alc") == 0) {
-            params.mag_alc = i;
         } else if (strcmp(name, "clock_view") == 0) {
             params.clock_view = i;
         } else if (strcmp(name, "clock_time_timeout") == 0) {
@@ -639,6 +643,20 @@ static bool params_load() {
             params.voice_volume = i;
         } else if (strcmp(name, "qth") == 0) {
             qth_set(sqlite3_column_text(stmt, 1));
+        } else if (params_load_bool(&params.mag_freq, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.mag_info, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.mag_alc, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.spectrum_auto_min, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.spectrum_auto_max, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.waterfall_auto_min, name, i)) {
+            continue;
+        } else if (params_load_bool(&params.waterfall_auto_max, name, i)) {
+            continue;
         }
     }
     
@@ -690,6 +708,12 @@ static void params_write_text(const char *name, const char *data, bool *durty) {
     *durty = false;
 }
 
+static void params_save_bool(bool_params_t *var) {
+    if (var->durty) {
+        params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
 static void params_save() {
     if (!params_exec("BEGIN")) {
         return;
@@ -707,6 +731,11 @@ static void params_save() {
     if (params.durty.spectrum_peak)         params_write_int("spectrum_peak", params.spectrum_peak, &params.durty.spectrum_peak);
     if (params.durty.spectrum_peak_hold)    params_write_int("spectrum_peak_hold", params.spectrum_peak_hold, &params.durty.spectrum_peak_hold);
     if (params.durty.spectrum_peak_speed)   params_write_int("spectrum_peak_speed", params.spectrum_peak_speed * 10, &params.durty.spectrum_peak_speed);
+
+    params_save_bool(&params.spectrum_auto_min);
+    params_save_bool(&params.spectrum_auto_max);
+    params_save_bool(&params.waterfall_auto_min);
+    params_save_bool(&params.waterfall_auto_max);
 
     if (params.durty.key_speed)             params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
     if (params.durty.key_mode)              params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
@@ -766,9 +795,9 @@ static void params_save() {
     if (params.durty.brightness_timeout)    params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
     if (params.durty.brightness_buttons)    params_write_int("brightness_buttons", params.brightness_buttons, &params.durty.brightness_buttons);
 
-    if (params.durty.mag_freq)              params_write_int("mag_freq", params.mag_freq, &params.durty.mag_freq);
-    if (params.durty.mag_info)              params_write_int("mag_info", params.mag_info, &params.durty.mag_info);
-    if (params.durty.mag_alc)               params_write_int("mag_alc", params.mag_info, &params.durty.mag_alc);
+    params_save_bool(&params.mag_freq);
+    params_save_bool(&params.mag_info);
+    params_save_bool(&params.mag_alc);
 
     if (params.durty.clock_view)            params_write_int("clock_view", params.clock_view, &params.durty.clock_view);
     if (params.durty.clock_time_timeout)    params_write_int("clock_time_timeout", params.clock_time_timeout, &params.durty.clock_time_timeout);
@@ -1207,4 +1236,12 @@ bool params_bands_find_next(uint64_t freq, bool up, band_t *band) {
     sqlite3_finalize(stmt);
 
     return res;
+}
+
+void params_bool_set(bool_params_t *var, bool x) {
+    params_lock();
+    var->x = x;
+    params_unlock(&var->durty);
+    
+    voice_say_bool(var->voice, var->x);
 }

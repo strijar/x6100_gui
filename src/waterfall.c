@@ -116,8 +116,8 @@ void waterfall_data(float *data_buf, uint16_t size) {
 
     scroll_down();
 
-    float min = params.waterfall_auto_min ? waterfall_auto_min + 6.0f : grid_min;
-    float max = params.waterfall_auto_max ? waterfall_auto_max + 3.0f : grid_max;
+    float min = params.waterfall_auto_min.x ? waterfall_auto_min + 6.0f : grid_min;
+    float max = params.waterfall_auto_max.x ? waterfall_auto_max + 3.0f : grid_max;
 
     for (int x = 0; x < width; x++) {
         uint16_t    index = x * size / width;
