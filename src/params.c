@@ -64,6 +64,7 @@ params_t params = {
     .line_in                = 10,
     .line_out               = 10,
     .moni                   = 59,
+    .spmode                 = { .x = false, .name = "spmode",    .voice = "Speaker mode" },
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -643,21 +644,16 @@ static bool params_load() {
             params.voice_volume = i;
         } else if (strcmp(name, "qth") == 0) {
             qth_set(sqlite3_column_text(stmt, 1));
-        } else if (params_load_bool(&params.mag_freq, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.mag_info, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.mag_alc, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.spectrum_auto_min, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.spectrum_auto_max, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.waterfall_auto_min, name, i)) {
-            continue;
-        } else if (params_load_bool(&params.waterfall_auto_max, name, i)) {
-            continue;
-        }
+        } 
+        
+        if (params_load_bool(&params.mag_freq, name, i)) continue;
+        if (params_load_bool(&params.mag_info, name, i)) continue;
+        if (params_load_bool(&params.mag_alc, name, i)) continue;
+        if (params_load_bool(&params.spectrum_auto_min, name, i)) continue;
+        if (params_load_bool(&params.spectrum_auto_max, name, i)) continue;
+        if (params_load_bool(&params.waterfall_auto_min, name, i)) continue;
+        if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
+        if (params_load_bool(&params.spmode, name, i)) continue;
     }
     
     sqlite3_finalize(stmt);
@@ -732,10 +728,6 @@ static void params_save() {
     if (params.durty.spectrum_peak_hold)    params_write_int("spectrum_peak_hold", params.spectrum_peak_hold, &params.durty.spectrum_peak_hold);
     if (params.durty.spectrum_peak_speed)   params_write_int("spectrum_peak_speed", params.spectrum_peak_speed * 10, &params.durty.spectrum_peak_speed);
 
-    params_save_bool(&params.spectrum_auto_min);
-    params_save_bool(&params.spectrum_auto_max);
-    params_save_bool(&params.waterfall_auto_min);
-    params_save_bool(&params.waterfall_auto_max);
 
     if (params.durty.key_speed)             params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
     if (params.durty.key_mode)              params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
@@ -795,10 +787,6 @@ static void params_save() {
     if (params.durty.brightness_timeout)    params_write_int("brightness_timeout", params.brightness_timeout, &params.durty.brightness_timeout);
     if (params.durty.brightness_buttons)    params_write_int("brightness_buttons", params.brightness_buttons, &params.durty.brightness_buttons);
 
-    params_save_bool(&params.mag_freq);
-    params_save_bool(&params.mag_info);
-    params_save_bool(&params.mag_alc);
-
     if (params.durty.clock_view)            params_write_int("clock_view", params.clock_view, &params.durty.clock_view);
     if (params.durty.clock_time_timeout)    params_write_int("clock_time_timeout", params.clock_time_timeout, &params.durty.clock_time_timeout);
     if (params.durty.clock_power_timeout)   params_write_int("clock_power_timeout", params.clock_power_timeout, &params.durty.clock_power_timeout);
@@ -832,6 +820,15 @@ static void params_save() {
     if (params.durty.voice_volume)          params_write_int("voice_volume", params.voice_volume, &params.durty.voice_volume);
 
     if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
+
+    params_save_bool(&params.mag_freq);
+    params_save_bool(&params.mag_info);
+    params_save_bool(&params.mag_alc);
+    params_save_bool(&params.spectrum_auto_min);
+    params_save_bool(&params.spectrum_auto_max);
+    params_save_bool(&params.waterfall_auto_min);
+    params_save_bool(&params.waterfall_auto_max);
+    params_save_bool(&params.spmode);
 
     params_exec("COMMIT");
 }

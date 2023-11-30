@@ -22,6 +22,7 @@ typedef enum {
     VOL_MIC,
     VOL_IMIC,
     VOL_MONI,
+    VOL_SPMODE,
     
     VOL_LAST
 } vol_mode_t;

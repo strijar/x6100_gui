@@ -264,6 +264,7 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_mic_set(params.mic);
     x6100_control_hmic_set(params.hmic);
     x6100_control_imic_set(params.imic);
+    x6100_control_spmode_set(params.spmode.x);
 
     x6100_control_dnf_set(params.dnf);
     x6100_control_dnf_center_set(params.dnf_center);
@@ -388,6 +389,20 @@ uint16_t radio_change_moni(int16_t df) {
     radio_unlock();
     
     return params.moni;
+}
+
+bool radio_change_spmode(int16_t df) {
+    if (df == 0) {
+        return params.spmode.x;
+    }
+    
+    params_bool_set(&params.spmode, df > 0);
+
+    radio_lock();
+    x6100_control_spmode_set(params.spmode.x);
+    radio_unlock();
+    
+    return params.spmode.x;
 }
 
 uint16_t radio_change_rfg(int16_t df) {

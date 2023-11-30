@@ -179,6 +179,7 @@ typedef struct {
     uint8_t             line_in;
     uint8_t             line_out;
     int16_t             moni;
+    bool_params_t       spmode;
     
     /* DSP */
     

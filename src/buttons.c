@@ -57,7 +57,7 @@ static button_item_t    buttons[] = {
     { .label = "(VOL 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1, .voice = "Volume page 2" },
     { .label = "Filter\nLow",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_LOW },
     { .label = "Filter\nHigh",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_HIGH },
-    { .label = "",                  .press = NULL },
+    { .label = "Speaker\nMode",     .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SPMODE },
     { .label = "",                  .press = NULL },
 
     { .label = "(VOL 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_1, .prev = PAGE_VOL_2, .voice = "Volume page 3" },

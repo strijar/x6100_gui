@@ -19,6 +19,7 @@ void vol_update(int16_t diff, bool voice) {
     int32_t     x;
     float       f;
     char        *s;
+    bool        b;
 
     uint32_t    color = vol->mode == VOL_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
@@ -146,6 +147,11 @@ void vol_update(int16_t diff, bool voice) {
             } else if (voice) {
                 voice_say_text_fmt("Monitor level");
             }
+            break;
+
+        case VOL_SPMODE:
+            b = radio_change_spmode(diff);
+            msg_set_text_fmt("#%3X Speaker mode: %s", color, b ? "On" : "Off");
             break;
             
         default:

@@ -69,6 +69,7 @@ uint16_t radio_change_sql(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);
 uint32_t radio_change_filter_high(int32_t freq);
 uint16_t radio_change_moni(int16_t df);
+bool radio_change_spmode(int16_t df);
 
 void radio_change_mute();
 
