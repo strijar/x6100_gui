@@ -67,12 +67,25 @@ void audio_player::finish() {
         stream.drain();
 }
 
+typedef struct {
+    const char* name; 
+    const char* label;
+    const char* welcome;
+} voice_item_t;
+
 static std::shared_ptr<engine>      eng(new engine);
 static voice_profile                profile;
 static char                         buf[512];
 static pthread_t                    thread;
 static uint32_t                     delay = 0;
 static bool                         run = false;
+
+static voice_item_t                 voice_item[VOICES_NUM] = {
+    { .name = "lyubov",         .label = "Lyubov (En)",     .welcome = "Hello. This is voice Lyubov" },
+    { .name = "slt",            .label = "SLT (En)",        .welcome = "Hello. This is voice S L T" },
+    { .name = "alan",           .label = "Alan (En)",       .welcome = "Hello. This is voice Alan" },
+    { .name = "evgeniy-eng",    .label = "Evgeniy (En)",    .welcome = "Hello. This is voice Evgeniy" },
+};
 
 static void * say_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -84,7 +97,7 @@ static void * say_thread(void *arg) {
     
     run = true;
 
-    profile = eng->create_voice_profile("lyubov");
+    profile = eng->create_voice_profile(voice_item[params.voice_lang.x].name);
 
     audio_player                    player;
     std::istringstream              text{buf};
@@ -92,9 +105,9 @@ static void * say_thread(void *arg) {
     std::istreambuf_iterator<char>  text_end;
     std::unique_ptr<document>       doc = document::create_from_plain_text(eng, text_start, text_end, content_text, profile);
     
-    doc->speech_settings.relative.rate = params.voice_rate / 100.0;
-    doc->speech_settings.relative.pitch = params.voice_pitch / 100.0;
-    doc->speech_settings.relative.volume = params.voice_volume / 100.0;
+    doc->speech_settings.relative.rate = params.voice_rate.x / 100.0;
+    doc->speech_settings.relative.pitch = params.voice_pitch.x / 100.0;
+    doc->speech_settings.relative.volume = params.voice_volume.x / 100.0;
     doc->set_owner(player);
 
     x6100_control_record_set(true);
@@ -187,5 +200,25 @@ void voice_say_freq(uint64_t freq) {
 }
 
 void voice_say_bool(const char *prompt, bool x) {
-    voice_delay_say_text_fmt("%s is %s", prompt, x ? "on" : "off");
+    voice_delay_say_text_fmt("%s %s", prompt, x ? "is on" : "is off");
+}
+
+void voice_say_int(const char *prompt, int32_t x) {
+    voice_delay_say_text_fmt("%s %i", prompt, x);
+}
+
+const char * voice_change(int16_t diff) {
+    uint8_t x;
+
+    if (diff) {
+        x = params_uint8_change(&params.voice_lang, diff);
+    } else {
+        x = params.voice_lang.x;
+    }
+
+    return voice_item[x].label;
+}
+
+void voice_say_lang() {
+    voice_delay_say_text_fmt(voice_item[params.voice_lang.x].welcome);
 }

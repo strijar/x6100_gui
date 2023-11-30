@@ -25,7 +25,7 @@
 
 params_t params = {
     .vol_modes              = (1 << VOL_VOL) | (1 << VOL_RFG) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
-    .mfk_modes              = (1 <<MFK_MIN_LEVEL) | (1 << MFK_MAX_LEVEL) | (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
+    .mfk_modes              = (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
 
     .brightness_normal      = 9,
     .brightness_idle        = 1,
@@ -132,9 +132,10 @@ params_t params = {
     .rec_gain               = 100,
 
     .voice_mode             = VOICE_LCD,
-    .voice_rate             = 75,
-    .voice_pitch            = 100,
-    .voice_volume           = 100,
+    .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },
+    .voice_rate             = { .x = 100, .min = 50, .max = 150,                .name = "voice_rate",     .voice = "Voice rate" },
+    .voice_pitch            = { .x = 100, .min = 50, .max = 150,                .name = "voice_pitch",    .voice = "Voice pitch" },
+    .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" },
 
     .qth                    = "",
 };
@@ -455,7 +456,16 @@ static bool params_mb_save(uint16_t id) {
 
 /* System params */
 
-static bool params_load_bool(bool_params_t *var, const char *name, const int32_t x) {
+static bool params_load_bool(params_bool_t *var, const char *name, const int32_t x) {
+    if (strcmp(name, var->name) == 0) {
+        var->x = x;
+        return true;
+    }
+    
+    return false;
+}
+
+static bool params_load_uint8(params_uint8_t *var, const char *name, const int32_t x) {
     if (strcmp(name, var->name) == 0) {
         var->x = x;
         return true;
@@ -636,12 +646,6 @@ static bool params_load() {
             params.rec_gain = i;
         } else if (strcmp(name, "voice_mode") == 0) {
             params.voice_mode = i;
-        } else if (strcmp(name, "voice_rate") == 0) {
-            params.voice_rate = i;
-        } else if (strcmp(name, "voice_pitch") == 0) {
-            params.voice_pitch = i;
-        } else if (strcmp(name, "voice_volume") == 0) {
-            params.voice_volume = i;
         } else if (strcmp(name, "qth") == 0) {
             qth_set(sqlite3_column_text(stmt, 1));
         } 
@@ -654,6 +658,11 @@ static bool params_load() {
         if (params_load_bool(&params.waterfall_auto_min, name, i)) continue;
         if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
         if (params_load_bool(&params.spmode, name, i)) continue;
+
+        if (params_load_uint8(&params.voice_lang, name, i)) continue;
+        if (params_load_uint8(&params.voice_rate, name, i)) continue;
+        if (params_load_uint8(&params.voice_pitch, name, i)) continue;
+        if (params_load_uint8(&params.voice_volume, name, i)) continue;
     }
     
     sqlite3_finalize(stmt);
@@ -704,7 +713,13 @@ static void params_write_text(const char *name, const char *data, bool *durty) {
     *durty = false;
 }
 
-static void params_save_bool(bool_params_t *var) {
+static void params_save_bool(params_bool_t *var) {
+    if (var->durty) {
+        params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
+static void params_save_uint8(params_uint8_t *var) {
     if (var->durty) {
         params_write_int(var->name, var->x, &var->durty);
     }
@@ -727,7 +742,6 @@ static void params_save() {
     if (params.durty.spectrum_peak)         params_write_int("spectrum_peak", params.spectrum_peak, &params.durty.spectrum_peak);
     if (params.durty.spectrum_peak_hold)    params_write_int("spectrum_peak_hold", params.spectrum_peak_hold, &params.durty.spectrum_peak_hold);
     if (params.durty.spectrum_peak_speed)   params_write_int("spectrum_peak_speed", params.spectrum_peak_speed * 10, &params.durty.spectrum_peak_speed);
-
 
     if (params.durty.key_speed)             params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
     if (params.durty.key_mode)              params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
@@ -814,12 +828,13 @@ static void params_save() {
     if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
     if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
 
-    if (params.durty.voice_mode)            params_write_int("voice_mode", params.voice_mode, &params.durty.voice_mode);
-    if (params.durty.voice_rate)            params_write_int("voice_rate", params.voice_rate, &params.durty.voice_rate);
-    if (params.durty.voice_pitch)           params_write_int("voice_pitch", params.voice_pitch, &params.durty.voice_pitch);
-    if (params.durty.voice_volume)          params_write_int("voice_volume", params.voice_volume, &params.durty.voice_volume);
-
     if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
+    if (params.durty.voice_mode)            params_write_int("voice_mode", params.voice_mode, &params.durty.voice_mode);
+
+    params_save_uint8(&params.voice_lang);
+    params_save_uint8(&params.voice_rate);
+    params_save_uint8(&params.voice_pitch);
+    params_save_uint8(&params.voice_volume);
 
     params_save_bool(&params.mag_freq);
     params_save_bool(&params.mag_info);
@@ -1235,10 +1250,37 @@ bool params_bands_find_next(uint64_t freq, bool up, band_t *band) {
     return res;
 }
 
-void params_bool_set(bool_params_t *var, bool x) {
+void params_bool_set(params_bool_t *var, bool x) {
     params_lock();
     var->x = x;
     params_unlock(&var->durty);
     
-    voice_say_bool(var->voice, var->x);
+    if (var->voice) {
+        voice_say_bool(var->voice, var->x);
+    }
+}
+
+void params_uint8_set(params_uint8_t *var, uint8_t x) {
+    params_lock();
+    var->x = x;
+    params_unlock(&var->durty);
+    
+    if (var->voice) {
+        voice_say_int(var->voice, var->x);
+    }
+}
+
+uint8_t params_uint8_change(params_uint8_t *var, int16_t df) {
+    if (df == 0) {
+        return var->x;
+    }
+    
+    int32_t x = var->x + df;
+    
+    if (x > var->max) x = var->max;
+    if (x < var->min) x = var->min;
+    
+    params_uint8_set(var, x);
+    
+    return var->x;
 }

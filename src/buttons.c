@@ -48,25 +48,31 @@ static void button_action_cb(lv_event_t * e);
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2, .voice = "Volume page 1" },
+    { .label = "(VOL 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2, .voice = "Volume page 1" },
     { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
     { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
     { .label = "RFG",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_RFG },
     { .label = "TX\nPower",         .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_PWR },
 
-    { .label = "(VOL 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1, .voice = "Volume page 2" },
+    { .label = "(VOL 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1, .voice = "Volume page 2" },
     { .label = "Filter\nLow",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_LOW },
     { .label = "Filter\nHigh",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_HIGH },
     { .label = "Speaker\nMode",     .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SPMODE },
     { .label = "",                  .press = NULL },
 
-    { .label = "(VOL 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_1, .prev = PAGE_VOL_2, .voice = "Volume page 3" },
+    { .label = "(VOL 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_4, .prev = PAGE_VOL_2, .voice = "Volume page 3" },
     { .label = "MIC\nSelect",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MIC },
     { .label = "H-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_HMIC },
     { .label = "I-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_IMIC },
     { .label = "Moni\nLevel",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MONI },
+
+    { .label = "(VOL 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_1, .prev = PAGE_VOL_3, .voice = "Volume page 4" },
+    { .label = "Voice",             .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_LANG },
+    { .label = "Voice\nRate",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_RATE },
+    { .label = "Voice\nPitch",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_PITCH },
+    { .label = "Voice\nVolume",     .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_VOLUME },
     
-    { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_3, .voice = "MFK page 1" },
+    { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_4, .voice = "MFK page 1" },
     { .label = "Min\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MIN_LEVEL },
     { .label = "Max\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MAX_LEVEL },
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },

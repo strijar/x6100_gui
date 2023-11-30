@@ -153,6 +153,44 @@ void vol_update(int16_t diff, bool voice) {
             b = radio_change_spmode(diff);
             msg_set_text_fmt("#%3X Speaker mode: %s", color, b ? "On" : "Off");
             break;
+
+        case VOL_VOICE_LANG:
+            s = voice_change(diff);
+            msg_set_text_fmt("#%3X Voice: %s", color, s);
+
+            if (diff) {
+                voice_say_lang();
+            } else if (voice) {
+                voice_say_text_fmt("Voice selector");
+            }
+            break;
+
+        case VOL_VOICE_RATE:
+            x = params_uint8_change(&params.voice_rate, diff);
+            msg_set_text_fmt("#%3X Voice rate: %i", color, x);
+            
+            if (diff == 0 && voice) {
+                voice_say_text_fmt(params.voice_rate.voice);
+            }
+            break;
+
+        case VOL_VOICE_PITCH:
+            x = params_uint8_change(&params.voice_pitch, diff);
+            msg_set_text_fmt("#%3X Voice pitch: %i", color, x);
+
+            if (diff == 0 && voice) {
+                voice_say_text_fmt(params.voice_pitch.voice);
+            }
+            break;
+
+        case VOL_VOICE_VOLUME:
+            x = params_uint8_change(&params.voice_volume, diff);
+            msg_set_text_fmt("#%3X Voice volume: %i", color, x);
+
+            if (diff == 0 && voice) {
+                voice_say_text_fmt(params.voice_volume.voice);
+            }
+            break;
             
         default:
             break;

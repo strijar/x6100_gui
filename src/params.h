@@ -104,42 +104,44 @@ typedef struct {
     char        *voice;
     bool        x;
     bool        durty;
-} bool_params_t;
+} params_bool_t;
 
 typedef struct {
     char        *name;
     char        *voice;
     float       x;
     bool        durty;
-} float_params_t;
+} params_float_t;
 
 typedef struct {
     char        *name;
     char        *voice;
     uint8_t     x;
+    uint8_t     min;
+    uint8_t     max;
     bool        durty;
-} uint8_params_t;
+} params_uint8_t;
 
 typedef struct {
     char        *name;
     char        *voice;
     int8_t      x;
     bool        durty;
-} int8_params_t;
+} params_int8_t;
 
 typedef struct {
     char        *name;
     char        *voice;
     int16_t     x;
     bool        durty;
-} int16_params_t;
+} params_int16_t;
 
 typedef struct {
     char        *name;
     char        *voice;
     uint64_t    x;
     bool        durty;
-} uint64_params_t;
+} params_uint64_t;
 
 /* Params */
 
@@ -179,7 +181,7 @@ typedef struct {
     uint8_t             line_in;
     uint8_t             line_out;
     int16_t             moni;
-    bool_params_t       spmode;
+    params_bool_t       spmode;
     
     /* DSP */
     
@@ -214,13 +216,13 @@ typedef struct {
     uint16_t            spectrum_peak_hold;
     float               spectrum_peak_speed;
     bool                spectrum_filled;
-    bool_params_t       spectrum_auto_min;
-    bool_params_t       spectrum_auto_max;
-    bool_params_t       waterfall_auto_min;
-    bool_params_t       waterfall_auto_max;
-    bool_params_t       mag_freq;
-    bool_params_t       mag_info;
-    bool_params_t       mag_alc;
+    params_bool_t       spectrum_auto_min;
+    params_bool_t       spectrum_auto_max;
+    params_bool_t       waterfall_auto_min;
+    params_bool_t       waterfall_auto_max;
+    params_bool_t       mag_freq;
+    params_bool_t       mag_info;
+    params_bool_t       mag_alc;
     clock_view_t        clock_view;
     uint8_t             clock_time_timeout;     /* seconds */
     uint8_t             clock_power_timeout;    /* seconds */
@@ -292,11 +294,12 @@ typedef struct {
     uint16_t            rec_gain;
     
     /* Voice */
-    
+
     voice_mode_t        voice_mode;
-    uint8_t             voice_rate;
-    uint8_t             voice_pitch;
-    uint8_t             voice_volume;
+    params_uint8_t      voice_lang;
+    params_uint8_t      voice_rate;
+    params_uint8_t      voice_pitch;
+    params_uint8_t      voice_volume;
     
     char                qth[7];
     
@@ -401,10 +404,6 @@ typedef struct {
         bool    rec_gain;
 
         bool    voice_mode;
-        bool    voice_rate;
-        bool    voice_pitch;
-        bool    voice_volume;
-
         bool    qth;
     } durty;
 } params_t;
@@ -432,7 +431,10 @@ void params_init();
 void params_lock();
 void params_unlock(bool *durty);
 
-void params_bool_set(bool_params_t *var, bool x);
+void params_bool_set(params_bool_t *var, bool x);
+void params_uint8_set(params_uint8_t *var, uint8_t x);
+
+uint8_t params_uint8_change(params_uint8_t *var, int16_t df);
 
 void params_band_save();
 void params_band_load();

@@ -64,13 +64,49 @@ static dialog_t     dialog = {
 
 dialog_t            *dialog_settings = &dialog;
 
-/* Shared */
+/* Shared update */
 
 static void bool_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
-    bool_params_t   *var = lv_event_get_user_data(e);
+    params_bool_t   *var = lv_event_get_user_data(e);
 
     params_bool_set(var, lv_obj_has_state(obj, LV_STATE_CHECKED));
+}
+
+static void uint8_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    params_uint8_t  *var = lv_event_get_user_data(e);
+
+    params_uint8_set(var, lv_spinbox_get_value(obj));
+}
+
+/* Shared create */
+
+static lv_obj_t * switch_bool(lv_obj_t *parent, params_bool_t *var) {
+    lv_obj_t *obj = lv_switch_create(parent);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_center(obj);
+    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, var);
+
+    if (var->x) {
+        lv_obj_add_state(obj, LV_STATE_CHECKED);
+    }
+    
+    return obj;
+}
+
+static lv_obj_t * spinbox_uint8(lv_obj_t *parent, params_uint8_t *var) {
+    lv_obj_t *obj = lv_spinbox_create(parent);
+
+    dialog_item(&dialog, obj);
+
+    lv_spinbox_set_value(obj, var->x);
+    lv_spinbox_set_range(obj, var->min, var->max);
+    lv_obj_add_event_cb(obj, uint8_update_cb, LV_EVENT_VALUE_CHANGED, var);
+    
+    return obj;
 }
 
 /* Datetime */
@@ -432,17 +468,9 @@ static uint8_t make_mag(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.mag_freq);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_freq);
-
-    if (params.mag_freq.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     /* Info */
 
@@ -454,17 +482,9 @@ static uint8_t make_mag(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.mag_info);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_info);
-
-    if (params.mag_info.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     /* ALC */
 
@@ -476,17 +496,9 @@ static uint8_t make_mag(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.mag_alc);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.mag_alc);
-
-    if (params.mag_alc.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     return row + 1;
 }
@@ -555,7 +567,6 @@ static uint8_t make_clock(uint8_t row) {
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
     obj = lv_spinbox_create(grid);
-    sec = obj;
 
     dialog_item(&dialog, obj);
 
@@ -569,7 +580,6 @@ static uint8_t make_clock(uint8_t row) {
     lv_obj_add_event_cb(obj, clock_time_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     obj = lv_spinbox_create(grid);
-    sec = obj;
 
     dialog_item(&dialog, obj);
 
@@ -583,7 +593,6 @@ static uint8_t make_clock(uint8_t row) {
     lv_obj_add_event_cb(obj, clock_power_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     obj = lv_spinbox_create(grid);
-    sec = obj;
 
     dialog_item(&dialog, obj);
 
@@ -1002,36 +1011,6 @@ static void voice_mode_update_cb(lv_event_t * e) {
     params_unlock(&params.durty.voice_mode);
 }
 
-static void voice_rate_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.voice_rate = lv_spinbox_get_value(obj);
-    params_unlock(&params.durty.voice_rate);
-    
-    voice_delay_say_text_fmt("Rate %i", params.voice_rate);
-}
-
-static void voice_pitch_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.voice_pitch = lv_spinbox_get_value(obj);
-    params_unlock(&params.durty.voice_pitch);
-
-    voice_delay_say_text_fmt("Pitch %i", params.voice_pitch);
-}
-
-static void voice_volume_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.voice_volume = lv_spinbox_get_value(obj);
-    params_unlock(&params.durty.voice_volume);
-
-    voice_delay_say_text_fmt("Volume %i", params.voice_volume);
-}
-
 static uint8_t make_voice(uint8_t row) {
     lv_obj_t    *obj;
     uint8_t     col = 0;
@@ -1069,47 +1048,27 @@ static uint8_t make_voice(uint8_t row) {
     lv_label_set_text(obj, "Voice rate, pitch, volume");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
-    obj = lv_spinbox_create(grid);
-    sec = obj;
+    obj = spinbox_uint8(grid, &params.voice_rate);
 
-    dialog_item(&dialog, obj);
+    lv_spinbox_set_digit_format(obj, 3, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_2, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
 
-    lv_spinbox_set_value(obj, params.voice_rate);
-    lv_spinbox_set_range(obj, 50, 150);
+    obj = spinbox_uint8(grid, &params.voice_pitch);
+
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
     
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
-    lv_obj_add_event_cb(obj, voice_rate_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    obj = lv_spinbox_create(grid);
-    sec = obj;
+    obj = spinbox_uint8(grid, &params.voice_volume);
 
-    dialog_item(&dialog, obj);
-
-    lv_spinbox_set_value(obj, params.voice_pitch);
-    lv_spinbox_set_range(obj, 50, 150);
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
-    lv_obj_add_event_cb(obj, voice_pitch_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    obj = lv_spinbox_create(grid);
-    sec = obj;
-
-    dialog_item(&dialog, obj);
-
-    lv_spinbox_set_value(obj, params.voice_volume);
-    lv_spinbox_set_range(obj, 25, 150);
-    lv_spinbox_set_digit_format(obj, 3, 0);
-    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_set_size(obj, SMALL_2, 56);
-    
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
-    lv_obj_add_event_cb(obj, voice_volume_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     return row + 1;
 }
@@ -1136,17 +1095,9 @@ static uint8_t make_auto(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.spectrum_auto_min);
 
     lv_obj_set_width(obj, SMALL_3 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.spectrum_auto_min);
-
-    if (params.spectrum_auto_min.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     obj = lv_obj_create(grid);
     
@@ -1156,17 +1107,9 @@ static uint8_t make_auto(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.spectrum_auto_max);
 
     lv_obj_set_width(obj, SMALL_3 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.spectrum_auto_max);
-
-    if (params.spectrum_auto_max.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     /* Waterfall */
 
@@ -1186,17 +1129,9 @@ static uint8_t make_auto(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.waterfall_auto_min);
 
     lv_obj_set_width(obj, SMALL_3 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.waterfall_auto_min);
-
-    if (params.waterfall_auto_min.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     obj = lv_obj_create(grid);
     
@@ -1206,17 +1141,9 @@ static uint8_t make_auto(uint8_t row) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = lv_switch_create(obj);
-
-    dialog_item(&dialog, obj);
+    obj = switch_bool(obj, &params.waterfall_auto_max);
 
     lv_obj_set_width(obj, SMALL_3 - 30);
-    lv_obj_center(obj);
-    lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, &params.waterfall_auto_max);
-
-    if (params.waterfall_auto_max.x) {
-        lv_obj_add_state(obj, LV_STATE_CHECKED);
-    }
 
     return row + 1;
 }

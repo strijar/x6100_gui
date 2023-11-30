@@ -15,6 +15,8 @@ extern "C" {
 #include <cstdarg>
 #endif
 
+#define VOICES_NUM 4
+
 typedef enum {
     VOICE_OFF = 0,
     VOICE_LCD,
@@ -26,6 +28,10 @@ void voice_delay_say_text_fmt(const char * fmt, ...);
 void voice_say_freq(uint64_t freq);
 
 void voice_say_bool(const char *prompt, bool x);
+void voice_say_int(const char *prompt, int32_t x);
+void voice_say_lang();
+
+const char * voice_change(int16_t diff);
 
 #ifdef __cplusplus
 }

@@ -14,6 +14,7 @@ typedef enum {
     PAGE_VOL_1 = 0,
     PAGE_VOL_2,
     PAGE_VOL_3,
+    PAGE_VOL_4,
 
     PAGE_MFK_1,
     PAGE_MFK_2,
