@@ -8,11 +8,14 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #define AUDIO_PLAY_RATE     (44100)
 #define AUDIO_CAPTURE_RATE  (44100)
 
 void audio_init();
 int audio_play(int16_t *buf, size_t samples);
 void audio_play_wait();
+void audio_play_en(bool on);
 
 int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain);

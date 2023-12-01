@@ -154,9 +154,9 @@ static void * play_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    x6100_control_record_set(true);
+    audio_play_en(true);
     play_item();
-    x6100_control_record_set(false);
+    audio_play_en(false);
 
     if (dialog.run) {
         buttons_unload_page();
@@ -244,7 +244,7 @@ static void construct_cb(lv_obj_t *parent) {
 }
 
 static void destruct_cb() {
-    x6100_control_record_set(false);
+    audio_play_en(false);
     play_state = false;
     textarea_window_close();
 }
