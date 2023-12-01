@@ -23,6 +23,9 @@ typedef enum {
     VOICE_ALWAYS
 } voice_mode_t;
 
+void voice_sure();
+void voice_change_mode();
+
 void voice_say_text_fmt(const char * fmt, ...);
 void voice_delay_say_text_fmt(const char * fmt, ...);
 void voice_say_freq(uint64_t freq);

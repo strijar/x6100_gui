@@ -120,7 +120,7 @@ params_t params = {
     .long_app               = ACTION_APP_RECORDER,
     .long_key               = ACTION_NONE,
     .long_msg               = ACTION_RECORDER,
-    .long_dfn               = ACTION_NONE,
+    .long_dfn               = ACTION_VOICE_MODE,
     .long_dfl               = ACTION_NONE,
     
     .press_f1               = ACTION_STEP_UP,

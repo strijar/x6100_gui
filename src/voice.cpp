@@ -19,6 +19,7 @@ extern "C" {
 #include "util.h"
 #include "backlight.h"
 #include "recorder.h"
+#include "msg.h"
 }
 
 #include <memory>
@@ -81,6 +82,7 @@ static pthread_t                    thread;
 static uint32_t                     delay = 0;
 static bool                         run = false;
 static uint16_t                     repeated = 0;
+static bool                         sure = false;
 
 static voice_item_t                 voice_item[VOICES_NUM] = {
     { .name = "lyubov",         .label = "Lyubov (En)",     .welcome = "Hello. This is voice Lyubov" },
@@ -140,12 +142,45 @@ static void * say_thread(void *arg) {
     audio_play_en(false);
     
     run = false;
+    sure = false;
     return NULL;
+}
+
+void voice_sure() {
+    sure = true;
+}
+
+void voice_change_mode() {
+    voice_sure();
+
+    switch (params.voice_mode) {
+        case VOICE_OFF:
+            params.voice_mode = VOICE_LCD;
+            msg_set_text_fmt("Voice mode: LCD");
+            voice_say_text("Voice mode|", "is LCD");
+            break;
+            
+        case VOICE_LCD:
+            params.voice_mode = VOICE_ALWAYS;
+            msg_set_text_fmt("Voice mode: Always");
+            voice_say_text("Voice mode|", "is always");
+            break;
+            
+        case VOICE_ALWAYS:
+            params.voice_mode = VOICE_OFF;
+            msg_set_text_fmt("Voice mode: Off");
+            voice_say_text("Voice mode|", "is off");
+            break;
+    }
 }
 
 bool voice_enable() {
     if (run || recorder_is_on()) {
         return false;
+    }
+    
+    if (sure) {
+        return true;
     }
     
     switch (params.voice_mode) {

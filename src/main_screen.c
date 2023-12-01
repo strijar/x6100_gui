@@ -283,6 +283,10 @@ void main_screen_action(press_action_t action) {
             radio_change_mute();
             break;
 
+        case ACTION_VOICE_MODE:
+            voice_change_mode();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;
