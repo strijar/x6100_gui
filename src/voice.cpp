@@ -76,9 +76,11 @@ typedef struct {
 static std::shared_ptr<engine>      eng(new engine);
 static voice_profile                profile;
 static char                         buf[512];
+static char                         prev[512];
 static pthread_t                    thread;
 static uint32_t                     delay = 0;
 static bool                         run = false;
+static uint16_t                     repeated = 0;
 
 static voice_item_t                 voice_item[VOICES_NUM] = {
     { .name = "lyubov",         .label = "Lyubov (En)",     .welcome = "Hello. This is voice Lyubov" },
@@ -99,8 +101,30 @@ static void * say_thread(void *arg) {
 
     profile = eng->create_voice_profile(voice_item[params.voice_lang.x].name);
 
+    char *ptr = strchr(buf, '|');
+    
+    if (ptr != NULL) {
+        if (strncmp(buf, prev, ptr - buf) == 0) {
+            repeated++;
+        
+            if (repeated > 4) {
+                repeated = 0;
+                ptr = buf;
+            } else {
+                ptr++;
+            }
+        } else {
+            repeated = 0;
+            ptr = buf;
+        }
+    } else {
+        repeated = 0;
+        ptr = buf;
+    }
+    strcpy(prev, buf);
+
     audio_player                    player;
-    std::istringstream              text{buf};
+    std::istringstream              text{ptr};
     std::istreambuf_iterator<char>  text_start{text};
     std::istreambuf_iterator<char>  text_end;
     std::unique_ptr<document>       doc = document::create_from_plain_text(eng, text_start, text_end, content_text, profile);
@@ -183,9 +207,9 @@ void voice_say_freq(uint64_t freq) {
     split_freq(freq, &mhz, &khz, &hz);
     
     if (hz) {
-        snprintf(buf, sizeof(buf), "%i %i %i", mhz, khz, hz);
+        snprintf(buf, sizeof(buf), "%i.|%i.%i", mhz, khz, hz);
     } else if (khz) {
-        snprintf(buf, sizeof(buf), "%i %i", mhz, khz);
+        snprintf(buf, sizeof(buf), "%i.|%i", mhz, khz);
     } else {
         snprintf(buf, sizeof(buf), "%i", mhz);
     }
@@ -200,11 +224,23 @@ void voice_say_freq(uint64_t freq) {
 }
 
 void voice_say_bool(const char *prompt, bool x) {
-    voice_delay_say_text_fmt("%s %s", prompt, x ? "is on" : "is off");
+    voice_delay_say_text_fmt("%s|%s", prompt, x ? "is on" : "is off");
 }
 
 void voice_say_int(const char *prompt, int32_t x) {
-    voice_delay_say_text_fmt("%s %i", prompt, x);
+    voice_delay_say_text_fmt("%s|%i", prompt, x);
+}
+
+void voice_say_float(const char *prompt, float x) {
+    voice_delay_say_text_fmt("%s|%.1f", prompt, x);
+}
+
+void voice_say_float2(const char *prompt, float x) {
+    voice_delay_say_text_fmt("%s|%.2f", prompt, x);
+}
+
+void voice_say_text(const char *prompt, char *x) {
+    voice_delay_say_text_fmt("%s|%s", prompt, x);
 }
 
 const char * voice_change(int16_t diff) {

@@ -29,7 +29,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X Volume: %i", color, x);
             
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("Audio level", x);
             } else if (voice) {
                 voice_say_text_fmt("Audio level");
             }
@@ -40,7 +40,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X RF gain: %i", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("RF gain", x);
             } else if (voice) {
                 voice_say_text_fmt("RF gain");
             }
@@ -51,7 +51,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("Squelch level %i", x);
             } else if (voice) {
                 voice_say_text_fmt("Squelch level");
             }
@@ -73,7 +73,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("High filter limit", x);
             } else if (voice) {
                 voice_say_text_fmt("High filter limit");
             }
@@ -84,7 +84,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
 
             if (diff) {
-                voice_delay_say_text_fmt("%.1f", f);
+                voice_say_float("Transmit power", f);
             } else if (voice) {
                 voice_say_text_fmt("Transmit power");
             }
@@ -110,7 +110,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X MIC: %s", color, s);
 
             if (diff) {
-                voice_delay_say_text_fmt("%s", s);
+                voice_say_text("Mic selector", s);
             } else if (voice) {
                 voice_say_text_fmt("Mic selector");
             }
@@ -121,7 +121,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("Hand microphone gain", x);
             } else if (voice) {
                 voice_say_text_fmt("Hand microphone gain");
             }
@@ -132,7 +132,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("Internal microphone gain", x);
             } else if (voice) {
                 voice_say_text_fmt("Internal microphone gain");
             }
@@ -143,7 +143,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("#%3X Moni level: %i", color, x);
 
             if (diff) {
-                voice_delay_say_text_fmt("%i", x);
+                voice_say_int("Monitor level", x);
             } else if (voice) {
                 voice_say_text_fmt("Monitor level");
             }
