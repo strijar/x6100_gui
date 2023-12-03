@@ -73,11 +73,18 @@ static void bool_update_cb(lv_event_t * e) {
     params_bool_set(var, lv_obj_has_state(obj, LV_STATE_CHECKED));
 }
 
-static void uint8_update_cb(lv_event_t * e) {
+static void uint8_spinbox_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
     params_uint8_t  *var = lv_event_get_user_data(e);
 
     params_uint8_set(var, lv_spinbox_get_value(obj));
+}
+
+static void uint8_dropdown_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    params_uint8_t  *var = lv_event_get_user_data(e);
+
+    params_uint8_set(var, lv_dropdown_get_selected(obj));
 }
 
 /* Shared create */
@@ -104,7 +111,25 @@ static lv_obj_t * spinbox_uint8(lv_obj_t *parent, params_uint8_t *var) {
 
     lv_spinbox_set_value(obj, var->x);
     lv_spinbox_set_range(obj, var->min, var->max);
-    lv_obj_add_event_cb(obj, uint8_update_cb, LV_EVENT_VALUE_CHANGED, var);
+    lv_obj_add_event_cb(obj, uint8_spinbox_update_cb, LV_EVENT_VALUE_CHANGED, var);
+    
+    return obj;
+}
+
+static lv_obj_t * dropdown_uint8(lv_obj_t *parent, params_uint8_t *var, const char *options) {
+    lv_obj_t *obj = lv_dropdown_create(parent);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_add_event_cb(obj, uint8_dropdown_update_cb, LV_EVENT_VALUE_CHANGED, var);
+
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+    
+    lv_dropdown_set_options(obj, options);
+    lv_dropdown_set_symbol(obj, NULL);
+
+    lv_dropdown_set_selected(obj, var->x);
     
     return obj;
 }
@@ -1005,14 +1030,6 @@ static uint8_t make_transverter(uint8_t row, uint8_t n) {
 
 /* Voice */
 
-static void voice_mode_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    params_lock();
-    params.voice_mode = lv_dropdown_get_selected(obj);
-    params_unlock(&params.durty.voice_mode);
-}
-
 static uint8_t make_voice(uint8_t row) {
     lv_obj_t    *obj;
     uint8_t     col = 0;
@@ -1024,22 +1041,12 @@ static uint8_t make_voice(uint8_t row) {
     lv_label_set_text(obj, "Voice mode");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
-    obj = lv_dropdown_create(grid);
+    obj = dropdown_uint8(grid, &params.voice_mode, " Off \n When LCD off \n Always");
 
-    dialog_item(&dialog, obj);
-    
     lv_obj_set_size(obj, SMALL_6, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_center(obj);
     
-    lv_obj_t *list = lv_dropdown_get_list(obj);
-    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
-    lv_dropdown_set_options(obj, " Off \n When LCD off \n Always");
-    lv_dropdown_set_symbol(obj, NULL);
-    lv_dropdown_set_selected(obj, params.voice_mode);
-    lv_obj_add_event_cb(obj, voice_mode_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
     /* * */
 
     row++;

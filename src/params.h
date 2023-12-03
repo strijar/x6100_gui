@@ -296,7 +296,7 @@ typedef struct {
     
     /* Voice */
 
-    voice_mode_t        voice_mode;
+    params_uint8_t      voice_mode;
     params_uint8_t      voice_lang;
     params_uint8_t      voice_rate;
     params_uint8_t      voice_pitch;

@@ -131,7 +131,7 @@ params_t params = {
     .play_gain              = 100,
     .rec_gain               = 100,
 
-    .voice_mode             = VOICE_LCD,
+    .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
     .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },
     .voice_rate             = { .x = 100, .min = 50, .max = 150,                .name = "voice_rate",     .voice = "Voice rate" },
     .voice_pitch            = { .x = 100, .min = 50, .max = 150,                .name = "voice_pitch",    .voice = "Voice pitch" },
@@ -644,8 +644,6 @@ static bool params_load() {
             params.play_gain = i;
         } else if (strcmp(name, "rec_gain") == 0) {
             params.rec_gain = i;
-        } else if (strcmp(name, "voice_mode") == 0) {
-            params.voice_mode = i;
         } else if (strcmp(name, "qth") == 0) {
             qth_set(sqlite3_column_text(stmt, 1));
         } 
@@ -659,6 +657,7 @@ static bool params_load() {
         if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
         if (params_load_bool(&params.spmode, name, i)) continue;
 
+        if (params_load_uint8(&params.voice_mode, name, i)) continue;
         if (params_load_uint8(&params.voice_lang, name, i)) continue;
         if (params_load_uint8(&params.voice_rate, name, i)) continue;
         if (params_load_uint8(&params.voice_pitch, name, i)) continue;
@@ -829,8 +828,8 @@ static void params_save() {
     if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
 
     if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
-    if (params.durty.voice_mode)            params_write_int("voice_mode", params.voice_mode, &params.durty.voice_mode);
 
+    params_save_uint8(&params.voice_mode);
     params_save_uint8(&params.voice_lang);
     params_save_uint8(&params.voice_rate);
     params_save_uint8(&params.voice_pitch);
