@@ -404,7 +404,6 @@ typedef struct {
         bool    play_gain;
         bool    rec_gain;
 
-        bool    voice_mode;
         bool    qth;
     } durty;
 } params_t;

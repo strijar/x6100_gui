@@ -35,7 +35,9 @@ void dialog_destruct() {
             current_dialog->destruct_cb();
         }
 
-        lv_obj_del(current_dialog->obj);
+        if (current_dialog->obj) {
+            lv_obj_del(current_dialog->obj);
+        }
         main_screen_dialog_deleted_cb();
         main_screen_keys_enable(true);
         current_dialog = NULL;

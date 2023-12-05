@@ -8,4 +8,4 @@
 
 #pragma once
 
-void dialog_qth();
+extern dialog_t *dialog_qth;

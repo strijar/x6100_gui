@@ -11,12 +11,23 @@
 #include "main_screen.h"
 #include "qth.h"
 #include "msg.h"
+#include "dialog.h"
+#include "events.h"
 
-static void close_cb() {
-    main_screen_keys_enable(true);
-}
+static void construct_cb(lv_obj_t *parent);
+static void destruct_cb();
+static void key_cb(lv_event_t * e);
 
-static void edit_ok_cb() {
+static dialog_t             dialog = {
+    .run = false,
+    .construct_cb = construct_cb,
+    .destruct_cb = destruct_cb,
+    .key_cb = key_cb
+};
+
+dialog_t                    *dialog_qth = &dialog;
+
+static void edit_ok() {
     const char *qth = textarea_window_get();
 
     if (grid_check(qth)) {
@@ -24,12 +35,10 @@ static void edit_ok_cb() {
     } else {
         msg_set_text_fmt("Incorrect QTH Grid");
     }
-
-    main_screen_keys_enable(true);
 }
 
-void dialog_qth() {
-    textarea_window_open(edit_ok_cb, close_cb);
+static void construct_cb(lv_obj_t *parent) {
+    dialog.obj = textarea_window_open(NULL, NULL);
     
     lv_obj_t *text = textarea_window_text();
     
@@ -41,7 +50,37 @@ void dialog_qth() {
 
     lv_textarea_set_max_length(text, 6);
     lv_textarea_set_placeholder_text(text, "QTH Grid");
+    lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
     textarea_window_set(params.qth);
-    main_screen_keys_enable(false);
+}
+
+static void destruct_cb() {
+    textarea_window_close();
+    dialog.obj = NULL;
+}
+
+static void key_cb(lv_event_t * e) {
+    uint32_t key = *((uint32_t *)lv_event_get_param(e));
+
+    switch (key) {
+        case LV_KEY_ESC:
+            dialog_destruct(&dialog);
+            break;
+
+        case LV_KEY_ENTER:
+            edit_ok();
+            dialog_destruct(&dialog);
+            break;
+            
+        case KEY_VOL_LEFT_EDIT:
+        case KEY_VOL_LEFT_SELECT:
+            radio_change_vol(-1);
+            break;
+
+        case KEY_VOL_RIGHT_EDIT:
+        case KEY_VOL_RIGHT_SELECT:
+            radio_change_vol(1);
+            break;
+    }
 }

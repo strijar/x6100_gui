@@ -320,7 +320,7 @@ void main_screen_action(press_action_t action) {
             break;
 
         case ACTION_APP_QTH:
-            dialog_qth();
+            dialog_construct(dialog_qth, obj);
             voice_say_text_fmt("QTH window");
             break;
     }
