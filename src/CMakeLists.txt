@@ -20,6 +20,7 @@ add_subdirectory(fonts)
 add_subdirectory(ft8)
 
 include_directories(utf8)
+include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

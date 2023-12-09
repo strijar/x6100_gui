@@ -32,7 +32,7 @@ extern "C" {
 #include <RHVoice/core/engine.hpp>
 #include <RHVoice/core/document.hpp>
 #include <RHVoice/core/client.hpp>
-#include "RHVoice/audio.hpp"
+#include <RHVoice/audio.hpp>
 
 using namespace RHVoice;
 
