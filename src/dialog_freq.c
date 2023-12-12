@@ -86,7 +86,7 @@ static void enter_freq() {
     
     if (radio_check_freq(f, NULL)) {
         main_screen_set_freq(f);
-        voice_say_text_fmt("Frequency has been set");
+        voice_say_text_fmt("Frequency has been set %s", str);
     } else {
         msg_set_text_fmt("Incorrect freq");
         voice_say_text_fmt("Incorrect frequency");
@@ -98,9 +98,15 @@ static void key_cb(lv_event_t * e) {
 
     switch (key) {
         case '0' ... '9':
+            voice_delay_say_text_fmt("%c", (char) key);
+            break;
+        
         case '.':
+            voice_delay_say_text_fmt("point");
+            break;
+
         case LV_KEY_BACKSPACE:
-            voice_delay_say_text_fmt(lv_textarea_get_text(text));
+            voice_delay_say_text_fmt("backspace");
             break;
 
         case LV_KEY_ESC:
