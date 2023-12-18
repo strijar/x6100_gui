@@ -159,8 +159,8 @@ static button_item_t    buttons[] = {
     { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1, .voice = "Application|page 2" },
     { .label = "Recorder",          .press = button_app_page_cb,    .data = PAGE_RECORDER },
     { .label = "QTH",               .press = button_action_cb,      .data = ACTION_APP_QTH },
+    { .label = "Callsign",          .press = button_action_cb,      .data = ACTION_APP_CALLSIGN },
     { .label = "Settings",          .press = button_app_page_cb,    .data = PAGE_SETTINGS },
-    { .label = "",                  .press = NULL },
 
     /* RTTY */
 

@@ -8,6 +8,4 @@
 
 #pragma once
 
-#include "dialog.h"
-
-extern dialog_t *dialog_ft8;
+extern dialog_t *dialog_callsign;

@@ -256,10 +256,10 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     
     if (rtty_get_state() == RTTY_RX) {
         rtty_put_audio_samples(nsamples, audio);
-    } else if (dialog_ft8_get_state() == FT8_RX) {
-        dialog_ft8_put_audio_samples(nsamples, audio);
     } else if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
         cw_put_audio_samples(nsamples, audio);
+    } else {
+        dialog_audio_samples(nsamples, audio);
     }
 }
 

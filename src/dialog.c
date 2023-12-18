@@ -95,3 +95,9 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
         lv_obj_add_event_cb(obj, dialog->key_cb, LV_EVENT_KEY, NULL);
     }
 }
+
+void dialog_audio_samples(unsigned int n, float complex *samples) {
+    if (dialog_is_run() && current_dialog->audio_cb) {
+        current_dialog->audio_cb(n, samples);
+    }
+}

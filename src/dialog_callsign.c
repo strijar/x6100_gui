@@ -9,8 +9,6 @@
 #include "textarea_window.h"
 #include "params.h"
 #include "main_screen.h"
-#include "qth.h"
-#include "msg.h"
 #include "dialog.h"
 #include "events.h"
 
@@ -26,16 +24,10 @@ static dialog_t             dialog = {
     .key_cb = key_cb
 };
 
-dialog_t                    *dialog_qth = &dialog;
+dialog_t                    *dialog_callsign = &dialog;
 
 static void edit_ok() {
-    const char *qth = textarea_window_get();
-
-    if (grid_check(qth)) {
-        qth_set(qth);
-    } else {
-        msg_set_text_fmt("Incorrect QTH Grid");
-    }
+    params_str_set(&params.callsign, textarea_window_get());
 }
 
 static void construct_cb(lv_obj_t *parent) {
@@ -44,16 +36,16 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_t *text = textarea_window_text();
     
     lv_textarea_set_accepted_chars(text, 
-        "0123456789"
+        "0123456789/"
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     );
 
     lv_textarea_set_max_length(text, 6);
-    lv_textarea_set_placeholder_text(text, "QTH Grid");
+    lv_textarea_set_placeholder_text(text, "Callsign");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
-    textarea_window_set(params.qth.x);
+    textarea_window_set(params.callsign.x);
 }
 
 static void destruct_cb() {

@@ -41,28 +41,6 @@ static lv_color_t       palette[256];
 static int16_t          scroll_hor = 0;
 static int16_t          scroll_hor_surplus = 0;
 
-static void calc_palette() {
-    lv_grad_dsc_t grad;
-
-    grad.dir = LV_GRAD_DIR_HOR;
-    grad.stops_count = 5;
-
-    grad.stops[0].color = lv_color_hex(0x000000);
-    grad.stops[1].color = lv_color_hex(0x0000FF);
-    grad.stops[2].color = lv_color_hex(0xFF0000);
-    grad.stops[3].color = lv_color_hex(0xFFFF00);
-    grad.stops[4].color = lv_color_hex(0xFFFFFF);
-    
-    grad.stops[0].frac  = 255 * 0.00;
-    grad.stops[1].frac  = 255 * 0.25;
-    grad.stops[2].frac  = 255 * 0.50;
-    grad.stops[3].frac  = 255 * 0.75;
-    grad.stops[4].frac  = 255 * 1.00;
-
-    for (int i = 0; i < 256; i++)
-        palette[i] = lv_gradient_calculate(&grad, 256, i);
-}
-
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
     
@@ -170,8 +148,8 @@ void waterfall_set_height(lv_coord_t h) {
     line_len = frame->data_size / frame->header.h;
     line_buf = malloc(line_len);
     
-    calc_palette();
-    
+    styles_waterfall_palette(palette, 256);
+
     img = lv_img_create(obj);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);

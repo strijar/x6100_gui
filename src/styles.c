@@ -199,3 +199,25 @@ void styles_init() {
     lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
 }
+
+void styles_waterfall_palette(lv_color_t *palette, uint16_t size) {
+    lv_grad_dsc_t grad;
+
+    grad.dir = LV_GRAD_DIR_HOR;
+    grad.stops_count = 5;
+
+    grad.stops[0].color = lv_color_hex(0x000000);
+    grad.stops[1].color = lv_color_hex(0x0000FF);
+    grad.stops[2].color = lv_color_hex(0xFF0000);
+    grad.stops[3].color = lv_color_hex(0xFFFF00);
+    grad.stops[4].color = lv_color_hex(0xFFFFFF);
+    
+    grad.stops[0].frac  = (size - 1) * 0.00;
+    grad.stops[1].frac  = (size - 1) * 0.25;
+    grad.stops[2].frac  = (size - 1) * 0.50;
+    grad.stops[3].frac  = (size - 1) * 0.75;
+    grad.stops[4].frac  = (size - 1) * 1.00;
+
+    for (int i = 0; i < size; i++)
+        palette[i] = lv_gradient_calculate(&grad, size, i);
+}

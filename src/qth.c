@@ -18,10 +18,11 @@ static double qth_lon = 0.0;
 static double qth_lat = 0.0;
 
 void qth_set(const char *qth) {
-    params_lock();    
-    strncpy(params.qth, qth, sizeof(params.qth) - 1);
-    params_unlock(&params.durty.qth);
+    params_str_set(&params.qth, qth);
+    qth_update(qth);
+}
 
+void qth_update(const char *qth) {
     grid_pos(qth, &qth_lat, &qth_lon);
     
     qth_lat = qth_lat * M_PI / 180.0;

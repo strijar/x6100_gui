@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 void qth_set(const char *qth);
+void qth_update(const char *qth);
 
 bool grid_check(const char *grid);
 void grid_pos(const char *grid, double *lat, double *lon);

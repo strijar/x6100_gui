@@ -9,6 +9,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #define AUDIO_PLAY_RATE     (44100)
 #define AUDIO_CAPTURE_RATE  (44100)

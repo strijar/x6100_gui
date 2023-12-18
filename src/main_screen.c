@@ -44,6 +44,7 @@
 #include "dialog_gps.h"
 #include "dialog_qth.h"
 #include "dialog_recorder.h"
+#include "dialog_callsign.h"
 #include "backlight.h"
 #include "buttons.h"
 #include "recorder.h"
@@ -322,6 +323,11 @@ void main_screen_action(press_action_t action) {
         case ACTION_APP_QTH:
             dialog_construct(dialog_qth, obj);
             voice_say_text_fmt("QTH window");
+            break;
+
+        case ACTION_APP_CALLSIGN:
+            dialog_construct(dialog_callsign, obj);
+            voice_say_text_fmt("Callsign window");
             break;
     }
 }

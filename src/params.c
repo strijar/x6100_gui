@@ -115,6 +115,7 @@ params_t params = {
     .ft8_show_all           = true,
     .ft8_protocol           = PROTO_FT8,
     .ft8_band               = 5,
+    .ft8_tx_freq            = { .x = 440, .name = "ft8_tx_freq" },
 
     .long_gen               = ACTION_SCREENSHOT,
     .long_app               = ACTION_APP_RECORDER,
@@ -137,7 +138,8 @@ params_t params = {
     .voice_pitch            = { .x = 100, .min = 50, .max = 150,                .name = "voice_pitch",    .voice = "Voice pitch" },
     .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" },
 
-    .qth                    = "",
+    .qth                    = { .x = "",  .max_len = 6, .name = "qth" },
+    .callsign               = { .x = "",  .max_len = 12, .name = "callsign" },
 };
 
 params_band_t params_band = {
@@ -474,6 +476,24 @@ static bool params_load_uint8(params_uint8_t *var, const char *name, const int32
     return false;
 }
 
+static bool params_load_uint16(params_uint16_t *var, const char *name, const int32_t x) {
+    if (strcmp(name, var->name) == 0) {
+        var->x = x;
+        return true;
+    }
+    
+    return false;
+}
+
+static bool params_load_str(params_str_t *var, const char *name, const char *x) {
+    if (strcmp(name, var->name) == 0) {
+        strncpy(var->x, x, sizeof(var->x) - 1);
+        return true;
+    }
+    
+    return false;
+}
+
 static bool params_load() {
     sqlite3_stmt    *stmt;
     int             rc;
@@ -488,6 +508,7 @@ static bool params_load() {
         const char      *name = sqlite3_column_text(stmt, 0);
         const int32_t   i = sqlite3_column_int(stmt, 1);
         const int64_t   l = sqlite3_column_int64(stmt, 1);
+        const char      *t = sqlite3_column_text(stmt, 1);
 
         if (strcmp(name, "band") == 0) {
             params.band = i;
@@ -644,8 +665,6 @@ static bool params_load() {
             params.play_gain = i;
         } else if (strcmp(name, "rec_gain") == 0) {
             params.rec_gain = i;
-        } else if (strcmp(name, "qth") == 0) {
-            qth_set(sqlite3_column_text(stmt, 1));
         } 
         
         if (params_load_bool(&params.mag_freq, name, i)) continue;
@@ -662,6 +681,15 @@ static bool params_load() {
         if (params_load_uint8(&params.voice_rate, name, i)) continue;
         if (params_load_uint8(&params.voice_pitch, name, i)) continue;
         if (params_load_uint8(&params.voice_volume, name, i)) continue;
+
+        if (params_load_uint16(&params.ft8_tx_freq, name, i)) continue;
+
+        if (params_load_str(&params.qth, name, t)) { 
+            qth_update(t);
+            continue;
+        }
+
+        if (params_load_str(&params.callsign, name, t)) continue;
     }
     
     sqlite3_finalize(stmt);
@@ -721,6 +749,12 @@ static void params_save_bool(params_bool_t *var) {
 static void params_save_uint8(params_uint8_t *var) {
     if (var->durty) {
         params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
+static void params_save_str(params_str_t *var) {
+    if (var->durty) {
+        params_write_text(var->name, var->x, &var->durty);
     }
 }
 
@@ -827,8 +861,6 @@ static void params_save() {
     if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
     if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
 
-    if (params.durty.qth)                   params_write_text("qth", params.qth, &params.durty.qth);
-
     params_save_uint8(&params.voice_mode);
     params_save_uint8(&params.voice_lang);
     params_save_uint8(&params.voice_rate);
@@ -843,6 +875,9 @@ static void params_save() {
     params_save_bool(&params.waterfall_auto_min);
     params_save_bool(&params.waterfall_auto_max);
     params_save_bool(&params.spmode);
+
+    params_save_str(&params.qth);
+    params_save_str(&params.callsign);
 
     params_exec("COMMIT");
 }
@@ -1267,6 +1302,22 @@ void params_uint8_set(params_uint8_t *var, uint8_t x) {
     if (var->voice) {
         voice_say_int(var->voice, var->x);
     }
+}
+
+void params_uint16_set(params_uint16_t *var, uint16_t x) {
+    params_lock();
+    var->x = x;
+    params_unlock(&var->durty);
+    
+    if (var->voice) {
+        voice_say_int(var->voice, var->x);
+    }
+}
+
+void params_str_set(params_str_t *var, const char *x) {
+    params_lock();
+    strncpy(var->x, x, sizeof(var->x) - 1);
+    params_unlock(&var->durty);
 }
 
 uint8_t params_uint8_change(params_uint8_t *var, int16_t df) {

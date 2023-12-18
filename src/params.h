@@ -95,7 +95,8 @@ typedef enum {
     ACTION_APP_GPS,
     ACTION_APP_SETTINGS,
     ACTION_APP_RECORDER,
-    ACTION_APP_QTH
+    ACTION_APP_QTH,
+    ACTION_APP_CALLSIGN
 } press_action_t;
 
 /* Params items */
@@ -133,6 +134,13 @@ typedef struct {
 typedef struct {
     char        *name;
     char        *voice;
+    uint16_t    x;
+    bool        durty;
+} params_uint16_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
     int16_t     x;
     bool        durty;
 } params_int16_t;
@@ -143,6 +151,14 @@ typedef struct {
     uint64_t    x;
     bool        durty;
 } params_uint64_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
+    char        x[16];
+    uint8_t     max_len;
+    bool        durty;
+} params_str_t;
 
 /* Params */
 
@@ -272,6 +288,7 @@ typedef struct {
     bool                ft8_show_all;
     ftx_protocol_t      ft8_protocol;
     uint8_t             ft8_band;
+    params_uint16_t     ft8_tx_freq;
 
     /* Long press actions */
     
@@ -302,7 +319,8 @@ typedef struct {
     params_uint8_t      voice_pitch;
     params_uint8_t      voice_volume;
     
-    char                qth[7];
+    params_str_t        qth;
+    params_str_t        callsign;
     
     /* durty flags */
     
@@ -403,8 +421,6 @@ typedef struct {
 
         bool    play_gain;
         bool    rec_gain;
-
-        bool    qth;
     } durty;
 } params_t;
 
@@ -433,6 +449,8 @@ void params_unlock(bool *durty);
 
 void params_bool_set(params_bool_t *var, bool x);
 void params_uint8_set(params_uint8_t *var, uint8_t x);
+void params_uint16_set(params_uint16_t *var, uint16_t x);
+void params_str_set(params_str_t *var, const char *x);
 
 uint8_t params_uint8_change(params_uint8_t *var, int16_t df);
 

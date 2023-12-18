@@ -57,3 +57,4 @@ extern lv_font_t    sony_44;
 extern lv_font_t    sony_60;
 
 void styles_init();
+void styles_waterfall_palette(lv_color_t *palette, uint16_t size);
