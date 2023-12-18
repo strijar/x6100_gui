@@ -99,6 +99,12 @@ typedef enum {
     ACTION_APP_CALLSIGN
 } press_action_t;
 
+typedef enum {
+    FREQ_ACCEL_NONE = 0,
+    FREQ_ACCEL_LITE,
+    FREQ_ACCEL_STRONG,
+} freq_accel_t;
+
 /* Params items */
 
 typedef struct {
@@ -199,6 +205,7 @@ typedef struct {
     uint8_t             line_out;
     int16_t             moni;
     params_bool_t       spmode;
+    params_uint8_t      freq_accel;
     
     /* DSP */
     

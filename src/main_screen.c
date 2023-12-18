@@ -800,6 +800,23 @@ static void main_screen_atu_update_cb(lv_event_t * e) {
     info_atu_update();
 }
 
+static uint16_t freq_accel(uint16_t diff) {
+    if (diff < 3) {
+        return 1;
+    }
+
+    switch (params.freq_accel.x) {
+        case FREQ_ACCEL_NONE:
+            return 1;
+            
+        case FREQ_ACCEL_LITE:
+            return (diff < 6) ? 5 : 10;
+            
+        case FREQ_ACCEL_STRONG:
+            return (diff < 6) ? 10 : 30;
+    }
+}
+
 static void freq_shift(int16_t diff) {
     if (freq_lock) {
         return;
@@ -807,7 +824,7 @@ static void freq_shift(int16_t diff) {
     
     uint64_t        freq, prev_freq;
 
-    freq = radio_change_freq(diff * params_mode.freq_step, &prev_freq);
+    freq = radio_change_freq(diff * params_mode.freq_step * freq_accel(abs(diff)), &prev_freq);
     waterfall_change_freq(freq - prev_freq);
     spectrum_change_freq(freq - prev_freq);
     freq_update();

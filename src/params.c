@@ -64,7 +64,8 @@ params_t params = {
     .line_in                = 10,
     .line_out               = 10,
     .moni                   = 59,
-    .spmode                 = { .x = false, .name = "spmode",    .voice = "Speaker mode" },
+    .spmode                 = { .x = false,             .name = "spmode",           .voice = "Speaker mode" },
+    .freq_accel             = { .x = FREQ_ACCEL_LITE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -681,6 +682,7 @@ static bool params_load() {
         if (params_load_uint8(&params.voice_rate, name, i)) continue;
         if (params_load_uint8(&params.voice_pitch, name, i)) continue;
         if (params_load_uint8(&params.voice_volume, name, i)) continue;
+        if (params_load_uint8(&params.freq_accel, name, i)) continue;
 
         if (params_load_uint16(&params.ft8_tx_freq, name, i)) continue;
 
@@ -866,6 +868,7 @@ static void params_save() {
     params_save_uint8(&params.voice_rate);
     params_save_uint8(&params.voice_pitch);
     params_save_uint8(&params.voice_volume);
+    params_save_uint8(&params.freq_accel);
 
     params_save_bool(&params.mag_freq);
     params_save_bool(&params.mag_info);

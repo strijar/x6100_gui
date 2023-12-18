@@ -1158,6 +1158,25 @@ static uint8_t make_auto(uint8_t row) {
     return row + 1;
 }
 
+static uint8_t make_freq_accel(uint8_t row) {
+    lv_obj_t    *obj;
+    uint8_t     col = 0;
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Freq acceleration");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = dropdown_uint8(grid, &params.freq_accel, " None \n Lite \n Strong");
+
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_center(obj);
+    
+    return row + 1;
+}
 
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
@@ -1217,6 +1236,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_auto(row);
+
+    row = make_delimiter(row);
+    row = make_freq_accel(row);
 
     row = make_delimiter(row);
     
