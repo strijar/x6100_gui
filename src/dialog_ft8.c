@@ -28,6 +28,8 @@
 #include "buttons.h"
 #include "main_screen.h"
 #include "qth.h"
+#include "msg.h"
+#include "util.h"
 
 #include "widgets/lv_waterfall.h"
 
@@ -78,10 +80,21 @@ typedef enum {
     MSG_TX_MSG
 } ft8_msg_type_t;
 
+typedef enum {
+    MSG_TX_INVALID = 0,
+    MSG_TX_CQ,
+    MSG_TX_CALLING,
+    MSG_TX_R_REPORT,
+
+    MSG_TX_REPORT,
+    MSG_TX_RR73
+} ft8_tx_msg_t;
+
 typedef struct {
     ft8_msg_type_t  type;
     int16_t         snr;
     int16_t         dist;
+    bool            odd;
 } ft8_cell_t;
 
 typedef struct {
@@ -89,9 +102,22 @@ typedef struct {
     ft8_cell_t      *cell;
 } ft8_msg_t;
 
+typedef struct {
+    char        remote_callsign[32];
+    char        remote_qth[32];
+    int16_t     remote_snr;
+    
+    char        local_callsign[32];
+    char        local_qth[32];
+    int16_t     local_snr;
+} ft8_qso_item_t;
+
 static ft8_state_t          state = NOT_READY;
 static ft8_qso_t            qso = QSO_IDLE;
+static bool                 odd;
+
 static char                 tx_msg[64] = "";
+static ft8_qso_item_t       qso_item;
 
 static lv_obj_t             *table;
 static int16_t              table_rows;
@@ -139,15 +165,24 @@ static void show_all_cb(lv_event_t * e);
 static void show_cq_cb(lv_event_t * e);
 static void mode_ft8_cb(lv_event_t * e);
 static void mode_ft4_cb(lv_event_t * e);
-static void tx_start_cb(lv_event_t * e);
-static void tx_stop_cb(lv_event_t * e);
+
+static void tx_cq_dis_cb(lv_event_t * e);
+static void tx_cq_en_cb(lv_event_t * e);
+static void tx_call_dis_cb(lv_event_t * e);
+static void tx_call_en_cb(lv_event_t * e);
+
+static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr);
 
 static button_item_t button_show_all = { .label = "Show\nAll", .press = show_all_cb };
 static button_item_t button_show_cq = { .label = "Show\nCQ", .press = show_cq_cb };
 static button_item_t button_mode_ft8 = { .label = "Mode\nFT8", .press = mode_ft8_cb };
 static button_item_t button_mode_ft4 = { .label = "Mode\nFT4", .press = mode_ft4_cb };
-static button_item_t button_tx_start = { .label = "TX\nDisabled", .press = tx_start_cb };
-static button_item_t button_tx_stop = { .label = "TX\nEnabled", .press = tx_stop_cb };
+
+static button_item_t button_tx_cq_dis = { .label = "TX CQ\nDisabled", .press = tx_cq_dis_cb };
+static button_item_t button_tx_cq_en = { .label = "TX CQ\nEnabled", .press = tx_cq_en_cb };
+
+static button_item_t button_tx_call_dis = { .label = "TX Call\nDisabled", .press = tx_call_dis_cb, .hold = tx_cq_en_cb };
+static button_item_t button_tx_call_en = { .label = "TX Call\nEnabled", .press = tx_call_en_cb, .hold = tx_cq_en_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -295,9 +330,9 @@ static const char * find_qth(const char *str) {
 static void send_rx_text(int16_t snr, const char * text) {
     ft8_msg_type_t  type;
 
-    if (strcasestr(text, params.callsign.x) == 0) {
+    if (strncasecmp(text, params.callsign.x, strlen(params.callsign.x)) == 0) {
         type = MSG_RX_TO_ME;
-    } if (strncmp(text, "CQ", 2) == 0) {
+    } else if (strncmp(text, "CQ ", 3) == 0) {
         type = MSG_RX_CQ;
     } else {
         if (params.ft8_show_all) {
@@ -314,6 +349,7 @@ static void send_rx_text(int16_t snr, const char * text) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->snr = snr;
     msg->cell->type = type;
+    msg->cell->odd = odd;
 
     if (params.qth.x[0] != 0) {
         const char *qth = find_qth(text);
@@ -569,8 +605,6 @@ static void tx_worker() {
 }
 
 static void * decode_thread(void *arg) {
-    bool odd;
-
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     
@@ -693,8 +727,8 @@ static void draw_part_begin_cb(lv_event_t * e) {
                 break;
 
             case MSG_RX_TO_ME:
-                dsc->rect_dsc->bg_color = lv_color_hex(0xDD0000);
-                dsc->rect_dsc->bg_opa = 192;
+                dsc->rect_dsc->bg_color = lv_color_hex(0xFF0000);
+                dsc->rect_dsc->bg_opa = 128;
                 break;
 
             case MSG_TX_MSG:
@@ -826,6 +860,102 @@ static void clean() {
     lv_event_send(table, LV_EVENT_KEY, c);
 }
 
+static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr) {
+    char qth[5] = "";
+
+    if (strlen(params.qth.x) >= 4) {
+        strncpy(qth, params.qth.x, sizeof(qth) - 1);
+    }
+
+    switch (msg) {
+        case MSG_TX_CQ:
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "CQ %s %s", params.callsign.x, qth);
+            break;
+            
+        case MSG_TX_CALLING:
+            qso_item.local_snr = snr;
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %s", qso_item.remote_callsign, params.callsign.x, qth);
+            break;
+
+        case MSG_TX_REPORT:
+            qso_item.local_snr = snr;
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %+02i", qso_item.remote_callsign, params.callsign.x, qso_item.local_snr);
+            break;
+
+        case MSG_TX_R_REPORT:
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s R%+02i", qso_item.remote_callsign, params.callsign.x, qso_item.local_snr);
+            break;
+
+        case MSG_TX_RR73:
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s RR73", qso_item.remote_callsign, params.callsign.x);
+            break;
+            
+        default:
+            return;
+    }
+    
+    msg_set_text_fmt("Next TX: %s", tx_msg);
+}
+
+static ft8_tx_msg_t parse_rx_msg(const char * str) {
+    char    word[3][32] = {"", "", ""};
+    uint8_t n_word = 0;
+    uint8_t i_word = 0;
+
+    /* Split */
+
+    for (uint8_t i = 0; i < strlen(str); i++) {
+        char c = str[i];
+        
+        if (c == ' ') {
+            n_word++;
+            i_word = 0;
+            
+            if (n_word > 2) {
+                return MSG_TX_INVALID;
+            }
+        } else {
+            word[n_word][i_word] = c;   i_word++;
+            word[n_word][i_word] = 0;
+        }
+    }
+
+    /* Analysis */
+
+    if (strcmp(word[0], "CQ") == 0) {
+        strcpy(qso_item.remote_callsign, word[1]);
+        strcpy(qso_item.remote_qth, word[2]);
+        return MSG_TX_CALLING;
+    }
+    
+    if (strcmp(word[0], params.callsign.x) == 0) {
+        if (strcmp(word[2], "RR73") == 0 || strcmp(word[2], "73") == 0) {
+            buttons_load(2, &button_tx_cq_en);
+            return MSG_TX_CQ;
+        }
+    
+        if (grid_check(word[2])) {
+            strcpy(qso_item.remote_callsign, word[1]);
+            strcpy(qso_item.remote_qth, word[2]);
+            return MSG_TX_REPORT;
+        }
+        
+        if (word[2][0] == 'R' && (word[2][1] == '-' || word[2][1] == '+')) {
+            qso_item.remote_snr = atoi(&word[2][1]);
+            strcpy(qso_item.remote_callsign, word[1]);
+            return MSG_TX_RR73;
+        }
+        
+        if (word[2][0] == '-' || word[2][0] == '+') {
+            qso_item.remote_snr = atoi(&word[2][0]);
+            strcpy(qso_item.remote_callsign, word[1]);
+            return MSG_TX_R_REPORT;
+        }
+    }
+
+    return MSG_TX_INVALID;
+}
+
 static void band_cb(lv_event_t * e) {
     int band = params.ft8_band;
     int max_band = 0;
@@ -892,6 +1022,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(table, draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
     lv_obj_add_event_cb(table, draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
@@ -946,7 +1077,7 @@ static void construct_cb(lv_obj_t *parent) {
             break;
     }
 
-    buttons_load(2, &button_tx_start);
+    buttons_load(2, &button_tx_cq_dis);
     
     mem_save(MEM_BACKUP_ID);
     load_band();
@@ -1000,15 +1131,72 @@ static void mode_ft4_cb(lv_event_t * e) {
     load_band();
 }
 
-static void tx_start_cb(lv_event_t * e) {
-    buttons_load(2, &button_tx_stop);
+static void tx_cq_dis_cb(lv_event_t * e) {
+    if (strlen(params.callsign.x) == 0) {
+        msg_set_text_fmt("Call sign required");
 
+        return;
+    }
+    
+    buttons_load(2, &button_tx_cq_en);
+    make_tx_msg(MSG_TX_CQ, 0);
     qso = QSO_NEXT;
 }
 
-static void tx_stop_cb(lv_event_t * e) {
-    buttons_load(2, &button_tx_start);
+static void tx_cq_en_cb(lv_event_t * e) {
+    buttons_load(2, &button_tx_cq_dis);
     
+    if (state == TX_PROCESS) {
+        state = TX_STOP;
+    }
+    qso = QSO_IDLE;
+}
+
+static void tx_call_off() {
+    buttons_load(2, &button_tx_call_dis);
+    state = TX_STOP;
+    qso = QSO_IDLE;
+}
+
+static void tx_call_dis_cb(lv_event_t * e) {
+    if (strlen(params.callsign.x) == 0) {
+        msg_set_text_fmt("Call sign required");
+
+        return;
+    }
+
+    if (state == TX_PROCESS) {
+        tx_call_off();
+    } else {
+        int16_t     row;
+        int16_t     col;
+
+        lv_table_get_selected_cell(table, &row, &col);
+
+        ft8_cell_t  *cell = lv_table_get_cell_user_data(table, row, col);
+
+        if (cell == NULL || cell->type == MSG_TX_MSG || cell->type == MSG_RX_INFO) {
+            msg_set_text_fmt("What should I do about it?");
+            
+            return;
+        } else {
+            ft8_tx_msg_t next_msg = parse_rx_msg(lv_table_get_cell_value(table, row, col));
+
+            if (next_msg == MSG_TX_INVALID) {
+                msg_set_text_fmt("Invalid message");
+                tx_call_off();
+            } else {
+                qso = cell->odd ? QSO_EVEN : QSO_ODD;   /* Must be reversed */
+                make_tx_msg(next_msg, cell->snr);
+                buttons_load(2, &button_tx_call_en);
+            }
+        }
+    }
+}
+
+static void tx_call_en_cb(lv_event_t * e) {
+    buttons_load(2, &button_tx_call_dis);
+
     if (state == TX_PROCESS) {
         state = TX_STOP;
     }

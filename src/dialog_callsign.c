@@ -41,7 +41,7 @@ static void construct_cb(lv_obj_t *parent) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     );
 
-    lv_textarea_set_max_length(text, 6);
+    lv_textarea_set_max_length(text, sizeof(params.callsign.x) - 1);
     lv_textarea_set_placeholder_text(text, "Callsign");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 

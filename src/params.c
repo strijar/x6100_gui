@@ -116,7 +116,8 @@ params_t params = {
     .ft8_show_all           = true,
     .ft8_protocol           = PROTO_FT8,
     .ft8_band               = 5,
-    .ft8_tx_freq            = { .x = 440, .name = "ft8_tx_freq" },
+    .ft8_tx_freq            = { .x = 440,       .name = "ft8_tx_freq" },
+    .ft8_auto               = { .x = false,     .name = "ft8_auto" },
 
     .long_gen               = ACTION_SCREENSHOT,
     .long_app               = ACTION_APP_RECORDER,

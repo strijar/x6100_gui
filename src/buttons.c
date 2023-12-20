@@ -28,8 +28,13 @@
 
 #define BUTTONS     5
 
+typedef struct {
+    lv_obj_t        *obj;
+    button_item_t   *item;
+} button_t;
+
 static uint8_t      btn_height = 62;
-static lv_obj_t     *btn[BUTTONS];
+static button_t     btn[BUTTONS];
 static lv_obj_t     *parent_obj = NULL;
 
 static void button_next_page_cb(lv_event_t * e);
@@ -261,18 +266,20 @@ void buttons_init(lv_obj_t *parent) {
         lv_obj_set_user_data(f, label);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
 
-        btn[i] = f;
+        btn[i].obj = f;
     }
 
     parent_obj = parent;
 }
 
 void buttons_load(uint8_t n, button_item_t *item) {
-    lv_obj_t        *label = lv_obj_get_user_data(btn[n]);
+    lv_obj_t        *label = lv_obj_get_user_data(btn[n].obj);
 
-    lv_obj_remove_event_cb(btn[n], NULL);
-    lv_obj_add_event_cb(btn[n], item->press, LV_EVENT_PRESSED, item);
+    lv_obj_remove_event_cb(btn[n].obj, NULL);
+    lv_obj_add_event_cb(btn[n].obj, item->press, LV_EVENT_PRESSED, item);
     lv_label_set_text(label, item->label);
+
+    btn[n].item = item;
 }
 
 void buttons_load_page(button_page_t page) {
@@ -285,10 +292,11 @@ void buttons_load_page(button_page_t page) {
 
 void buttons_unload_page() {
     for (uint8_t i = 0; i < BUTTONS; i++) {
-        lv_obj_t        *label = lv_obj_get_user_data(btn[i]);
+        lv_obj_t        *label = lv_obj_get_user_data(btn[i].obj);
 
-        lv_obj_remove_event_cb(btn[i], NULL);
+        lv_obj_remove_event_cb(btn[i].obj, NULL);
         lv_label_set_text(label, "");
+        btn[i].item = NULL;
     }
 }
 
@@ -394,13 +402,13 @@ static void button_mem_save_cb(void * ptr) {
 
 void buttons_press(uint8_t n, bool hold) {
     if (hold) {
-        button_item_t *item = &buttons[buttons_page * BUTTONS + n];
+        button_item_t *item = btn[n].item;
         
-        if (item->hold) {
+        if (item != NULL && item->hold) {
             item->hold(item);
         }
     } else {
-        lv_event_send(btn[n], LV_EVENT_PRESSED, NULL);
-        lv_event_send(btn[n], LV_EVENT_RELEASED, NULL);
+        lv_event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
+        lv_event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
     }
 }
