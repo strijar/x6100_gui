@@ -116,8 +116,8 @@ params_t params = {
     .ft8_show_all           = true,
     .ft8_protocol           = PROTO_FT8,
     .ft8_band               = 5,
-    .ft8_tx_freq            = { .x = 440,       .name = "ft8_tx_freq" },
-    .ft8_auto               = { .x = false,     .name = "ft8_auto" },
+    .ft8_tx_freq            = { .x = 600,       .name = "ft8_tx_freq" },
+    .ft8_auto               = { .x = true,      .name = "ft8_auto" },
 
     .long_gen               = ACTION_SCREENSHOT,
     .long_app               = ACTION_APP_RECORDER,
@@ -677,6 +677,7 @@ static bool params_load() {
         if (params_load_bool(&params.waterfall_auto_min, name, i)) continue;
         if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
         if (params_load_bool(&params.spmode, name, i)) continue;
+        if (params_load_bool(&params.ft8_auto, name, i)) continue;
 
         if (params_load_uint8(&params.voice_mode, name, i)) continue;
         if (params_load_uint8(&params.voice_lang, name, i)) continue;
@@ -879,6 +880,7 @@ static void params_save() {
     params_save_bool(&params.waterfall_auto_min);
     params_save_bool(&params.waterfall_auto_max);
     params_save_bool(&params.spmode);
+    params_save_bool(&params.ft8_auto);
 
     params_save_str(&params.qth);
     params_save_str(&params.callsign);

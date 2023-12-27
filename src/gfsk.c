@@ -65,7 +65,7 @@ int16_t * gfsk_synth(const uint8_t *symbols, uint16_t n_sym, float f0, float sym
     float phi = 0;
 
     for (uint32_t k = 0; k < n_wave; k++) { /* Don't include dummy symbols */
-        samples[k] = sinf(phi) * 32767.0f;
+        samples[k] = sinf(phi) * 32767.0f * 0.8f;
         phi = fmodf(phi + dphi[k + n_spsym], 2 * M_PI);
     }
 
