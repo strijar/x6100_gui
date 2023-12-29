@@ -46,7 +46,6 @@ static peak_t           *spectrum_peak;
 static pthread_mutex_t  data_mux;
 
 static void spectrum_draw_cb(lv_event_t * e) {
-    lv_event_code_t     code = lv_event_get_code(e);
     lv_obj_t            *obj = lv_event_get_target(e);
     lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
     lv_draw_line_dsc_t  main_line_dsc;

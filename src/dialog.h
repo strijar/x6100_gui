@@ -14,12 +14,14 @@
 typedef void (*dialog_construct_cb_t)(lv_obj_t *);
 typedef void (*dialog_destruct_cb_t)(void);
 typedef void (*dialog_audio_cb_t)(unsigned int n, float complex *samples);
+typedef void (*dialog_rotary_cb_t)(int32_t diff);
 
 typedef struct {
     lv_obj_t                *obj;
     dialog_construct_cb_t   construct_cb;
     dialog_destruct_cb_t    destruct_cb;
     dialog_audio_cb_t       audio_cb;
+    dialog_rotary_cb_t      rotary_cb;
     lv_event_cb_t           key_cb;
     bool                    run;
 } dialog_t;
@@ -35,3 +37,4 @@ lv_obj_t * dialog_init(lv_obj_t *parent);
 void dialog_item(dialog_t *dialog, lv_obj_t *obj);
 
 void dialog_audio_samples(unsigned int n, float complex *samples);
+void dialog_rotary(int32_t diff);

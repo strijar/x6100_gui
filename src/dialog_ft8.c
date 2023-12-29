@@ -125,6 +125,11 @@ static ft8_qso_item_t       qso_item;
 static lv_obj_t             *table;
 static int16_t              table_rows;
 
+static lv_timer_t           *timer = NULL;
+static lv_anim_t            fade;
+static bool                 fade_run = false;
+
+static lv_obj_t             *freq;
 static lv_obj_t             *waterfall;
 static uint16_t             waterfall_nfft;
 static spgramcf             waterfall_sg;
@@ -162,6 +167,7 @@ static void construct_cb(lv_obj_t *parent);
 static void key_cb(lv_event_t * e);
 static void destruct_cb();
 static void audio_cb(unsigned int n, float complex *samples);
+static void rotary_cb(int32_t diff);
 static void * decode_thread(void *arg);
 
 static void show_all_cb(lv_event_t * e);
@@ -201,6 +207,7 @@ static dialog_t             dialog = {
     .construct_cb = construct_cb,
     .destruct_cb = destruct_cb,
     .audio_cb = audio_cb,
+    .rotary_cb = rotary_cb,
     .key_cb = key_cb
 };
 
@@ -715,7 +722,43 @@ static void add_msg_cb(lv_event_t * e) {
     table_rows++;
 }
 
-static void draw_part_begin_cb(lv_event_t * e) {
+
+static void freq_draw_cb(lv_event_t * e) {
+    lv_event_code_t     code = lv_event_get_code(e);
+    lv_obj_t            *obj = lv_event_get_target(e);
+    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_draw_rect_dsc_t  rect_dsc;
+    lv_area_t           area;
+
+    lv_coord_t x1 = obj->coords.x1;
+    lv_coord_t y1 = obj->coords.y1;
+
+    lv_coord_t w = lv_obj_get_width(obj);
+    lv_coord_t h = lv_obj_get_height(obj) - 1;
+
+    int32_t size_hz = params_mode.filter_high - params_mode.filter_low;
+    int32_t f = params.ft8_tx_freq.x - params_mode.filter_low;
+
+    int64_t f1 = w * (f - 25) / size_hz;
+    int64_t f2 = w * (f + 25) / size_hz;
+
+    lv_draw_rect_dsc_init(&rect_dsc);
+
+    rect_dsc.bg_color = bg_color;
+    rect_dsc.bg_opa = LV_OPA_50;
+    rect_dsc.border_width = 1;
+    rect_dsc.border_color = lv_color_white();
+    rect_dsc.border_opa = LV_OPA_50;
+
+    area.x1 = x1 + f1;
+    area.y1 = y1;
+    area.x2 = x1 + f2;
+    area.y2 = area.y1 + h;
+
+    lv_draw_rect(draw_ctx, &rect_dsc, &area);
+}
+
+static void table_draw_part_begin_cb(lv_event_t * e) {
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
 
@@ -757,7 +800,7 @@ static void draw_part_begin_cb(lv_event_t * e) {
     }
 }
 
-static void draw_part_end_cb(lv_event_t * e) {
+static void table_draw_part_end_cb(lv_event_t * e) {
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
 
@@ -952,7 +995,7 @@ static ft8_tx_msg_t parse_rx_msg(const char * str) {
         }
     
         if (grid_check(extra)) {
-            strcpy(qso_item.remote_callsign, extra);
+            strcpy(qso_item.remote_callsign, call_de);
             strcpy(qso_item.remote_qth, extra);
             
             free(s);
@@ -960,7 +1003,7 @@ static ft8_tx_msg_t parse_rx_msg(const char * str) {
         }
         
         if (extra[0] == 'R' && (extra[1] == '-' || extra[1] == '+')) {
-            qso_item.remote_snr = atoi(extra+ 1);
+            qso_item.remote_snr = atoi(extra + 1);
             strcpy(qso_item.remote_callsign, call_de);
             
             free(s);
@@ -1044,6 +1087,48 @@ static void band_cb(lv_event_t * e) {
     clean();
 }
 
+static void msg_timer(lv_timer_t *t) {
+    lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(table, 0), LV_OPA_COVER);
+    lv_anim_start(&fade);
+    timer = NULL;
+}
+
+static void fade_anim(void * obj, int32_t v) {
+    lv_obj_set_style_opa_layered(obj, v, 0);
+}
+
+static void fade_ready(lv_anim_t * a) {
+    fade_run = false;
+}
+
+static void rotary_cb(int32_t diff) {
+    uint32_t f = params.ft8_tx_freq.x + diff;
+    
+    if (f > params_mode.filter_high) {
+        f = params_mode.filter_high;
+    }
+    
+    if (f < params_mode.filter_low) {
+        f = params_mode.filter_low;
+    }
+
+    params_uint16_set(&params.ft8_tx_freq, f);
+    lv_obj_invalidate(freq);
+
+    if (!fade_run) {
+        fade_run = true;
+        lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(table, 0), LV_OPA_TRANSP);
+        lv_anim_start(&fade);
+    }
+
+    if (timer) {
+        lv_timer_reset(timer);
+    } else {
+        timer = lv_timer_create(msg_timer, 1000, NULL);
+        lv_timer_set_repeat_count(timer, 1);
+    }
+}
+
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
 
@@ -1057,6 +1142,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     waterfall = lv_waterfall_create(dialog.obj);
 
+    lv_obj_add_style(waterfall, &waterfall_style, 0);
+    lv_obj_clear_flag(waterfall, LV_OBJ_FLAG_SCROLLABLE);
+
     lv_color_t palette[256];
     
     styles_waterfall_palette(palette, 256);
@@ -1064,6 +1152,18 @@ static void construct_cb(lv_obj_t *parent) {
     lv_waterfall_set_size(waterfall, WIDTH, 325);
 
     lv_obj_set_pos(waterfall, 13, 13);
+
+    /* Freq */
+
+    freq = lv_obj_create(waterfall);
+
+    lv_obj_set_size(freq, WIDTH, 325-2);
+    lv_obj_set_pos(freq, 0, 0);
+    lv_obj_add_event_cb(freq, freq_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+
+    lv_obj_set_style_radius(freq, 0, 0);
+    lv_obj_set_style_border_width(freq, 0, 0);
+    lv_obj_set_style_bg_opa(freq, LV_OPA_0, 0);
 
     /* Table */
 
@@ -1074,8 +1174,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
-    lv_obj_add_event_cb(table, draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
+    lv_obj_add_event_cb(table, table_draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+    lv_obj_add_event_cb(table, table_draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
 
     lv_obj_set_size(table, WIDTH, 325 - 55);
     lv_obj_set_pos(table, 13, 13 + 55);
@@ -1103,6 +1203,14 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
 
     lv_table_set_cell_value(table, 0, 0, "Wait sync");
+
+    /* Fade */
+
+    lv_anim_init(&fade);
+    lv_anim_set_var(&fade, table);
+    lv_anim_set_time(&fade, 250);
+    lv_anim_set_exec_cb(&fade, fade_anim);
+    lv_anim_set_ready_cb(&fade, fade_ready);
 
     /* * */
 

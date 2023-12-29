@@ -101,3 +101,9 @@ void dialog_audio_samples(unsigned int n, float complex *samples) {
         current_dialog->audio_cb(n, samples);
     }
 }
+
+void dialog_rotary(int32_t diff) {
+    if (dialog_is_run() && current_dialog->rotary_cb) {
+        current_dialog->rotary_cb(diff);
+    }
+}

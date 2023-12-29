@@ -116,7 +116,7 @@ params_t params = {
     .ft8_show_all           = true,
     .ft8_protocol           = PROTO_FT8,
     .ft8_band               = 5,
-    .ft8_tx_freq            = { .x = 600,       .name = "ft8_tx_freq" },
+    .ft8_tx_freq            = { .x = 1325,      .name = "ft8_tx_freq" },
     .ft8_auto               = { .x = true,      .name = "ft8_auto" },
 
     .long_gen               = ACTION_SCREENSHOT,
@@ -756,6 +756,12 @@ static void params_save_uint8(params_uint8_t *var) {
     }
 }
 
+static void params_save_uint16(params_uint16_t *var) {
+    if (var->durty) {
+        params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
 static void params_save_str(params_str_t *var) {
     if (var->durty) {
         params_write_text(var->name, var->x, &var->durty);
@@ -871,6 +877,8 @@ static void params_save() {
     params_save_uint8(&params.voice_pitch);
     params_save_uint8(&params.voice_volume);
     params_save_uint8(&params.freq_accel);
+
+    params_save_uint16(&params.ft8_tx_freq);
 
     params_save_bool(&params.mag_freq);
     params_save_bool(&params.mag_info);

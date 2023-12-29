@@ -838,6 +838,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     int32_t     diff = lv_event_get_param(e);
     
     freq_shift(diff);
+    dialog_rotary(diff);
 }
 
 static void spectrum_key_cb(lv_event_t * e) {
