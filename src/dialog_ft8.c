@@ -33,6 +33,7 @@
 #include "recorder.h"
 
 #include "widgets/lv_waterfall.h"
+#include "widgets/lv_finder.h"
 
 #include "ft8/unpack.h"
 #include "ft8/pack.h"
@@ -129,7 +130,7 @@ static lv_timer_t           *timer = NULL;
 static lv_anim_t            fade;
 static bool                 fade_run = false;
 
-static lv_obj_t             *freq;
+static lv_obj_t             *finder;
 static lv_obj_t             *waterfall;
 static uint16_t             waterfall_nfft;
 static spgramcf             waterfall_sg;
@@ -722,42 +723,6 @@ static void add_msg_cb(lv_event_t * e) {
     table_rows++;
 }
 
-
-static void freq_draw_cb(lv_event_t * e) {
-    lv_event_code_t     code = lv_event_get_code(e);
-    lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
-    lv_draw_rect_dsc_t  rect_dsc;
-    lv_area_t           area;
-
-    lv_coord_t x1 = obj->coords.x1;
-    lv_coord_t y1 = obj->coords.y1;
-
-    lv_coord_t w = lv_obj_get_width(obj);
-    lv_coord_t h = lv_obj_get_height(obj) - 1;
-
-    int32_t size_hz = params_mode.filter_high - params_mode.filter_low;
-    int32_t f = params.ft8_tx_freq.x - params_mode.filter_low;
-
-    int64_t f1 = w * (f - 25) / size_hz;
-    int64_t f2 = w * (f + 25) / size_hz;
-
-    lv_draw_rect_dsc_init(&rect_dsc);
-
-    rect_dsc.bg_color = bg_color;
-    rect_dsc.bg_opa = LV_OPA_50;
-    rect_dsc.border_width = 1;
-    rect_dsc.border_color = lv_color_white();
-    rect_dsc.border_opa = LV_OPA_50;
-
-    area.x1 = x1 + f1;
-    area.y1 = y1;
-    area.x2 = x1 + f2;
-    area.y2 = area.y1 + h;
-
-    lv_draw_rect(draw_ctx, &rect_dsc, &area);
-}
-
 static void table_draw_part_begin_cb(lv_event_t * e) {
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
@@ -1113,7 +1078,9 @@ static void rotary_cb(int32_t diff) {
     }
 
     params_uint16_set(&params.ft8_tx_freq, f);
-    lv_obj_invalidate(freq);
+
+    lv_finder_set_value(finder, f);
+    lv_obj_invalidate(finder);
 
     if (!fade_run) {
         fade_run = true;
@@ -1153,17 +1120,27 @@ static void construct_cb(lv_obj_t *parent) {
 
     lv_obj_set_pos(waterfall, 13, 13);
 
-    /* Freq */
+    /* Freq finder */
 
-    freq = lv_obj_create(waterfall);
+    finder = lv_finder_create(waterfall);
 
-    lv_obj_set_size(freq, WIDTH, 325-2);
-    lv_obj_set_pos(freq, 0, 0);
-    lv_obj_add_event_cb(freq, freq_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+    lv_finder_set_range(finder, params_mode.filter_low, params_mode.filter_high);
+    lv_finder_set_width(finder, 50);
+    lv_finder_set_value(finder, params.ft8_tx_freq.x);
 
-    lv_obj_set_style_radius(freq, 0, 0);
-    lv_obj_set_style_border_width(freq, 0, 0);
-    lv_obj_set_style_bg_opa(freq, LV_OPA_0, 0);
+    lv_obj_set_size(finder, WIDTH, 325);
+    lv_obj_set_pos(finder, 0, 0);
+
+    lv_obj_set_style_radius(finder, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(finder, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(finder, LV_OPA_0, LV_PART_MAIN);
+
+    lv_obj_set_style_bg_color(finder, bg_color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_set_style_border_width(finder, 1, LV_PART_INDICATOR);
+    lv_obj_set_style_border_color(finder, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_border_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
 
     /* Table */
 
