@@ -1124,7 +1124,6 @@ static void construct_cb(lv_obj_t *parent) {
 
     finder = lv_finder_create(waterfall);
 
-    lv_finder_set_range(finder, params_mode.filter_low, params_mode.filter_high);
     lv_finder_set_width(finder, 50);
     lv_finder_set_value(finder, params.ft8_tx_freq.x);
 
@@ -1217,6 +1216,8 @@ static void construct_cb(lv_obj_t *parent) {
     
     mem_save(MEM_BACKUP_ID);
     load_band();
+
+    lv_finder_set_range(finder, params_mode.filter_low, params_mode.filter_high);
 
     main_screen_lock_mode(true);
     main_screen_lock_freq(true);
