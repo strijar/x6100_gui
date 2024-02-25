@@ -15,6 +15,7 @@
 #include "radio.h"
 #include "util.h"
 #include "backlight.h"
+#include "voice.h"
 
 typedef enum {
     CLOCK_TIME = 0,
@@ -157,4 +158,9 @@ void clock_set_tx_timeout(uint8_t sec) {
     params.clock_tx_timeout = sec;
     params_unlock(&params.durty.clock_tx_timeout);
     timeout = get_time();
+}
+
+void clock_say_bat_info() {
+    voice_sure();
+    voice_say_float("Battery voltage|", v_bat);
 }

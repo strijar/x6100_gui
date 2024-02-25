@@ -124,7 +124,7 @@ params_t params = {
     .long_key               = ACTION_NONE,
     .long_msg               = ACTION_RECORDER,
     .long_dfn               = ACTION_VOICE_MODE,
-    .long_dfl               = ACTION_NONE,
+    .long_dfl               = ACTION_BAT_INFO,
     
     .press_f1               = ACTION_STEP_UP,
     .press_f2               = ACTION_NONE,

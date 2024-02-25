@@ -288,6 +288,10 @@ void main_screen_action(press_action_t action) {
             voice_change_mode();
             break;
 
+        case ACTION_BAT_INFO:
+            clock_say_bat_info();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;
