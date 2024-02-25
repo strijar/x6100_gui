@@ -347,10 +347,17 @@ static const char * find_qth(const char *str) {
     return NULL;
 }
 
+static bool to_me(const char * text) {
+    int16_t         callsign_len = strlen(params.callsign.x);
+
+    return (callsign_len > 0) && (strncasecmp(text, params.callsign.x, callsign_len) == 0);
+}
+
 static void send_rx_text(int16_t snr, const char * text) {
     ft8_msg_type_t  type;
+    int16_t         callsign_len = strlen(params.callsign.x);
 
-    if (strncasecmp(text, params.callsign.x, strlen(params.callsign.x)) == 0) {
+    if (to_me(text)) {
         type = MSG_RX_TO_ME;
     } else if (strncmp(text, "CQ ", 3) == 0) {
         type = MSG_RX_CQ;
@@ -930,7 +937,7 @@ static ft8_tx_msg_t parse_rx_msg(const char * str) {
     char            *call_to = NULL;
     char            *call_de = NULL;
     char            *extra = NULL;
-    
+
     /* Splite */
     
     call_to = strtok(s, " ");
@@ -953,7 +960,7 @@ static ft8_tx_msg_t parse_rx_msg(const char * str) {
         return MSG_TX_CALLING;
     }
     
-    if (call_to && strcmp(call_to, params.callsign.x) == 0) {
+    if (call_to && to_me(call_to)) {
         if (extra && strcmp(extra, "RR73") == 0 || strcmp(extra, "73") == 0) {
             buttons_load(2, &button_tx_cq_en);
             
@@ -1002,7 +1009,7 @@ static bool do_rx_msg(ft8_cell_t *cell, const char * msg, bool pressed) {
     
         case MSG_TX_INVALID:
             return false;
-    
+
         case MSG_TX_DONE:
             qso = QSO_IDLE;
             buttons_load(2, &button_tx_call_dis);
