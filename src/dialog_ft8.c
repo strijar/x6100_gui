@@ -844,6 +844,8 @@ static void destruct_cb() {
     main_screen_lock_mode(false);
     main_screen_lock_freq(false);
     main_screen_lock_band(false);
+
+    radio_set_pwr(params.pwr);
 }
 
 static void load_band() {
@@ -1224,6 +1226,11 @@ static void construct_cb(lv_obj_t *parent) {
     main_screen_lock_band(true);
 
     init();
+    
+    if (params.pwr > 5.0f) {
+        radio_set_pwr(5.0f);
+        msg_set_text_fmt("Power was limited to 5W");
+    }
 }
 
 static void show_all_cb(lv_event_t * e) {

@@ -79,6 +79,7 @@ void radio_change_agc();
 void radio_change_atu();
 void radio_change_split();
 float radio_change_pwr(int16_t d);
+void radio_set_pwr(float d);
 
 uint16_t radio_change_key_speed(int16_t d);
 x6100_key_mode_t radio_change_key_mode(int16_t d);
