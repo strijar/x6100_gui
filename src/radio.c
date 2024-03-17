@@ -326,7 +326,7 @@ void radio_set_freq(uint64_t freq) {
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
-    if (freq >= 1000000 && freq <= 55000000) {
+    if (freq >= 500000 && freq <= 55000000) {
         if (shift != NULL) {
             *shift = 0;
         }
