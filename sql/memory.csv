@@ -38,6 +38,10 @@
 109	label	FT8 10m
 109	vfoa_freq	28074000
 109	vfoa_mode	2
+110	vfo	0
+110	label	FT8 6m
+110	vfoa_freq	50313000
+110	vfoa_mode	2
 200	vfo	0
 200	label	FT4 80m
 200	vfoa_freq	3575000
@@ -70,3 +74,7 @@
 207	label	FT4 10m
 207	vfoa_freq	28180000
 207	vfoa_mode	2
+208	vfo	0
+208	label	FT4 6m
+208	vfoa_freq	50318000
+208	vfoa_mode	2
