@@ -28,10 +28,15 @@ dialog_t                    *dialog_callsign = &dialog;
 
 static void edit_ok() {
     params_str_set(&params.callsign, textarea_window_get());
+    dialog_destruct(&dialog);
+}
+
+static void edit_cancel() {
+    dialog_destruct(&dialog);
 }
 
 static void construct_cb(lv_obj_t *parent) {
-    dialog.obj = textarea_window_open(NULL, NULL);
+    dialog.obj = textarea_window_open(edit_ok, edit_cancel);
     
     lv_obj_t *text = textarea_window_text();
     

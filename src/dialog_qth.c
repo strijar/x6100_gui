@@ -36,10 +36,16 @@ static void edit_ok() {
     } else {
         msg_set_text_fmt("Incorrect QTH Grid");
     }
+
+    dialog_destruct(&dialog);
+}
+
+static void edit_cancel() {
+    dialog_destruct(&dialog);
 }
 
 static void construct_cb(lv_obj_t *parent) {
-    dialog.obj = textarea_window_open(NULL, NULL);
+    dialog.obj = textarea_window_open(edit_ok, edit_cancel);
     
     lv_obj_t *text = textarea_window_text();
     
